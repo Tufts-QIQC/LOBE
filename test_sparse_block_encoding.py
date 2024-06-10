@@ -133,9 +133,7 @@ def test_coefficient_oracle_in_superposition(number_of_operators):
     assert np.allclose(wavefunction, expected_wavefunction)
 
 
-# Test 1: input l in random initial state, input system in computational basis state,
-# check that system gets modified to correct output state corresponding to operator
-def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
+def get_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
     operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
@@ -164,6 +162,14 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
         initial_state_of_validation_and_control, intitial_state_of_index
     )
 
+    return simulator, circuit, intitial_state_of_val_control_index
+
+
+def test_select_oracle_on_00_state_for_toy_hamiltonian():
+    simulator, circuit, intitial_state_of_val_control_index = (
+        get_select_oracle_test_inputs()
+    )
+
     # |psi> == |00>
     index_of_system_state = 0
     initial_state_of_system = np.zeros(4)
@@ -182,6 +188,12 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     assert np.allclose(wavefunction, initial_state)
 
+
+def test_select_oracle_on_01_state_for_toy_hamiltonian():
+    simulator, circuit, intitial_state_of_val_control_index = (
+        get_select_oracle_test_inputs()
+    )
+
     # |psi> == |01> |j_1, j_0>
     index_of_system_state = 1
     initial_state_of_system = np.zeros(4)
@@ -196,7 +208,9 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
         circuit, initial_state=initial_state
     ).final_state_vector
 
-    initial_bitstring = "1" + "0" + "00"[::-1] + "01"[::-1] # validation, control, index, system
+    initial_bitstring = (
+        "1" + "0" + "00"[::-1] + "01"[::-1]
+    )  # validation, control, index, system
     expected_bitstring = "0" + "0" + "00"[::-1] + "01"[::-1]
     assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
@@ -226,6 +240,12 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
+    )
+
+
+def test_select_oracle_on_10_state_for_toy_hamiltonian():
+    simulator, circuit, intitial_state_of_val_control_index = (
+        get_select_oracle_test_inputs()
     )
 
     # |psi> == |10> |j_1, j_0>
@@ -274,6 +294,12 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
         initial_state[int(expected_bitstring, 2)],
     )
 
+
+def test_select_oracle_on_11_state_for_toy_hamiltonian():
+    simulator, circuit, intitial_state_of_val_control_index = (
+        get_select_oracle_test_inputs()
+    )
+
     # |psi> == |11> |j_1, j_0>
     index_of_system_state = 3
     initial_state_of_system = np.zeros(4)
@@ -319,17 +345,6 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
     )
-
-    # 2. randomly generate superposition for l
-    # 3. loop over basis states of j
-    #     4. define initial wavefuction as validation == 1, control == 0, random superposition of l and basis state of j
-    #     5. add select oracle to circuit
-    #     6. simulate and get output wavefunction
-    #     if j should be acted on (01, 10, 11):
-    #         7. check that output is validation == 0, control == 0, initial random l tensor updated j basis state
-    #     else:
-    #         8. check that output is validation == 1, control == 0, initial random l tensor original j basis state
-    # pass
 
 
 # Test 2: input l in random initial state, input system in random initial state,
