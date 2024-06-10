@@ -173,6 +173,8 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
     initial_state = np.kron(
         intitial_state_of_val_control_index, initial_state_of_system
     )
+    initial_bitstring = "1" + "0" + "00"[::-1] + "00"[::-1]
+    assert initial_state[int(initial_bitstring, 2)] != 0
 
     wavefunction = simulator.simulate(
         circuit, initial_state=initial_state
@@ -181,7 +183,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
     assert np.allclose(wavefunction, initial_state)
 
     # |psi> == |01> |j_1, j_0>
-    index_of_system_state = 0
+    index_of_system_state = 1
     initial_state_of_system = np.zeros(4)
     initial_state_of_system[
         get_index_of_reversed_bitstring(index_of_system_state, 2)
@@ -194,9 +196,9 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
         circuit, initial_state=initial_state
     ).final_state_vector
 
-    initial_bitstring = "1" + "0" + "00"[::-1] + "01"[::-1]
+    initial_bitstring = "1" + "0" + "00"[::-1] + "01"[::-1] # validation, control, index, system
     expected_bitstring = "0" + "0" + "00"[::-1] + "01"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -212,7 +214,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "10"[::-1] + "01"[::-1]
     expected_bitstring = "0" + "0" + "10"[::-1] + "10"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -220,14 +222,14 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "11"[::-1] + "01"[::-1]
     expected_bitstring = "1" + "0" + "11"[::-1] + "01"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
     )
 
     # |psi> == |10> |j_1, j_0>
-    index_of_system_state = 0
+    index_of_system_state = 2
     initial_state_of_system = np.zeros(4)
     initial_state_of_system[
         get_index_of_reversed_bitstring(index_of_system_state, 2)
@@ -242,7 +244,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "00"[::-1] + "10"[::-1]
     expected_bitstring = "1" + "0" + "00"[::-1] + "10"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -250,7 +252,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "01"[::-1] + "10"[::-1]
     expected_bitstring = "0" + "0" + "01"[::-1] + "01"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -258,7 +260,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "10"[::-1] + "10"[::-1]
     expected_bitstring = "1" + "0" + "10"[::-1] + "10"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -266,14 +268,14 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "11"[::-1] + "10"[::-1]
     expected_bitstring = "0" + "0" + "11"[::-1] + "11"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
     )
 
     # |psi> == |11> |j_1, j_0>
-    index_of_system_state = 0
+    index_of_system_state = 3
     initial_state_of_system = np.zeros(4)
     initial_state_of_system[
         get_index_of_reversed_bitstring(index_of_system_state, 2)
@@ -288,7 +290,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "00"[::-1] + "11"[::-1]
     expected_bitstring = "0" + "0" + "00"[::-1] + "11"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -296,7 +298,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "01"[::-1] + "11"[::-1]
     expected_bitstring = "1" + "0" + "01"[::-1] + "11"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -304,7 +306,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "10"[::-1] + "11"[::-1]
     expected_bitstring = "1" + "0" + "10"[::-1] + "11"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
@@ -312,7 +314,7 @@ def test_select_oracle_on_basis_state_of_system_for_toy_hamiltonian():
 
     initial_bitstring = "1" + "0" + "11"[::-1] + "11"[::-1]
     expected_bitstring = "0" + "0" + "11"[::-1] + "11"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
+    assert initial_state[int(initial_bitstring, 2)] != 0
     assert np.isclose(
         wavefunction[int(initial_bitstring, 2)],
         initial_state[int(expected_bitstring, 2)],
