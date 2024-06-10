@@ -7,7 +7,6 @@ from _utils import get_index_of_reversed_bitstring
 from select_oracle import add_select_oracle
 
 
-# TODO: update number_of_operators to be non-power-of-two
 @pytest.mark.parametrize("number_of_operators", range(1, 17))
 def test_naive_usp_prepares_correct_state(number_of_operators):
     number_of_qubits = int(np.ceil(np.log2(number_of_operators)))
@@ -27,7 +26,6 @@ def test_naive_usp_prepares_correct_state(number_of_operators):
     assert np.allclose(expected_wavefunction, wavefunction)
 
 
-# TODO: update number_of_operators to be non-power-of-two
 @pytest.mark.parametrize("number_of_operators", range(1, 17))
 def test_coefficient_oracle_operates_on_individual_l_states_as_expected(
     number_of_operators,
