@@ -131,6 +131,26 @@ def test_coefficient_oracle_in_superposition(number_of_operators):
     assert np.allclose(wavefunction, expected_wavefunction)
 
 
+TOY_HAMILTONIAN_SELECT_STATE_MAP = {
+    "1" + "0" + "00"[::-1] + "00"[::-1]: "1" + "0" + "00"[::-1] + "00"[::-1],
+    "1" + "0" + "01"[::-1] + "00"[::-1]: "1" + "0" + "01"[::-1] + "00"[::-1],
+    "1" + "0" + "10"[::-1] + "00"[::-1]: "1" + "0" + "10"[::-1] + "00"[::-1],
+    "1" + "0" + "11"[::-1] + "00"[::-1]: "1" + "0" + "11"[::-1] + "00"[::-1],
+    "1" + "0" + "00"[::-1] + "01"[::-1]: "0" + "0" + "00"[::-1] + "01"[::-1],
+    "1" + "0" + "01"[::-1] + "01"[::-1]: "1" + "0" + "01"[::-1] + "01"[::-1],
+    "1" + "0" + "10"[::-1] + "01"[::-1]: "0" + "0" + "10"[::-1] + "10"[::-1],
+    "1" + "0" + "11"[::-1] + "01"[::-1]: "1" + "0" + "11"[::-1] + "01"[::-1],
+    "1" + "0" + "00"[::-1] + "10"[::-1]: "1" + "0" + "00"[::-1] + "10"[::-1],
+    "1" + "0" + "01"[::-1] + "10"[::-1]: "0" + "0" + "01"[::-1] + "01"[::-1],
+    "1" + "0" + "10"[::-1] + "10"[::-1]: "1" + "0" + "10"[::-1] + "10"[::-1],
+    "1" + "0" + "11"[::-1] + "10"[::-1]: "0" + "0" + "11"[::-1] + "10"[::-1],
+    "1" + "0" + "00"[::-1] + "11"[::-1]: "0" + "0" + "00"[::-1] + "11"[::-1],
+    "1" + "0" + "01"[::-1] + "11"[::-1]: "1" + "0" + "01"[::-1] + "11"[::-1],
+    "1" + "0" + "10"[::-1] + "11"[::-1]: "1" + "0" + "10"[::-1] + "11"[::-1],
+    "1" + "0" + "11"[::-1] + "11"[::-1]: "0" + "0" + "11"[::-1] + "11"[::-1],
+}
+
+
 def get_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
@@ -163,37 +183,13 @@ def get_select_oracle_test_inputs():
     return simulator, circuit, intitial_state_of_val_control_index
 
 
-def test_select_oracle_on_00_state_for_toy_hamiltonian():
+@pytest.mark.parametrize("system_basis_state", ["00", "01", "10", "11"])
+def test_select_oracle_on_basis_state_for_toy_hamiltonian(system_basis_state):
     simulator, circuit, intitial_state_of_val_control_index = (
         get_select_oracle_test_inputs()
     )
 
-    # |psi> == |00>
-    index_of_system_state = 0
-    initial_state_of_system = np.zeros(4)
-    initial_state_of_system[
-        get_index_of_reversed_bitstring(index_of_system_state, 2)
-    ] = 1
-    initial_state = np.kron(
-        intitial_state_of_val_control_index, initial_state_of_system
-    )
-    initial_bitstring = "1" + "0" + "00"[::-1] + "00"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-
-    wavefunction = simulator.simulate(
-        circuit, initial_state=initial_state
-    ).final_state_vector
-
-    assert np.allclose(wavefunction, initial_state)
-
-
-def test_select_oracle_on_01_state_for_toy_hamiltonian():
-    simulator, circuit, intitial_state_of_val_control_index = (
-        get_select_oracle_test_inputs()
-    )
-
-    # |psi> == |01> |j_1, j_0>
-    index_of_system_state = 1
+    index_of_system_state = int(system_basis_state, 2)
     initial_state_of_system = np.zeros(4)
     initial_state_of_system[
         get_index_of_reversed_bitstring(index_of_system_state, 2)
@@ -206,52 +202,30 @@ def test_select_oracle_on_01_state_for_toy_hamiltonian():
         circuit, initial_state=initial_state
     ).final_state_vector
 
-    initial_bitstring = (
-        "1" + "0" + "00"[::-1] + "01"[::-1]
-    )  # validation, control, index, system
-    expected_bitstring = "0" + "0" + "00"[::-1] + "01"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "01"[::-1] + "01"[::-1]
-    expected_bitstring = "1" + "0" + "01"[::-1] + "01"[::-1]
-    assert wavefunction[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "10"[::-1] + "01"[::-1]
-    expected_bitstring = "0" + "0" + "10"[::-1] + "10"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "11"[::-1] + "01"[::-1]
-    expected_bitstring = "1" + "0" + "11"[::-1] + "01"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
+    for index_bitstring in ["00", "01", "10", "11"]:
+        initial_bitstring = "1" + "0" + index_bitstring[::-1] + system_basis_state[::-1]
+        assert initial_state[int(initial_bitstring, 2)] != 0
+        assert np.isclose(
+            initial_state[int(initial_bitstring, 2)],
+            wavefunction[int(TOY_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)],
+        )
 
 
-def test_select_oracle_on_10_state_for_toy_hamiltonian():
+def test_select_oracle_on_superposition_state_for_toy_hamiltonian():
     simulator, circuit, intitial_state_of_val_control_index = (
         get_select_oracle_test_inputs()
     )
 
-    # |psi> == |10> |j_1, j_0>
-    index_of_system_state = 2
-    initial_state_of_system = np.zeros(4)
-    initial_state_of_system[
-        get_index_of_reversed_bitstring(index_of_system_state, 2)
-    ] = 1
+    random_fock_state_coeffs = (
+        np.random.uniform(-1, 1, size=4) + np.random.uniform(-1, 1, size=4) * 1j
+    )
+    random_fock_state_coeffs /= np.linalg.norm(random_fock_state_coeffs)
+
+    initial_state_of_system = np.zeros(4, dtype=np.complex128)
+    for system_state_index in range(4):
+        initial_state_of_system[
+            get_index_of_reversed_bitstring(system_state_index, 2)
+        ] = random_fock_state_coeffs[system_state_index]
     initial_state = np.kron(
         intitial_state_of_val_control_index, initial_state_of_system
     )
@@ -260,90 +234,46 @@ def test_select_oracle_on_10_state_for_toy_hamiltonian():
         circuit, initial_state=initial_state
     ).final_state_vector
 
-    initial_bitstring = "1" + "0" + "00"[::-1] + "10"[::-1]
-    expected_bitstring = "1" + "0" + "00"[::-1] + "10"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
+    for index_state in ["00", "01", "10", "11"]:
+        for system_state in ["00", "01", "10", "11"]:
+            initial_bitstring = (
+                "1" + "0" + index_state[::-1] + system_state[::-1]
+            )  # validation, control, index, system
+            assert initial_state[int(initial_bitstring, 2)] != 0
+            assert np.isclose(
+                initial_state[int(initial_bitstring, 2)],
+                wavefunction[
+                    int(TOY_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)
+                ],
+            )
+
+
+def test_select_oracle_block_encoding_for_toy_hamiltonian():
+    operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    coefficients = [1, 1, 1, 1]
+    circuit = cirq.Circuit()
+    validation = cirq.LineQubit(0)
+    control = cirq.LineQubit(1)
+    rotation = cirq.LineQubit(2)
+    index = [cirq.LineQubit(i + 3) for i in range(2)]
+    system = [cirq.LineQubit(i + 5) for i in range(2)]
+
+    circuit = add_naive_usp(circuit, index)
+    circuit.append(cirq.X.on(validation))
+    circuit = add_select_oracle(circuit, validation, control, index, system, operators)
+    circuit = add_coefficient_oracle(circuit, rotation, index, coefficients, 4)
+    circuit = add_naive_usp(circuit, index)
+
+    upper_left_block = circuit.unitary()[: 1 << len(system), : 1 << len(system)]
+    normalized_hamiltonian = (
+        np.array(
+            [
+                np.array([0, 0, 0, 0]),
+                np.array([0, 1, 1, 0]),
+                np.array([0, 1, 1, 0]),
+                np.array([0, 0, 0, 2]),
+            ]
+        )
+        / 4
     )
-
-    initial_bitstring = "1" + "0" + "01"[::-1] + "10"[::-1]
-    expected_bitstring = "0" + "0" + "01"[::-1] + "01"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "10"[::-1] + "10"[::-1]
-    expected_bitstring = "1" + "0" + "10"[::-1] + "10"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "11"[::-1] + "10"[::-1]
-    expected_bitstring = "0" + "0" + "11"[::-1] + "11"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-
-def test_select_oracle_on_11_state_for_toy_hamiltonian():
-    simulator, circuit, intitial_state_of_val_control_index = (
-        get_select_oracle_test_inputs()
-    )
-
-    # |psi> == |11> |j_1, j_0>
-    index_of_system_state = 3
-    initial_state_of_system = np.zeros(4)
-    initial_state_of_system[
-        get_index_of_reversed_bitstring(index_of_system_state, 2)
-    ] = 1
-    initial_state = np.kron(
-        intitial_state_of_val_control_index, initial_state_of_system
-    )
-
-    wavefunction = simulator.simulate(
-        circuit, initial_state=initial_state
-    ).final_state_vector
-
-    initial_bitstring = "1" + "0" + "00"[::-1] + "11"[::-1]
-    expected_bitstring = "0" + "0" + "00"[::-1] + "11"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "01"[::-1] + "11"[::-1]
-    expected_bitstring = "1" + "0" + "01"[::-1] + "11"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "10"[::-1] + "11"[::-1]
-    expected_bitstring = "1" + "0" + "10"[::-1] + "11"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-    initial_bitstring = "1" + "0" + "11"[::-1] + "11"[::-1]
-    expected_bitstring = "0" + "0" + "11"[::-1] + "11"[::-1]
-    assert initial_state[int(initial_bitstring, 2)] != 0
-    assert np.isclose(
-        wavefunction[int(initial_bitstring, 2)],
-        initial_state[int(expected_bitstring, 2)],
-    )
-
-
-# Test 2: input l in random initial state, input system in random initial state,
-# check that all computational basis states of system are modified correctly and that index is back to initial state
+    assert np.allclose(upper_left_block, normalized_hamiltonian)
