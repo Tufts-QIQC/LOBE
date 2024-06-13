@@ -248,9 +248,35 @@ def test_select_oracle_on_superposition_state_for_toy_hamiltonian():
             )
 
 
-def test_select_oracle_block_encoding_for_toy_hamiltonian():
+@pytest.mark.parametrize(
+    ["coefficients", "hamiltonian"],
+    [
+        (
+            [1, 1, 1, 1],
+            np.array(
+                [
+                    np.array([0, 0, 0, 0]),
+                    np.array([0, 1, 1, 0]),
+                    np.array([0, 1, 1, 0]),
+                    np.array([0, 0, 0, 2]),
+                ]
+            ),
+        ),
+        (
+            [1, 0.5, 0.5, 1],
+            np.array(
+                [
+                    np.array([0, 0, 0, 0]),
+                    np.array([0, 1, 0.5, 0]),
+                    np.array([0, 0.5, 1, 0]),
+                    np.array([0, 0, 0, 2]),
+                ]
+            ),
+        ),
+    ],
+)
+def test_block_encoding_for_toy_hamiltonian(coefficients, hamiltonian):
     operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
-    coefficients = [1, 1, 1, 1]
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
     control = cirq.LineQubit(1)
@@ -265,15 +291,5 @@ def test_select_oracle_block_encoding_for_toy_hamiltonian():
     circuit = add_naive_usp(circuit, index)
 
     upper_left_block = circuit.unitary()[: 1 << len(system), : 1 << len(system)]
-    normalized_hamiltonian = (
-        np.array(
-            [
-                np.array([0, 0, 0, 0]),
-                np.array([0, 1, 1, 0]),
-                np.array([0, 1, 1, 0]),
-                np.array([0, 0, 0, 2]),
-            ]
-        )
-        / 4
-    )
+    normalized_hamiltonian = hamiltonian / len(operators)
     assert np.allclose(upper_left_block, normalized_hamiltonian)
