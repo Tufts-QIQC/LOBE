@@ -2,9 +2,9 @@ import pytest
 import cirq
 import numpy as np
 from usp import add_naive_usp
-from coefficient_oracle import add_coefficient_oracle
+from coefficient_oracle import add_coefficient_oracle, add_prepare_circuit
 from _utils import get_index_of_reversed_bitstring
-from select_oracle import add_select_oracle
+from select_oracle import add_select_oracle, add_select_and_coefficient_oracle
 
 
 @pytest.mark.parametrize("number_of_operators", range(1, 17))
@@ -327,3 +327,102 @@ def test_select_and_coefficient_oracles_commute():
     unitary_coefficient_first = circuit.unitary()
 
     assert np.allclose(unitary_select_first, unitary_coefficient_first)
+
+
+@pytest.mark.parametrize(
+    ["coefficients", "hamiltonian"],
+    [
+        (
+            [1, 1, 1, 1],
+            np.array(
+                [
+                    np.array([0, 0, 0, 0]),
+                    np.array([0, 1, 1, 0]),
+                    np.array([0, 1, 1, 0]),
+                    np.array([0, 0, 0, 2]),
+                ]
+            ),
+        ),
+        (
+            [1, 0.5, 0.5, 1],
+            np.array(
+                [
+                    np.array([0, 0, 0, 0]),
+                    np.array([0, 1, 0.5, 0]),
+                    np.array([0, 0.5, 1, 0]),
+                    np.array([0, 0, 0, 2]),
+                ]
+            ),
+        ),
+    ],
+)
+def test_block_encoding_for_toy_hamiltonian_double_oracle(coefficients, hamiltonian):
+    operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    circuit = cirq.Circuit()
+    validation = cirq.LineQubit(0)
+    control = cirq.LineQubit(1)
+    rotation = cirq.LineQubit(2)
+    index = [cirq.LineQubit(i + 3) for i in range(2)]
+    system = [cirq.LineQubit(i + 5) for i in range(2)]
+
+    circuit = add_naive_usp(circuit, index)
+    circuit.append(cirq.X.on(validation))
+    circuit = add_select_and_coefficient_oracle(
+        circuit, validation, rotation, control, index, system, operators, coefficients
+    )
+    circuit = add_naive_usp(circuit, index)
+
+    upper_left_block = circuit.unitary()[: 1 << len(system), : 1 << len(system)]
+    normalized_hamiltonian = hamiltonian / len(operators)
+    assert np.allclose(upper_left_block, normalized_hamiltonian)
+
+
+@pytest.mark.parametrize(
+    ["coefficients", "hamiltonian"],
+    [
+        (
+            np.array([1, 1, 1, 1]),
+            np.array(
+                [
+                    np.array([0, 0, 0, 0]),
+                    np.array([0, 1, 1, 0]),
+                    np.array([0, 1, 1, 0]),
+                    np.array([0, 0, 0, 2]),
+                ]
+            ),
+        ),
+        (
+            np.array([1, 0.5, 0.5, 1]),
+            np.array(
+                [
+                    np.array([0, 0, 0, 0]),
+                    np.array([0, 1, 0.5, 0]),
+                    np.array([0, 0.5, 1, 0]),
+                    np.array([0, 0, 0, 2]),
+                ]
+            ),
+        ),
+    ],
+)
+def test_block_encoding_for_toy_hamiltonian_prepare_select(coefficients, hamiltonian):
+    operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    circuit = cirq.Circuit()
+    validation = cirq.LineQubit(0)
+    control = cirq.LineQubit(1)
+    index = [cirq.LineQubit(i + 2) for i in range(2)]
+    system = [cirq.LineQubit(i + 4) for i in range(2)]
+
+    normalized_coefficients = coefficients / sum(coefficients)
+    target_state = np.sqrt(normalized_coefficients)
+    number_of_prepare_qubits = int(np.ceil(np.log2(len(normalized_coefficients))))
+    target_state = np.concatenate(
+        (target_state, np.zeros((1 << number_of_prepare_qubits) - len(target_state)))
+    )
+    circuit = add_prepare_circuit(circuit, index, target_state)
+    circuit.append(cirq.X.on(validation))
+    circuit = add_select_oracle(circuit, validation, control, index, system, operators)
+    circuit = add_prepare_circuit(circuit, index, target_state, dagger=True)
+
+    upper_left_block = circuit.unitary()[: 1 << len(system), : 1 << len(system)]
+    normalized_hamiltonian = hamiltonian / sum(coefficients)
+    assert np.allclose(upper_left_block, normalized_hamiltonian)
