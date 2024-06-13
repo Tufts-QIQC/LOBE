@@ -1,19 +1,6 @@
 import pytest
 import numpy as np
-from src.lobe._utils import get_index_of_reversed_bitstring, pretty_print
-
-
-@pytest.mark.parametrize("trial", range(5))
-@pytest.mark.parametrize("size_of_bitstring", range(1, 20))
-def test_get_index_of_reversed_bitstring(trial, size_of_bitstring):
-    bitstring = "".join(np.random.choice(["0", "1"], size=size_of_bitstring))
-    original_integer = int(bitstring, 2)
-    number_of_qubits = len(bitstring)
-    index = get_index_of_reversed_bitstring(original_integer, number_of_qubits)
-
-    expected_index = int(bitstring[::-1], 2)
-
-    assert index == expected_index
+from src.lobe._utils import pretty_print
 
 
 def test_pretty_print_all_zeros():
@@ -48,11 +35,11 @@ def test_pretty_print_displays_amplitudes_correctly(decimals):
     assert pretty_print_string == expected_string
 
 
-def test_pretty_print_reverses_register_printout():
+def test_pretty_print_does_not_reverse_register_printout():
     wavefunction = np.zeros(8)
     wavefunction[1] = 1  # 001
     pretty_print_string = pretty_print(wavefunction, [3]).replace(" ", "")
-    expected_string = "1.0|100>\n"
+    expected_string = "1.0|001>\n"
     assert pretty_print_string == expected_string
 
 
@@ -60,5 +47,5 @@ def test_pretty_print_separates_registers_properly():
     wavefunction = np.zeros(8)
     wavefunction[1] = 1  # 001
     pretty_print_string = pretty_print(wavefunction, [1, 2]).replace(" ", "")
-    expected_string = "1.0|0|10>\n"
+    expected_string = "1.0|0|01>\n"
     assert pretty_print_string == expected_string

@@ -12,7 +12,7 @@ def add_coefficient_oracle(
     for index in range(number_of_operators):
         control_values = [
             int(i) for i in format(index, f"#0{2+len(index_qubits)}b")[2:]
-        ][::-1]
+        ]
         circuit.append(
             cirq.ry(2 * np.arccos(normalized_term_coefficients[index]))
             .on(rotation_qubit)

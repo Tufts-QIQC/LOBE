@@ -2,25 +2,24 @@ import pytest
 import numpy as np
 import cirq
 from src.lobe.select_oracle import add_select_oracle
-from src.lobe._utils import get_index_of_reversed_bitstring
 
 TOY_HAMILTONIAN_SELECT_STATE_MAP = {
-    "1" + "0" + "00"[::-1] + "00"[::-1]: "1" + "0" + "00"[::-1] + "00"[::-1],
-    "1" + "0" + "01"[::-1] + "00"[::-1]: "1" + "0" + "01"[::-1] + "00"[::-1],
-    "1" + "0" + "10"[::-1] + "00"[::-1]: "1" + "0" + "10"[::-1] + "00"[::-1],
-    "1" + "0" + "11"[::-1] + "00"[::-1]: "1" + "0" + "11"[::-1] + "00"[::-1],
-    "1" + "0" + "00"[::-1] + "01"[::-1]: "0" + "0" + "00"[::-1] + "01"[::-1],
-    "1" + "0" + "01"[::-1] + "01"[::-1]: "1" + "0" + "01"[::-1] + "01"[::-1],
-    "1" + "0" + "10"[::-1] + "01"[::-1]: "0" + "0" + "10"[::-1] + "10"[::-1],
-    "1" + "0" + "11"[::-1] + "01"[::-1]: "1" + "0" + "11"[::-1] + "01"[::-1],
-    "1" + "0" + "00"[::-1] + "10"[::-1]: "1" + "0" + "00"[::-1] + "10"[::-1],
-    "1" + "0" + "01"[::-1] + "10"[::-1]: "0" + "0" + "01"[::-1] + "01"[::-1],
-    "1" + "0" + "10"[::-1] + "10"[::-1]: "1" + "0" + "10"[::-1] + "10"[::-1],
-    "1" + "0" + "11"[::-1] + "10"[::-1]: "0" + "0" + "11"[::-1] + "10"[::-1],
-    "1" + "0" + "00"[::-1] + "11"[::-1]: "0" + "0" + "00"[::-1] + "11"[::-1],
-    "1" + "0" + "01"[::-1] + "11"[::-1]: "1" + "0" + "01"[::-1] + "11"[::-1],
-    "1" + "0" + "10"[::-1] + "11"[::-1]: "1" + "0" + "10"[::-1] + "11"[::-1],
-    "1" + "0" + "11"[::-1] + "11"[::-1]: "0" + "0" + "11"[::-1] + "11"[::-1],
+    "1" + "0" + "00" + "00": "1" + "0" + "00" + "00",
+    "1" + "0" + "01" + "00": "1" + "0" + "01" + "00",
+    "1" + "0" + "10" + "00": "1" + "0" + "10" + "00",
+    "1" + "0" + "11" + "00": "1" + "0" + "11" + "00",
+    "1" + "0" + "00" + "01": "0" + "0" + "00" + "01",
+    "1" + "0" + "01" + "01": "1" + "0" + "01" + "01",
+    "1" + "0" + "10" + "01": "0" + "0" + "10" + "10",
+    "1" + "0" + "11" + "01": "1" + "0" + "11" + "01",
+    "1" + "0" + "00" + "10": "1" + "0" + "00" + "10",
+    "1" + "0" + "01" + "10": "0" + "0" + "01" + "01",
+    "1" + "0" + "10" + "10": "1" + "0" + "10" + "10",
+    "1" + "0" + "11" + "10": "0" + "0" + "11" + "10",
+    "1" + "0" + "00" + "11": "0" + "0" + "00" + "11",
+    "1" + "0" + "01" + "11": "1" + "0" + "01" + "11",
+    "1" + "0" + "10" + "11": "1" + "0" + "10" + "11",
+    "1" + "0" + "11" + "11": "0" + "0" + "11" + "11",
 }
 
 
@@ -64,9 +63,7 @@ def test_select_oracle_on_basis_state_for_toy_hamiltonian(system_basis_state):
 
     index_of_system_state = int(system_basis_state, 2)
     initial_state_of_system = np.zeros(4)
-    initial_state_of_system[
-        get_index_of_reversed_bitstring(index_of_system_state, 2)
-    ] = 1
+    initial_state_of_system[index_of_system_state] = 1
     initial_state = np.kron(
         intitial_state_of_val_control_index, initial_state_of_system
     )
@@ -76,7 +73,7 @@ def test_select_oracle_on_basis_state_for_toy_hamiltonian(system_basis_state):
     ).final_state_vector
 
     for index_bitstring in ["00", "01", "10", "11"]:
-        initial_bitstring = "1" + "0" + index_bitstring[::-1] + system_basis_state[::-1]
+        initial_bitstring = "1" + "0" + index_bitstring + system_basis_state
         assert initial_state[int(initial_bitstring, 2)] != 0
         assert np.isclose(
             initial_state[int(initial_bitstring, 2)],
@@ -96,9 +93,9 @@ def test_select_oracle_on_superposition_state_for_toy_hamiltonian():
 
     initial_state_of_system = np.zeros(4, dtype=np.complex128)
     for system_state_index in range(4):
-        initial_state_of_system[
-            get_index_of_reversed_bitstring(system_state_index, 2)
-        ] = random_fock_state_coeffs[system_state_index]
+        initial_state_of_system[system_state_index] = random_fock_state_coeffs[
+            system_state_index
+        ]
     initial_state = np.kron(
         intitial_state_of_val_control_index, initial_state_of_system
     )
@@ -110,7 +107,7 @@ def test_select_oracle_on_superposition_state_for_toy_hamiltonian():
     for index_state in ["00", "01", "10", "11"]:
         for system_state in ["00", "01", "10", "11"]:
             initial_bitstring = (
-                "1" + "0" + index_state[::-1] + system_state[::-1]
+                "1" + "0" + index_state + system_state
             )  # validation, control, index, system
             assert initial_state[int(initial_bitstring, 2)] != 0
             assert np.isclose(

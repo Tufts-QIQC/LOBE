@@ -2,10 +2,6 @@ import numpy as np
 from typing import List
 
 
-def get_index_of_reversed_bitstring(integer: int, number_of_qubits: int) -> int:
-    return int(format(integer, f"0{2+number_of_qubits}b")[2:][::-1], 2)
-
-
 def pretty_print(
     wavefunction: np.ndarray,
     register_lengths: List[int],
@@ -27,7 +23,7 @@ def pretty_print(
 
                 state_of_register = state_bitstring[
                     qubit_counter : qubit_counter + register_length
-                ][::-1]
+                ]
                 ket_string += "|" + state_of_register
                 qubit_counter += register_length
 
