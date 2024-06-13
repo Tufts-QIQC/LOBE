@@ -1,10 +1,10 @@
 import pytest
 import cirq
 import numpy as np
-from usp import add_naive_usp
-from coefficient_oracle import add_coefficient_oracle
-from _utils import get_index_of_reversed_bitstring
-from select_oracle import add_select_oracle
+from src.lobe.usp import add_naive_usp
+from src.lobe.coefficient_oracle import add_coefficient_oracle
+from src.lobe._utils import get_index_of_reversed_bitstring
+from src.lobe.select_oracle import add_select_oracle
 
 
 @pytest.mark.parametrize("number_of_operators", range(1, 17))
