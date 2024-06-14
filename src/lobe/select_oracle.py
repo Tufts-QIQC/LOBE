@@ -58,8 +58,16 @@ def _add_swap_unitary(
     circuit.append(
         cirq.X.on(control).controlled_by(*control_qubits, control_values=control_values)
     )
-    circuit.append(cirq.X.on(system[-operator[0] - 1]).controlled_by(control))
-    circuit.append(cirq.X.on(system[-operator[1] - 1]).controlled_by(control))
+
+    start = min( -operator[0] - 1, -operator[1] - 1 )
+    stop = max( -operator[0] - 1, -operator[1] - 1 )
+
+    circuit.append(cirq.X.on(system[stop]).controlled_by(control))
+
+    for i in reversed(range(start + 1, stop)):
+        circuit.append(cirq.Z.on(system[i]).controlled_by(control))
+
+    circuit.append(cirq.X.on(system[start]).controlled_by(control))
 
     circuit.append(cirq.X.on(validation).controlled_by(control))
 
