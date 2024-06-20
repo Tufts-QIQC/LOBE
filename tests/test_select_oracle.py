@@ -58,7 +58,10 @@ def get_select_oracle_test_inputs():
 
 
 @pytest.mark.parametrize("system_basis_state", ["00", "01", "10", "11"])
-def test_select_oracle_on_basis_state_for_toy_hamiltonian(system_basis_state):
+@pytest.mark.parametrize("index_bitstring", ["00", "01", "10", "11"])
+def test_select_oracle_on_basis_state_for_toy_hamiltonian(
+    system_basis_state, index_bitstring
+):
     simulator, circuit, intitial_state_of_val_control_index = (
         get_select_oracle_test_inputs()
     )
@@ -74,16 +77,19 @@ def test_select_oracle_on_basis_state_for_toy_hamiltonian(system_basis_state):
         circuit, initial_state=initial_state
     ).final_state_vector
 
-    for index_bitstring in ["00", "01", "10", "11"]:
-        initial_bitstring = "1" + "0" + index_bitstring + system_basis_state
-        assert initial_state[int(initial_bitstring, 2)] != 0
-        assert np.isclose(
-            initial_state[int(initial_bitstring, 2)],
-            wavefunction[int(TOY_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)],
-        )
+    initial_bitstring = "1" + "0" + index_bitstring + system_basis_state
+    assert initial_state[int(initial_bitstring, 2)] != 0
+    assert np.isclose(
+        initial_state[int(initial_bitstring, 2)],
+        wavefunction[int(TOY_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)],
+    )
 
 
-def test_select_oracle_on_superposition_state_for_toy_hamiltonian():
+@pytest.mark.parametrize("index_state", ["00", "01", "10", "11"])
+@pytest.mark.parametrize("system_state", ["00", "01", "10", "11"])
+def test_select_oracle_on_superposition_state_for_toy_hamiltonian(
+    index_state, system_state
+):
     simulator, circuit, intitial_state_of_val_control_index = (
         get_select_oracle_test_inputs()
     )
@@ -106,18 +112,14 @@ def test_select_oracle_on_superposition_state_for_toy_hamiltonian():
         circuit, initial_state=initial_state
     ).final_state_vector
 
-    for index_state in ["00", "01", "10", "11"]:
-        for system_state in ["00", "01", "10", "11"]:
-            initial_bitstring = (
-                "1" + "0" + index_state + system_state
-            )  # validation, control, index, system
-            assert initial_state[int(initial_bitstring, 2)] != 0
-            assert np.isclose(
-                initial_state[int(initial_bitstring, 2)],
-                wavefunction[
-                    int(TOY_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)
-                ],
-            )
+    initial_bitstring = (
+        "1" + "0" + index_state + system_state
+    )  # validation, control, index, system
+    assert initial_state[int(initial_bitstring, 2)] != 0
+    assert np.isclose(
+        initial_state[int(initial_bitstring, 2)],
+        wavefunction[int(TOY_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)],
+    )
 
 
 def test_select_oracle_on_one_two_body_term():
