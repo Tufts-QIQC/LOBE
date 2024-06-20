@@ -250,15 +250,17 @@ def test_parity_on_five_qubit_one_two_body_term(j_str, expect_j_str, parity_coef
     [
         ("00011", "11000", -1, "0"),
         ("00111", "11100", -1, "0"),
-        ("00001", "00100", 1, "1"),
-        ("00011", "00110", -1, "1"),
+        ("00010", "01000", 1, "1"),
+        ("00011", "01001", 1, "1"),
+        ("00111", "01101", -1, "1"),
+        ("00110", "01100", -1, "1"),
     ],
 )
 def test_select_oracle_on_both_one_and_two_body_terms(
     j_str, expect_j_str, parity_coeff, index_state
 ):
     # b_4^dag b_3^dag b_1 b_0 |00011> = |11000> & |00111> = -|11100>
-    operator = [(4, 3, 1, 0), (2, 0)]
+    operator = [(4, 3, 1, 0), (3, 1)]
 
     number_of_index_qubits = 1
     number_of_system_qubits = 5
