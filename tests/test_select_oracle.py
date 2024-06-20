@@ -248,8 +248,8 @@ def test_parity_on_five_qubit_one_two_body_term(j_str, expect_j_str, parity_coef
     [
         ("00011", "11000", -1, "0"),
         ("00111", "11100", -1, "0"),
-        ("00001", "00100", -1, "1"),
-        ("00011", "00110", +1, "1"),
+        ("00001", "00100", 1, "1"),
+        ("00011", "00110", -1, "1"),
     ],
 )
 def test_select_oracle_on_both_one_and_two_body_terms(
