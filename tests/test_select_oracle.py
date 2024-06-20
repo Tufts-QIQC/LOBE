@@ -179,7 +179,7 @@ def test_select_oracle_on_one_two_body_term():
 
     expect_init_j = np.zeros(2**number_of_system_qubits)  # |j> = |0011>
     expect_j_str = "1100"
-    expect_init_j[int(expect_j_str, 2)] = 1
+    expect_init_j[int(expect_j_str, 2)] = -1
 
     expected_final_wavefunction = np.kron(expected_all_registers_bar_j, expect_init_j)
     assert np.allclose(wavefunction, expected_final_wavefunction)
@@ -187,10 +187,10 @@ def test_select_oracle_on_one_two_body_term():
 
 @pytest.mark.parametrize(
     ["j_str", "expect_j_str", "parity_coeff"],
-    [("00011", "11000", +1), ("00111", "11100", -1)],
+    [("00011", "11000", -1), ("00111", "11100", -1)],
 )
 def test_parity_on_five_qubit_one_two_body_term(j_str, expect_j_str, parity_coeff):
-    # b_4^dag b_3^dag b_1 b_0 |00011> = |11000> & |00111> = -|11100>
+    # b_4^dag b_3^dag b_1 b_0 |00011> = -|11000> & |00111> = -|11100>
     operator = [(4, 3, 1, 0)]
 
     number_of_index_qubits = 1
@@ -246,10 +246,10 @@ def test_parity_on_five_qubit_one_two_body_term(j_str, expect_j_str, parity_coef
 @pytest.mark.parametrize(
     ["j_str", "expect_j_str", "parity_coeff", "index_state"],
     [
-        ("00011", "11000", +1, "0"),
+        ("00011", "11000", -1, "0"),
         ("00111", "11100", -1, "0"),
-        ("00001", "00100", +1, "1"),
-        ("00011", "00110", -1, "1"),
+        ("00001", "00100", -1, "1"),
+        ("00011", "00110", +1, "1"),
     ],
 )
 def test_select_oracle_on_both_one_and_two_body_terms(
