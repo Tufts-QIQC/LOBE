@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 import cirq
 from src.lobe.select_oracle import add_select_oracle
-from src.lobe.toy_two_body_select_oracle import add__toy_pairing_select_oracle
 
 
 TOY_HAMILTONIAN_SELECT_STATE_MAP = {
