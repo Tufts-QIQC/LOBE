@@ -27,7 +27,7 @@ TOY_HAMILTONIAN_SELECT_STATE_MAP = {
 def get_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
-    operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    operators = [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))]
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
     control = cirq.LineQubit(1)
@@ -132,7 +132,7 @@ def test_select_oracle_on_one_two_body_term():
     """
     # Operator = b_3^dag b_2^dag b_1 b_0
     # This acts only on |0, 0, 1, 1> to output |1, 1, 0, 0>
-    operator = [(3, 2, 1, 0)]
+    operator = [((0, 3), (0, 2), (0, 1), (0, 0))]
 
     number_of_index_qubits = 1
     number_of_system_qubits = 4
@@ -192,7 +192,7 @@ def test_select_oracle_on_one_two_body_term():
 )
 def test_parity_on_five_qubit_one_two_body_term(j_str, expect_j_str, parity_coeff):
     # b_4^dag b_3^dag b_1 b_0 |00011> = -|11000> & |00111> = -|11100>
-    operator = [(4, 3, 1, 0)]
+    operator = [((0, 4), (0, 3), (0, 1), (0, 0))]
 
     number_of_index_qubits = 1
     number_of_system_qubits = 5
@@ -259,7 +259,7 @@ def test_select_oracle_on_both_one_and_two_body_terms(
     j_str, expect_j_str, parity_coeff, index_state
 ):
     # b_4^dag b_3^dag b_1 b_0 |00011> = |11000> & |00111> = -|11100>
-    operator = [(4, 3, 1, 0), (3, 1)]
+    operator = [((0, 4), (0, 3), (0, 1), (0, 0)), ((0, 3), (0, 1))]
 
     number_of_index_qubits = 1
     number_of_system_qubits = 5

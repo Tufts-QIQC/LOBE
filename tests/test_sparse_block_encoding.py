@@ -10,7 +10,7 @@ from src.lobe.select_oracle import add_select_oracle
     ["operators", "coefficients", "hamiltonian"],
     [
         (
-            [(0, 0), (0, 1), (1, 0), (1, 1)],
+            [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))],
             np.array([1, 1, 1, 1]),
             np.array(
                 [
@@ -22,7 +22,7 @@ from src.lobe.select_oracle import add_select_oracle
             ),
         ),
         (
-            [(0, 0), (0, 1), (1, 0), (1, 1)],
+            [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))],
             np.array([1, 0.5, 0.5, 1]),
             np.array(
                 [
@@ -34,7 +34,7 @@ from src.lobe.select_oracle import add_select_oracle
             ),
         ),
         (
-            [(0, 0), (1, 1), (2, 2)],
+            [((0, 0), (0, 0)), ((0, 1), (0, 1)), ((0, 2), (0, 2))],
             np.array([4, 2, 1]),
             np.array(
                 [
@@ -51,22 +51,22 @@ from src.lobe.select_oracle import add_select_oracle
         ),
         (
             [
-                (0, 0),
-                (0, 1),
-                (0, 2),
-                (0, 3),
-                (1, 0),
-                (1, 1),
-                (1, 2),
-                (1, 3),
-                (2, 0),
-                (2, 1),
-                (2, 2),
-                (2, 3),
-                (3, 0),
-                (3, 1),
-                (3, 2),
-                (3, 3),
+                ((0, 0), (0, 0)),
+                ((0, 0), (0, 1)),
+                ((0, 0), (0, 2)),
+                ((0, 0), (0, 3)),
+                ((0, 1), (0, 0)),
+                ((0, 1), (0, 1)),
+                ((0, 1), (0, 2)),
+                ((0, 1), (0, 3)),
+                ((0, 2), (0, 0)),
+                ((0, 2), (0, 1)),
+                ((0, 2), (0, 2)),
+                ((0, 2), (0, 3)),
+                ((0, 3), (0, 0)),
+                ((0, 3), (0, 1)),
+                ((0, 3), (0, 2)),
+                ((0, 3), (0, 3)),
             ],
             np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]),
             np.array(
@@ -92,7 +92,7 @@ from src.lobe.select_oracle import add_select_oracle
         ),
         (
             [
-                (0, 2)
+                ((0, 0), (0, 2))
             ],  # Operator b^\dagger_0 b_2. Should map |100> -> |001> and |110> -> -|011>
             np.array([1]),
             np.array(
@@ -111,7 +111,8 @@ from src.lobe.select_oracle import add_select_oracle
     ],
 )
 def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian):
-    size_of_system = max(max(operators)) + 1
+    indices = [op[1] for op in operators]
+    size_of_system = max(max(indices)) + 1
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
@@ -140,7 +141,7 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
 
 
 def test_select_and_coefficient_oracles_commute():
-    operators = [(0, 0), (0, 1), (1, 0), (1, 1)]
+    operators = [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))]
     coefficients = np.random.uniform(0, 1, size=4)
     validation = cirq.LineQubit(0)
     control = cirq.LineQubit(1)
