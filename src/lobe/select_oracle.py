@@ -3,27 +3,16 @@ import cirq
 
 def add_select_oracle(circuit, validation, control, index_register, system, operators):
     for operator_index, operator in enumerate(operators):
-        if len(operator) == 2:
-            if operator[0] == operator[1]:
-                circuit = _add_particle_number_op(
-                    circuit,
-                    validation,
-                    index_register,
-                    operator_index,
-                    system[-operator[0] - 1],
-                )
-            else:
-                circuit = _add_ladder_operator(
-                    circuit,
-                    validation,
-                    control,
-                    index_register,
-                    operator_index,
-                    system,
-                    operator,
-                )
-        elif len(operator) == 4:
-            circuit = _add_ladder_operator(
+        if operator[0] == operator[1]:
+            circuit = _add_fermionic_particle_number_op(
+                circuit,
+                validation,
+                index_register,
+                operator_index,
+                system[-operator[0] - 1],
+            )
+        else:
+            circuit = _add_fermionic_ladder_operator(
                 circuit,
                 validation,
                 control,
@@ -35,7 +24,7 @@ def add_select_oracle(circuit, validation, control, index_register, system, oper
     return circuit
 
 
-def _add_particle_number_op(
+def _add_fermionic_particle_number_op(
     circuit, validation, index_register, operator_index, system_qubit
 ):
     # Get binary control values corresponding to current operator index
@@ -53,7 +42,7 @@ def _add_particle_number_op(
     return circuit
 
 
-def _add_ladder_operator(
+def _add_fermionic_ladder_operator(
     circuit, validation, control, index_register, operator_index, system, operator
 ):
     # Get binary control values corresponding to current operator index
