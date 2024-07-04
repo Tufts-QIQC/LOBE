@@ -11,27 +11,24 @@ def add_select_oracle(circuit, validation, control, index_register, system, oper
         control (cirq.LineQubit): The ancilla qubit that is used for elbows
         index_register (List[cirq.LineQubit]): The qubit register that is used to index the operators
         system (List[cirq.LineQubit]): The qubit register that is used to encode the system
-        operators (List[Tuple(Tuple(int, int))]): The ladder operators included in the Hamiltonian.
-            Each item in the list is a tuple and corresponds to a term comprising several ladder operators.
-            Each item in a tuple is a tuple corresponding to a single ladder operator.
-            The first integer in this tuple dictates the type of operator (0 -> fermionic), (1 -> antifermionic)
-            (2 -> bosonic). The second integer in this tuple corresponds to the mode that this ladder operator acts on.
+        operators (List[List[LadderOperator]]): The ladder operators included in the Hamiltonian.
+            Each item in the list is a list of LadderOperators and corresponds to a term comprising several
+            ladder operators.
+            The first integer in this tuple dictates the type of operator . The second integer in this tuple corresponds to the mode that this ladder operator acts on.
 
     Returns:
         cirq.Circuit: The updated quantum circuit
     """
     for operator_index, operator in enumerate(operators):
-        op_types = [ladder_op[0] for ladder_op in operator]
-        print(op_types)
+        op_types = [ladder_op.particle_type for ladder_op in operator]
         if np.allclose(op_types, 0):  # All terms are fermionic terms
-            print("Yes")
-            if len(operator) == 2 and operator[0][1] == operator[1][1]:
+            if len(operator) == 2 and operator[0].mode == operator[1].mode:
                 circuit = _add_fermionic_particle_number_op(
                     circuit,
                     validation,
                     index_register,
                     operator_index,
-                    system[-operator[0][1] - 1],
+                    system[-operator[0].mode - 1],
                 )
             else:
                 circuit = _add_fermionic_ladder_operator(
@@ -84,7 +81,7 @@ def _add_fermionic_ladder_operator(
     control_qubits = [validation] + index_register
     # Add system qubits to control register
     for ladder_op in operator:
-        control_qubits += [system[-ladder_op[1] - 1]]
+        control_qubits += [system[-ladder_op.mode - 1]]
 
     # This is essentially a left-elbow
     circuit.append(
@@ -93,9 +90,9 @@ def _add_fermionic_ladder_operator(
 
     # Reverse loop because operators act starting from the right
     for ladder_op in operator[::-1]:
-        for system_qubit in system[::-1][: ladder_op[1]]:
+        for system_qubit in system[::-1][: ladder_op.mode]:
             circuit.append(cirq.Z.on(system_qubit).controlled_by(control))
-        circuit.append(cirq.X.on(system[-ladder_op[1] - 1]).controlled_by(control))
+        circuit.append(cirq.X.on(system[-ladder_op.mode - 1]).controlled_by(control))
 
     circuit.append(cirq.X.on(validation).controlled_by(control))
 

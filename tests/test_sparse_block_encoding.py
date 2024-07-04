@@ -4,13 +4,19 @@ import numpy as np
 from src.lobe.usp import add_naive_usp
 from src.lobe.coefficient_oracle import add_coefficient_oracle
 from src.lobe.select_oracle import add_select_oracle
+from src.lobe.operators import LadderOperator
 
 
 @pytest.mark.parametrize(
     ["operators", "coefficients", "hamiltonian"],
     [
         (
-            [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))],
+            [
+                [LadderOperator(0, 0, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 0, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
+            ],
             np.array([1, 1, 1, 1]),
             np.array(
                 [
@@ -22,7 +28,12 @@ from src.lobe.select_oracle import add_select_oracle
             ),
         ),
         (
-            [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))],
+            [
+                [LadderOperator(0, 0, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 0, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
+            ],
             np.array([1, 0.5, 0.5, 1]),
             np.array(
                 [
@@ -34,7 +45,11 @@ from src.lobe.select_oracle import add_select_oracle
             ),
         ),
         (
-            [((0, 0), (0, 0)), ((0, 1), (0, 1)), ((0, 2), (0, 2))],
+            [
+                [LadderOperator(0, 0, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 2, True), LadderOperator(0, 2, False)],
+            ],
             np.array([4, 2, 1]),
             np.array(
                 [
@@ -51,22 +66,22 @@ from src.lobe.select_oracle import add_select_oracle
         ),
         (
             [
-                ((0, 0), (0, 0)),
-                ((0, 0), (0, 1)),
-                ((0, 0), (0, 2)),
-                ((0, 0), (0, 3)),
-                ((0, 1), (0, 0)),
-                ((0, 1), (0, 1)),
-                ((0, 1), (0, 2)),
-                ((0, 1), (0, 3)),
-                ((0, 2), (0, 0)),
-                ((0, 2), (0, 1)),
-                ((0, 2), (0, 2)),
-                ((0, 2), (0, 3)),
-                ((0, 3), (0, 0)),
-                ((0, 3), (0, 1)),
-                ((0, 3), (0, 2)),
-                ((0, 3), (0, 3)),
+                [LadderOperator(0, 0, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 0, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 0, True), LadderOperator(0, 2, False)],
+                [LadderOperator(0, 0, True), LadderOperator(0, 3, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 2, False)],
+                [LadderOperator(0, 1, True), LadderOperator(0, 3, False)],
+                [LadderOperator(0, 2, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 2, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 2, True), LadderOperator(0, 2, False)],
+                [LadderOperator(0, 2, True), LadderOperator(0, 3, False)],
+                [LadderOperator(0, 3, True), LadderOperator(0, 0, False)],
+                [LadderOperator(0, 3, True), LadderOperator(0, 1, False)],
+                [LadderOperator(0, 3, True), LadderOperator(0, 2, False)],
+                [LadderOperator(0, 3, True), LadderOperator(0, 3, False)],
             ],
             np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]),
             np.array(
@@ -92,7 +107,7 @@ from src.lobe.select_oracle import add_select_oracle
         ),
         (
             [
-                ((0, 0), (0, 2))
+                [LadderOperator(0, 0, True), LadderOperator(0, 2, False)]
             ],  # Operator b^\dagger_0 b_2. Should map |100> -> |001> and |110> -> -|011>
             np.array([1]),
             np.array(
@@ -111,8 +126,8 @@ from src.lobe.select_oracle import add_select_oracle
     ],
 )
 def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian):
-    indices = [op[1] for op in operators]
-    size_of_system = max(max(indices)) + 1
+    indices = [op.mode for term in operators for op in term]
+    size_of_system = max(indices) + 1
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
@@ -141,7 +156,12 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
 
 
 def test_select_and_coefficient_oracles_commute():
-    operators = [((0, 0), (0, 0)), ((0, 0), (0, 1)), ((0, 1), (0, 0)), ((0, 1), (0, 1))]
+    operators = [
+        [LadderOperator(0, 0, True), LadderOperator(0, 0, False)],
+        [LadderOperator(0, 0, True), LadderOperator(0, 1, False)],
+        [LadderOperator(0, 1, True), LadderOperator(0, 0, False)],
+        [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
+    ]
     coefficients = np.random.uniform(0, 1, size=4)
     validation = cirq.LineQubit(0)
     control = cirq.LineQubit(1)
