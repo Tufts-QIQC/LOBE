@@ -5,6 +5,7 @@ from src.lobe.usp import add_naive_usp
 from src.lobe.coefficient_oracle import add_coefficient_oracle
 from src.lobe.select_oracle import add_select_oracle
 from src.lobe.operators import LadderOperator
+from src.lobe.system import System
 
 
 @pytest.mark.parametrize(
@@ -126,17 +127,18 @@ from src.lobe.operators import LadderOperator
     ],
 )
 def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian):
-    indices = [op.mode for term in operators for op in term]
-    size_of_system = max(indices) + 1
+    modes = [op.mode for term in operators for op in term]
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
     control = cirq.LineQubit(1)
     rotation = cirq.LineQubit(2)
     index = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
-    system = [
-        cirq.LineQubit(i + 3 + number_of_index_qubits) for i in range(size_of_system)
-    ]
+    system = System(
+        number_of_modes=max(modes) + 1,
+        number_of_used_qubits=3 + number_of_index_qubits,
+        has_fermions=True,
+    )
     normalization_factor = max(coefficients)
     normalized_coefficients = coefficients / normalization_factor
 
@@ -148,7 +150,9 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
     )
     circuit = add_naive_usp(circuit, index)
 
-    upper_left_block = circuit.unitary()[: 1 << size_of_system, : 1 << size_of_system]
+    upper_left_block = circuit.unitary()[
+        : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
+    ]
     normalized_hamiltonian = hamiltonian / (
         (1 << number_of_index_qubits) * normalization_factor
     )
@@ -167,7 +171,11 @@ def test_select_and_coefficient_oracles_commute():
     control = cirq.LineQubit(1)
     rotation = cirq.LineQubit(2)
     index = [cirq.LineQubit(i + 3) for i in range(2)]
-    system = [cirq.LineQubit(i + 5) for i in range(2)]
+    system = System(
+        number_of_modes=2,
+        number_of_used_qubits=5,
+        has_fermions=True,
+    )
 
     circuit = cirq.Circuit()
     circuit = add_naive_usp(circuit, index)

@@ -3,6 +3,7 @@ import numpy as np
 import cirq
 from src.lobe.select_oracle import add_select_oracle
 from src.lobe.operators import LadderOperator
+from src.lobe.system import System
 
 
 TOY_FERMINOIC_HAMILTONIAN_SELECT_STATE_MAP = {
@@ -38,7 +39,7 @@ def get_fermmionic_select_oracle_test_inputs():
     validation = cirq.LineQubit(0)
     control = cirq.LineQubit(1)
     index = [cirq.LineQubit(i + 2) for i in range(2)]
-    system = [cirq.LineQubit(i + 4) for i in range(2)]
+    system = System(number_of_modes=2, number_of_used_qubits=4, has_fermions=True)
 
     circuit = add_select_oracle(circuit, validation, control, index, system, operators)
 
@@ -160,17 +161,18 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     control = cirq.LineQubit(1)
     rotation = cirq.LineQubit(2)
     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
-    system_register = [
-        cirq.LineQubit(i + 3 + number_of_index_qubits)
-        for i in range(number_of_system_qubits)
-    ]
+    system = System(
+        number_of_modes=4,
+        number_of_used_qubits=3 + number_of_index_qubits,
+        has_fermions=True,
+    )
 
     circuit.append(cirq.X.on(validation))
     circuit.append(cirq.I.on(rotation))
-    circuit.append(cirq.I.on_each(*system_register))
+    circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, control, index_register, system_register, operators
+        circuit, validation, control, index_register, system, operators
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
@@ -229,17 +231,18 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     control = cirq.LineQubit(1)
     rotation = cirq.LineQubit(2)
     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
-    system_register = [
-        cirq.LineQubit(i + 3 + number_of_index_qubits)
-        for i in range(number_of_system_qubits)
-    ]
+    system = System(
+        number_of_modes=5,
+        number_of_used_qubits=3 + number_of_index_qubits,
+        has_fermions=True,
+    )
 
     circuit.append(cirq.X.on(validation))
     circuit.append(cirq.I.on(rotation))
-    circuit.append(cirq.I.on_each(*system_register))
+    circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, control, index_register, system_register, operators
+        circuit, validation, control, index_register, system, operators
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
@@ -305,17 +308,18 @@ def test_select_oracle_on_both_one_and_two_body_fermionic_terms(
     control = cirq.LineQubit(1)
     rotation = cirq.LineQubit(2)
     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
-    system_register = [
-        cirq.LineQubit(i + 3 + number_of_index_qubits)
-        for i in range(number_of_system_qubits)
-    ]
+    system = System(
+        number_of_modes=5,
+        number_of_used_qubits=3 + number_of_index_qubits,
+        has_fermions=True,
+    )
 
     circuit.append(cirq.X.on(validation))
     circuit.append(cirq.I.on(rotation))
-    circuit.append(cirq.I.on_each(*system_register))
+    circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, control, index_register, system_register, operators
+        circuit, validation, control, index_register, system, operators
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits

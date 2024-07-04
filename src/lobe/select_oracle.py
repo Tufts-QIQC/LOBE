@@ -10,11 +10,11 @@ def add_select_oracle(circuit, validation, control, index_register, system, oper
         validation (cirq.LineQubit): The validation qubit
         control (cirq.LineQubit): The ancilla qubit that is used for elbows
         index_register (List[cirq.LineQubit]): The qubit register that is used to index the operators
-        system (List[cirq.LineQubit]): The qubit register that is used to encode the system
+        system (System): An instance of the System class that holds the qubit registers storing the
+            state of the system.
         operators (List[List[LadderOperator]]): The ladder operators included in the Hamiltonian.
             Each item in the list is a list of LadderOperators and corresponds to a term comprising several
             ladder operators.
-            The first integer in this tuple dictates the type of operator . The second integer in this tuple corresponds to the mode that this ladder operator acts on.
 
     Returns:
         cirq.Circuit: The updated quantum circuit
@@ -28,7 +28,7 @@ def add_select_oracle(circuit, validation, control, index_register, system, oper
                     validation,
                     index_register,
                     operator_index,
-                    system[-operator[0].mode - 1],
+                    system.fermionic_register[-operator[0].mode - 1],
                 )
             else:
                 circuit = _add_fermionic_ladder_operator(
@@ -37,7 +37,7 @@ def add_select_oracle(circuit, validation, control, index_register, system, oper
                     control,
                     index_register,
                     operator_index,
-                    system,
+                    system.fermionic_register,
                     operator,
                 )
     return circuit
