@@ -5,9 +5,9 @@ from src.lobe.incrementer import add_incrementer
 
 
 @pytest.mark.parametrize(
-    "number_of_qubits", [1, 2] + np.random.random_integers(3, 10, size=3).tolist()
+    "number_of_qubits", [1, 2] + np.random.randint(3, 10 + 1, size=3).tolist()
 )
-@pytest.mark.parametrize("integer", np.random.random_integers(1, 1 << 10, size=3))
+@pytest.mark.parametrize("integer", np.random.randint(1, (1 << 10) + 1, size=3))
 @pytest.mark.parametrize("decrement", [True, False])
 def test_binary_incrementer_on_basis_state(number_of_qubits, integer, decrement):
     integer = integer % (1 << number_of_qubits)
@@ -43,10 +43,10 @@ def test_binary_incrementer_on_basis_state(number_of_qubits, integer, decrement)
 
 
 @pytest.mark.parametrize(
-    "number_of_qubits", [1, 2] + np.random.random_integers(3, 10, size=3).tolist()
+    "number_of_qubits", [1, 2] + np.random.randint(3, 10 + 1, size=3).tolist()
 )
-@pytest.mark.parametrize("integer_one", np.random.random_integers(1, 1 << 10, size=3))
-@pytest.mark.parametrize("integer_two", np.random.random_integers(1, 1 << 10, size=3))
+@pytest.mark.parametrize("integer_one", np.random.randint(1, (1 << 10) + 1, size=3))
+@pytest.mark.parametrize("integer_two", np.random.randint(1, (1 << 10) + 1, size=3))
 @pytest.mark.parametrize("decrement", [True, False])
 def test_binary_incrementer_on_superposition_state(
     number_of_qubits, integer_one, integer_two, decrement
@@ -100,9 +100,9 @@ def test_binary_incrementer_on_superposition_state(
 
 
 @pytest.mark.parametrize(
-    "number_of_qubits", [1, 2] + np.random.random_integers(3, 10, size=3).tolist()
+    "number_of_qubits", [1, 2] + np.random.randint(3, 10 + 1, size=3).tolist()
 )
-@pytest.mark.parametrize("integer", np.random.random_integers(1, 1 << 10, size=3))
+@pytest.mark.parametrize("integer", np.random.randint(1, (1 << 10) + 1, size=3))
 @pytest.mark.parametrize("control_value", [0, 1])
 def test_binary_incrementer_is_properly_controlled(
     number_of_qubits, integer, control_value
