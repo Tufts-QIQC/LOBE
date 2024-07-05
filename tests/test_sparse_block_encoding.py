@@ -131,7 +131,7 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
-    control = cirq.LineQubit(1)
+    clean_ancilla = [cirq.LineQubit(1)]
     rotation = cirq.LineQubit(2)
     index = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
     system = System(
@@ -144,7 +144,9 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
 
     circuit = add_naive_usp(circuit, index)
     circuit.append(cirq.X.on(validation))
-    circuit = add_select_oracle(circuit, validation, control, index, system, operators)
+    circuit = add_select_oracle(
+        circuit, validation, index, system, operators, clean_ancilla
+    )
     circuit = add_coefficient_oracle(
         circuit, rotation, index, normalized_coefficients, len(operators)
     )
@@ -168,9 +170,9 @@ def test_select_and_coefficient_oracles_commute():
     ]
     coefficients = np.random.uniform(0, 1, size=4)
     validation = cirq.LineQubit(0)
-    control = cirq.LineQubit(1)
-    rotation = cirq.LineQubit(2)
-    index = [cirq.LineQubit(i + 3) for i in range(2)]
+    rotation = cirq.LineQubit(1)
+    index = [cirq.LineQubit(i + 2) for i in range(2)]
+    clean_ancilla = [cirq.LineQubit(4)]
     system = System(
         number_of_modes=2,
         number_of_used_qubits=5,
@@ -180,7 +182,9 @@ def test_select_and_coefficient_oracles_commute():
     circuit = cirq.Circuit()
     circuit = add_naive_usp(circuit, index)
     circuit.append(cirq.X.on(validation))
-    circuit = add_select_oracle(circuit, validation, control, index, system, operators)
+    circuit = add_select_oracle(
+        circuit, validation, index, system, operators, clean_ancilla
+    )
     circuit = add_coefficient_oracle(
         circuit, rotation, index, coefficients, len(operators)
     )
@@ -193,7 +197,9 @@ def test_select_and_coefficient_oracles_commute():
     circuit = add_coefficient_oracle(
         circuit, rotation, index, coefficients, len(operators)
     )
-    circuit = add_select_oracle(circuit, validation, control, index, system, operators)
+    circuit = add_select_oracle(
+        circuit, validation, index, system, operators, clean_ancilla
+    )
     circuit = add_naive_usp(circuit, index)
     unitary_coefficient_first = circuit.unitary()
 

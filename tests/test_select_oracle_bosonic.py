@@ -1,0 +1,494 @@
+import pytest
+import numpy as np
+import cirq
+from src.lobe.select_oracle import add_select_oracle
+from src.lobe.operators import LadderOperator
+from src.lobe.system import System
+import copy
+
+# H = a^\dagger_0 a_0 +  a^\dagger_1 a_1 + a^\dagger_0 a_1 +  a^\dagger_1 a_0
+# validation, clean_ancilla, index, occupancy_1, occupancy_0
+TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP = {
+    "1" + "00" + "00" + "00" + "00": "1" + "00" + "00" + "00" + "00",
+    "1" + "00" + "00" + "00" + "01": "0" + "00" + "00" + "00" + "01",
+    "1" + "00" + "00" + "00" + "10": "0" + "00" + "00" + "00" + "10",
+    "1" + "00" + "00" + "00" + "11": "0" + "00" + "00" + "00" + "11",
+    "1" + "00" + "00" + "01" + "00": "1" + "00" + "00" + "01" + "00",
+    "1" + "00" + "00" + "01" + "01": "0" + "00" + "00" + "01" + "01",
+    "1" + "00" + "00" + "01" + "10": "0" + "00" + "00" + "01" + "10",
+    "1" + "00" + "00" + "01" + "11": "0" + "00" + "00" + "01" + "11",
+    "1" + "00" + "00" + "10" + "00": "1" + "00" + "00" + "10" + "00",
+    "1" + "00" + "00" + "10" + "01": "0" + "00" + "00" + "10" + "01",
+    "1" + "00" + "00" + "10" + "10": "0" + "00" + "00" + "10" + "10",
+    "1" + "00" + "00" + "10" + "11": "0" + "00" + "00" + "10" + "11",
+    "1" + "00" + "00" + "11" + "00": "1" + "00" + "00" + "11" + "00",
+    "1" + "00" + "00" + "11" + "01": "0" + "00" + "00" + "11" + "01",
+    "1" + "00" + "00" + "11" + "10": "0" + "00" + "00" + "11" + "10",
+    "1" + "00" + "00" + "11" + "11": "0" + "00" + "00" + "11" + "11",
+    "1" + "00" + "01" + "00" + "00": "1" + "00" + "01" + "00" + "00",
+    "1" + "00" + "01" + "00" + "01": "1" + "00" + "01" + "00" + "01",
+    "1" + "00" + "01" + "00" + "10": "1" + "00" + "01" + "00" + "10",
+    "1" + "00" + "01" + "00" + "11": "1" + "00" + "01" + "00" + "11",
+    "1" + "00" + "01" + "01" + "00": "0" + "00" + "01" + "01" + "00",
+    "1" + "00" + "01" + "01" + "01": "0" + "00" + "01" + "01" + "01",
+    "1" + "00" + "01" + "01" + "10": "0" + "00" + "01" + "01" + "10",
+    "1" + "00" + "01" + "01" + "11": "0" + "00" + "01" + "01" + "11",
+    "1" + "00" + "01" + "10" + "00": "0" + "00" + "01" + "10" + "00",
+    "1" + "00" + "01" + "10" + "01": "0" + "00" + "01" + "10" + "01",
+    "1" + "00" + "01" + "10" + "10": "0" + "00" + "01" + "10" + "10",
+    "1" + "00" + "01" + "10" + "11": "0" + "00" + "01" + "10" + "11",
+    "1" + "00" + "01" + "11" + "00": "0" + "00" + "01" + "11" + "00",
+    "1" + "00" + "01" + "11" + "01": "0" + "00" + "01" + "11" + "01",
+    "1" + "00" + "01" + "11" + "10": "0" + "00" + "01" + "11" + "10",
+    "1" + "00" + "01" + "11" + "11": "0" + "00" + "01" + "11" + "11",
+    "1" + "00" + "10" + "00" + "00": "1" + "00" + "10" + "00" + "00",
+    "1" + "00" + "10" + "00" + "01": "1" + "00" + "10" + "00" + "01",
+    "1" + "00" + "10" + "00" + "10": "1" + "00" + "10" + "00" + "10",
+    "1" + "00" + "10" + "00" + "11": "1" + "00" + "10" + "00" + "11",
+    "1" + "00" + "10" + "01" + "00": "0" + "00" + "10" + "00" + "01",
+    "1" + "00" + "10" + "01" + "01": "0" + "00" + "10" + "00" + "10",
+    "1" + "00" + "10" + "01" + "10": "0" + "00" + "10" + "00" + "11",
+    "1" + "00" + "10" + "01" + "11": "1" + "00" + "10" + "01" + "11",
+    "1" + "00" + "10" + "10" + "00": "0" + "00" + "10" + "01" + "01",
+    "1" + "00" + "10" + "10" + "01": "0" + "00" + "10" + "01" + "10",
+    "1" + "00" + "10" + "10" + "10": "0" + "00" + "10" + "01" + "11",
+    "1" + "00" + "10" + "10" + "11": "1" + "00" + "10" + "10" + "11",
+    "1" + "00" + "10" + "11" + "00": "0" + "00" + "10" + "10" + "01",
+    "1" + "00" + "10" + "11" + "01": "0" + "00" + "10" + "10" + "10",
+    "1" + "00" + "10" + "11" + "10": "0" + "00" + "10" + "10" + "11",
+    "1" + "00" + "10" + "11" + "11": "1" + "00" + "10" + "11" + "11",
+    "1" + "00" + "11" + "00" + "00": "1" + "00" + "11" + "00" + "00",
+    "1" + "00" + "11" + "00" + "01": "0" + "00" + "11" + "01" + "00",
+    "1" + "00" + "11" + "00" + "10": "0" + "00" + "11" + "01" + "01",
+    "1" + "00" + "11" + "00" + "11": "0" + "00" + "11" + "01" + "10",
+    "1" + "00" + "11" + "01" + "00": "1" + "00" + "11" + "01" + "00",
+    "1" + "00" + "11" + "01" + "01": "0" + "00" + "11" + "10" + "00",
+    "1" + "00" + "11" + "01" + "10": "0" + "00" + "11" + "10" + "01",
+    "1" + "00" + "11" + "01" + "11": "0" + "00" + "11" + "10" + "10",
+    "1" + "00" + "11" + "10" + "00": "1" + "00" + "11" + "10" + "00",
+    "1" + "00" + "11" + "10" + "01": "0" + "00" + "11" + "11" + "00",
+    "1" + "00" + "11" + "10" + "10": "0" + "00" + "11" + "11" + "01",
+    "1" + "00" + "11" + "10" + "11": "0" + "00" + "11" + "11" + "10",
+    "1" + "00" + "11" + "11" + "00": "1" + "00" + "11" + "11" + "00",
+    "1" + "00" + "11" + "11" + "01": "1" + "00" + "11" + "11" + "01",
+    "1" + "00" + "11" + "11" + "10": "1" + "00" + "11" + "11" + "10",
+    "1" + "00" + "11" + "11" + "11": "1" + "00" + "11" + "11" + "11",
+}
+
+
+def get_bosonic_select_oracle_test_inputs():
+    simulator = cirq.Simulator(dtype=np.complex128)
+    number_of_index_qubits = 2
+    operators = [
+        [LadderOperator(2, 0, True), LadderOperator(2, 0, False)],
+        [LadderOperator(2, 1, True), LadderOperator(2, 1, False)],
+        [LadderOperator(2, 0, True), LadderOperator(2, 1, False)],
+        [LadderOperator(2, 1, True), LadderOperator(2, 0, False)],
+    ]
+    circuit = cirq.Circuit()
+    validation = cirq.LineQubit(0)
+    clean_ancilla = [cirq.LineQubit(i + 1) for i in range(2)]
+    index = [cirq.LineQubit(i + 6) for i in range(2)]
+    system = System(
+        number_of_modes=2,
+        maximum_occupation_number=4,
+        number_of_used_qubits=8,
+        has_bosons=True,
+    )
+
+    circuit.append(cirq.I.on_each(*clean_ancilla))
+
+    circuit = add_select_oracle(
+        circuit, validation, index, system, operators, clean_ancilla
+    )
+
+    initial_state_of_validation = np.zeros(2)
+    initial_state_of_validation[1] = 1  # |1>
+    initial_state_of_clean_ancilla = np.zeros(1 << 2)
+    initial_state_of_clean_ancilla[0] = 1  # |0>
+    initial_state_of_validation_and_control = np.kron(
+        initial_state_of_validation, initial_state_of_clean_ancilla
+    )  # |1> tensor |0>
+
+    intitial_state_of_index = (
+        np.random.uniform(-1, 1, 1 << number_of_index_qubits)
+        + np.random.uniform(-1, 1, 1 << number_of_index_qubits) * 1j
+    )
+    intitial_state_of_index /= np.linalg.norm(intitial_state_of_index)
+    intitial_state_of_val_control_index = np.kron(
+        initial_state_of_validation_and_control, intitial_state_of_index
+    )
+
+    return simulator, circuit, intitial_state_of_val_control_index, system
+
+
+@pytest.mark.parametrize("index_bitstring", ["00", "01", "10", "11"])
+@pytest.mark.parametrize("occupancy_1", ["00", "01", "10", "11"])
+@pytest.mark.parametrize("occupancy_0", ["00", "01", "10", "11"])
+def test_select_oracle_on_basis_state_for_toy_bosonic_hamiltonian(
+    index_bitstring, occupancy_1, occupancy_0
+):
+    simulator, circuit, intitial_state_of_val_control_index, system = (
+        get_bosonic_select_oracle_test_inputs()
+    )
+
+    initial_state_of_occupancy_1 = np.zeros(1 << len(occupancy_1))
+    initial_state_of_occupancy_1[int(occupancy_1, 2)] = 1
+    initial_state_of_occupancy_0 = np.zeros(1 << len(occupancy_0))
+    initial_state_of_occupancy_0[int(occupancy_0, 2)] = 1
+    initial_state = np.kron(
+        intitial_state_of_val_control_index,
+        np.kron(initial_state_of_occupancy_1, initial_state_of_occupancy_0),
+    )
+
+    wavefunction = simulator.simulate(
+        circuit, initial_state=initial_state
+    ).final_state_vector
+
+    initial_bitstring = "1" + "00" + index_bitstring + occupancy_1 + occupancy_0
+    assert initial_state[int(initial_bitstring, 2)] != 0
+    assert np.isclose(
+        initial_state[int(initial_bitstring, 2)],
+        wavefunction[
+            int(TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)
+        ],
+    )
+
+
+@pytest.mark.parametrize("index_state", ["00", "01", "10", "11"])
+@pytest.mark.parametrize("occupancy_1", ["00", "01", "10", "11"])
+@pytest.mark.parametrize("occupancy_0", ["00", "01", "10", "11"])
+def test_select_oracle_on_superposition_state_for_toy_bosonic_hamiltonian(
+    index_state, occupancy_1, occupancy_0
+):
+    simulator, circuit, intitial_state_of_val_control_index, system = (
+        get_bosonic_select_oracle_test_inputs()
+    )
+
+    random_fock_state_coeffs = (
+        np.random.uniform(-1, 1, size=1 << system.number_of_system_qubits)
+        + np.random.uniform(-1, 1, size=1 << system.number_of_system_qubits) * 1j
+    )
+    random_fock_state_coeffs /= np.linalg.norm(random_fock_state_coeffs)
+
+    initial_state_of_system = np.zeros(
+        1 << system.number_of_system_qubits, dtype=np.complex128
+    )
+    for system_state_index in range(1 << system.number_of_system_qubits):
+        initial_state_of_system[system_state_index] = random_fock_state_coeffs[
+            system_state_index
+        ]
+    initial_state = np.kron(
+        intitial_state_of_val_control_index, initial_state_of_system
+    )
+
+    wavefunction = simulator.simulate(
+        circuit, initial_state=initial_state
+    ).final_state_vector
+
+    initial_bitstring = (
+        "1" + "00" + index_state + occupancy_1 + occupancy_0
+    )  # validation, control, index, system
+    assert initial_state[int(initial_bitstring, 2)] != 0
+    assert np.isclose(
+        initial_state[int(initial_bitstring, 2)],
+        wavefunction[
+            int(TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP[initial_bitstring], 2)
+        ],
+    )
+
+
+@pytest.mark.parametrize(
+    "operators",
+    [
+        [
+            [
+                LadderOperator(2, 3, True),
+                LadderOperator(2, 2, True),
+                LadderOperator(2, 1, False),
+                LadderOperator(2, 0, False),
+            ]
+        ],
+        [
+            [LadderOperator(2, 0, True), LadderOperator(2, 0, False)],
+            [LadderOperator(2, 1, True), LadderOperator(2, 1, False)],
+            [LadderOperator(2, 0, True), LadderOperator(2, 1, False)],
+            [LadderOperator(2, 1, True), LadderOperator(2, 0, False)],
+        ],
+    ],
+)
+@pytest.mark.parametrize("maximum_occupation_number", np.random.randint(2, 9, 3))
+@pytest.mark.parametrize("index", np.random.randint(0, 32, 2))
+@pytest.mark.parametrize("bosonic_state", np.random.randint(0, 1 << 12, 64))
+def test_select_oracle_on_one_two_body_bosonic_terms(
+    operators, maximum_occupation_number, index, bosonic_state
+):
+    number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
+    index = index % len(operators)
+    maximum_mode = max([op.mode for term in operators for op in term])
+    number_of_occupation_qubits = int(np.ceil(np.log2(maximum_occupation_number)))
+    number_of_clean_ancilla = max([len(term) for term in operators]) + max(
+        number_of_occupation_qubits - 2, 0
+    )
+
+    simulator = cirq.Simulator(dtype=np.complex128)
+    circuit = cirq.Circuit()
+
+    validation = cirq.LineQubit(0)
+    clean_ancilla = [cirq.LineQubit(i + 1) for i in range(number_of_clean_ancilla)]
+    index_register = [
+        cirq.LineQubit(i + number_of_clean_ancilla + 1)
+        for i in range(number_of_index_qubits)
+    ]
+    system = System(
+        number_of_modes=maximum_mode + 1,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=1 + number_of_clean_ancilla + number_of_index_qubits,
+        has_bosons=True,
+    )
+    bosonic_state = bosonic_state % (1 << system.number_of_system_qubits)
+
+    circuit.append(cirq.I.on_each(*clean_ancilla))
+    circuit.append(cirq.I.on_each(*system.bosonic_system))
+
+    circuit = add_select_oracle(
+        circuit, validation, index_register, system, operators, clean_ancilla
+    )
+
+    num_qubits = (
+        1
+        + number_of_clean_ancilla
+        + number_of_index_qubits
+        + system.number_of_system_qubits
+    )
+
+    clean_ancilla_state = np.zeros(1 << (number_of_clean_ancilla))
+    clean_ancilla_state[0] = 1
+    initial_state_of_val_and_clean = np.kron(np.array([0, 1]), clean_ancilla_state)
+
+    initial_index_state = np.zeros(1 << number_of_index_qubits)
+    initial_index_state[index] = 1
+    index_register_bitstring = format(index, f"#0{2+number_of_index_qubits}b")[2:]
+
+    initial_bosonic_state = np.zeros(1 << system.number_of_system_qubits)
+    initial_bosonic_state[bosonic_state] = 1
+    bosonic_register_bitstring = format(
+        bosonic_state, f"#0{2+system.number_of_system_qubits}b"
+    )[2:]
+    bosonic_registers_bitstrings = [
+        bosonic_register_bitstring[
+            (i * number_of_occupation_qubits) : (i * number_of_occupation_qubits)
+            + number_of_occupation_qubits
+        ]
+        for i in range(maximum_mode + 1)
+    ]
+    bosonic_registers_bitstrings = bosonic_registers_bitstrings[::-1]
+    expected_bosonic_registers_bitstrings = copy.deepcopy(bosonic_registers_bitstrings)
+
+    initial_state = np.kron(
+        np.kron(initial_state_of_val_and_clean, initial_index_state),
+        initial_bosonic_state,
+    )
+
+    wavefunction = simulator.simulate(
+        circuit, initial_state=initial_state
+    ).final_state_vector
+
+    term_fired = True
+    if (
+        len(operators[index]) == 2
+        and operators[index][0].mode == operators[index][1].mode
+    ):
+        if (
+            bosonic_registers_bitstrings[operators[index][0].mode]
+            == "0" * number_of_occupation_qubits
+        ):
+            term_fired = False
+    else:
+        for op in operators[index]:
+            if op.creation:
+                if (
+                    bosonic_registers_bitstrings[op.mode]
+                    == "1" * number_of_occupation_qubits
+                ):
+                    term_fired = False
+                else:
+                    expected_bosonic_registers_bitstrings[op.mode] = format(
+                        int(bosonic_registers_bitstrings[op.mode], 2) + 1,
+                        f"#0{2+number_of_occupation_qubits}b",
+                    )[2:]
+            else:
+                if (
+                    bosonic_registers_bitstrings[op.mode]
+                    == "0" * number_of_occupation_qubits
+                ):
+                    term_fired = False
+                else:
+                    expected_bosonic_registers_bitstrings[op.mode] = format(
+                        int(bosonic_registers_bitstrings[op.mode], 2) - 1,
+                        f"#0{2+number_of_occupation_qubits}b",
+                    )[2:]
+
+    expected_bitstring = ""
+    if not term_fired:
+        expected_bitstring = (
+            "1" + ("0" * number_of_clean_ancilla) + index_register_bitstring
+        )
+        for bitstring in bosonic_registers_bitstrings[::-1]:
+            expected_bitstring += bitstring
+    else:
+        expected_bitstring = (
+            "0" + ("0" * number_of_clean_ancilla) + index_register_bitstring
+        )
+        for bitstring in expected_bosonic_registers_bitstrings[::-1]:
+            expected_bitstring += bitstring
+
+    expected_final_wavefunction = np.zeros(1 << num_qubits)
+    expected_final_wavefunction[int(expected_bitstring, 2)] = 1
+    assert np.allclose(wavefunction, expected_final_wavefunction)
+
+
+# @pytest.mark.parametrize(
+#     ["j_str", "expect_j_str", "parity_coeff"],
+#     [("00011", "11000", -1), ("00111", "11100", -1)],
+# )
+# def test_parity_on_five_qubit_one_bosonic_two_body_term(
+#     j_str, expect_j_str, parity_coeff
+# ):
+#     # b_4^dag b_3^dag b_1 b_0 |00011> = -|11000> & |00111> = -|11100>
+#     operators = [
+#         [
+#             LadderOperator(2, 4, True),
+#             LadderOperator(2, 3, True),
+#             LadderOperator(2, 1, False),
+#             LadderOperator(2, 0, False),
+#         ]
+#     ]
+
+#     number_of_index_qubits = 1
+#     number_of_system_qubits = 5
+
+#     circuit = cirq.Circuit()
+
+#     validation = cirq.LineQubit(0)
+#     clean_ancilla = [cirq.LineQubit(1)]
+#     rotation = cirq.LineQubit(2)
+#     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
+#     system = System(
+#         number_of_modes=5,
+#         number_of_used_qubits=3 + number_of_index_qubits,
+#         has_fermions=True,
+#     )
+
+#     circuit.append(cirq.X.on(validation))
+#     circuit.append(cirq.I.on(rotation))
+#     circuit.append(cirq.I.on_each(*system.bosonic_register))
+
+#     circuit = add_select_oracle(
+#         circuit, validation, index_register, system, operators, clean_ancilla
+#     )
+
+#     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
+
+#     all_registers_bar_j = np.zeros(1 << (num_qubits - number_of_system_qubits))
+#     all_registers_bar_j[0] = (
+#         1  # |000..0> corresponds to a one in the first slot of the array
+#     )
+
+#     init_j = np.zeros(2**number_of_system_qubits)  # |j> = |init_j>
+#     init_j[int(j_str, 2)] = 1
+
+#     initial_state = np.kron(all_registers_bar_j, init_j)
+
+#     simulator = cirq.Simulator(dtype=np.complex128)
+
+#     wavefunction = simulator.simulate(
+#         circuit, initial_state=initial_state
+#     ).final_state_vector
+
+#     expected_all_registers_bar_j = np.zeros(2 ** (3 + number_of_index_qubits))
+#     expected_all_registers_bar_j[0] = 1  # |000> \otimes |0>
+
+#     expect_init_j = np.zeros(2**number_of_system_qubits)  # |j> = |expect_j_str>
+#     expect_init_j[int(expect_j_str, 2)] = parity_coeff * 1.0
+
+#     expected_final_wavefunction = np.kron(expected_all_registers_bar_j, expect_init_j)
+#     assert np.allclose(wavefunction, expected_final_wavefunction)
+
+
+# @pytest.mark.parametrize(
+#     ["j_str", "expect_j_str", "parity_coeff", "index_state"],
+#     [
+#         ("00011", "11000", -1, "0"),
+#         ("00111", "11100", -1, "0"),
+#         ("00010", "01000", 1, "1"),
+#         ("00011", "01001", 1, "1"),
+#         ("00111", "01101", -1, "1"),
+#         ("00110", "01100", -1, "1"),
+#     ],
+# )
+# def test_select_oracle_on_both_one_and_two_body_bosonic_terms(
+#     j_str, expect_j_str, parity_coeff, index_state
+# ):
+#     # b_4^dag b_3^dag b_1 b_0 |00011> = |11000> & |00111> = -|11100>
+#     # operator = [((0, 4), (0, 3), (0, 1), (0, 0)), ((0, 3), (0, 1))]
+#     operators = [
+#         [
+#             LadderOperator(2, 4, True),
+#             LadderOperator(2, 3, True),
+#             LadderOperator(2, 1, False),
+#             LadderOperator(2, 0, False),
+#         ],
+#         [LadderOperator(2, 3, True), LadderOperator(2, 1, False)],
+#     ]
+
+#     number_of_index_qubits = 1
+#     number_of_system_qubits = 5
+
+#     circuit = cirq.Circuit()
+
+#     validation = cirq.LineQubit(0)
+#     clean_ancilla = [cirq.LineQubit(1)]
+#     rotation = cirq.LineQubit(2)
+#     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
+#     system = System(
+#         number_of_modes=5,
+#         number_of_used_qubits=3 + number_of_index_qubits,
+#         has_fermions=True,
+#     )
+
+#     circuit.append(cirq.X.on(validation))
+#     circuit.append(cirq.I.on(rotation))
+#     circuit.append(cirq.I.on_each(*system.bosonic_register))
+
+#     circuit = add_select_oracle(
+#         circuit, validation, index_register, system, operators, clean_ancilla
+#     )
+
+#     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
+
+#     all_registers_bar_j_and_l = np.zeros(
+#         1 << (num_qubits - number_of_system_qubits - number_of_index_qubits)
+#     )
+#     all_registers_bar_j_and_l[0] = (
+#         1  # |000> corresponds to a one in the first slot of the array
+#     )
+#     init_l = np.zeros(2**number_of_index_qubits)
+#     init_l[int(index_state, 2)] = 1  # |l> = |index_state>
+#     all_registers_bar_j = np.kron(all_registers_bar_j_and_l, init_l)
+#     init_j = np.zeros(2**number_of_system_qubits)  # |j> = |init_j>
+#     init_j[int(j_str, 2)] = 1
+
+#     initial_state = np.kron(all_registers_bar_j, init_j)
+
+#     simulator = cirq.Simulator(dtype=np.complex128)
+
+#     wavefunction = simulator.simulate(
+#         circuit, initial_state=initial_state
+#     ).final_state_vector
+
+#     expect_final_j = np.zeros(2**number_of_system_qubits)  # |j> = |expect_j_str>
+#     expect_final_j[int(expect_j_str, 2)] = parity_coeff * 1.0
+
+#     expected_final_wavefunction = np.kron(all_registers_bar_j, expect_final_j)
+#     assert np.allclose(wavefunction, expected_final_wavefunction)

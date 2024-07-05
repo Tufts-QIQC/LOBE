@@ -26,7 +26,7 @@ TOY_FERMINOIC_HAMILTONIAN_SELECT_STATE_MAP = {
 }
 
 
-def get_fermmionic_select_oracle_test_inputs():
+def get_fermionic_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
     operators = [
@@ -37,11 +37,13 @@ def get_fermmionic_select_oracle_test_inputs():
     ]
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
-    control = cirq.LineQubit(1)
+    clean_ancilla = [cirq.LineQubit(1)]
     index = [cirq.LineQubit(i + 2) for i in range(2)]
     system = System(number_of_modes=2, number_of_used_qubits=4, has_fermions=True)
 
-    circuit = add_select_oracle(circuit, validation, control, index, system, operators)
+    circuit = add_select_oracle(
+        circuit, validation, index, system, operators, clean_ancilla
+    )
 
     initial_state_of_validation = np.zeros(2)
     initial_state_of_validation[1] = 1  # |1>
@@ -69,7 +71,7 @@ def test_select_oracle_on_basis_state_for_toy_fermionic_hamiltonian(
     system_basis_state, index_bitstring
 ):
     simulator, circuit, intitial_state_of_val_control_index = (
-        get_fermmionic_select_oracle_test_inputs()
+        get_fermionic_select_oracle_test_inputs()
     )
 
     index_of_system_state = int(system_basis_state, 2)
@@ -99,7 +101,7 @@ def test_select_oracle_on_superposition_state_for_toy_fermionic_hamiltonian(
     index_state, system_state
 ):
     simulator, circuit, intitial_state_of_val_control_index = (
-        get_fermmionic_select_oracle_test_inputs()
+        get_fermionic_select_oracle_test_inputs()
     )
 
     random_fock_state_coeffs = (
@@ -158,7 +160,7 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     circuit = cirq.Circuit()
 
     validation = cirq.LineQubit(0)
-    control = cirq.LineQubit(1)
+    clean_ancilla = [cirq.LineQubit(1)]
     rotation = cirq.LineQubit(2)
     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
     system = System(
@@ -172,7 +174,7 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, control, index_register, system, operators
+        circuit, validation, index_register, system, operators, clean_ancilla
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
@@ -228,7 +230,7 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     circuit = cirq.Circuit()
 
     validation = cirq.LineQubit(0)
-    control = cirq.LineQubit(1)
+    clean_ancilla = [cirq.LineQubit(1)]
     rotation = cirq.LineQubit(2)
     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
     system = System(
@@ -242,7 +244,7 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, control, index_register, system, operators
+        circuit, validation, index_register, system, operators, clean_ancilla
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
@@ -305,7 +307,7 @@ def test_select_oracle_on_both_one_and_two_body_fermionic_terms(
     circuit = cirq.Circuit()
 
     validation = cirq.LineQubit(0)
-    control = cirq.LineQubit(1)
+    clean_ancilla = [cirq.LineQubit(1)]
     rotation = cirq.LineQubit(2)
     index_register = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
     system = System(
@@ -319,7 +321,7 @@ def test_select_oracle_on_both_one_and_two_body_fermionic_terms(
     circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, control, index_register, system, operators
+        circuit, validation, index_register, system, operators, clean_ancilla
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
