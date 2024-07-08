@@ -3,3 +3,6 @@
 # (Generalized) Ladder Operator Block Encoding (LOBE)
 
 This repository serves as a lightweight library to generate quantum circuits that create Block Encodings of Hamiltonians written as a sum of ladder operators.  
+
+
+![image](LOBE-Circuit-Construction.png)
