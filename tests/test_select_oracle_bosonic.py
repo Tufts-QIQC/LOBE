@@ -5,6 +5,7 @@ from src.lobe.select_oracle import add_select_oracle
 from src.lobe.operators import LadderOperator
 from src.lobe.system import System
 import copy
+from openparticle import ParticleOperator
 
 # H = a^\dagger_0 a_0 +  a^\dagger_1 a_1 + a^\dagger_0 a_1 +  a^\dagger_1 a_0
 # validation, clean_ancilla, index, occupancy_1, occupancy_0
@@ -79,12 +80,19 @@ TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP = {
 def get_bosonic_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
-    operators = [
-        [LadderOperator(2, 0, True), LadderOperator(2, 0, False)],
-        [LadderOperator(2, 1, True), LadderOperator(2, 1, False)],
-        [LadderOperator(2, 0, True), LadderOperator(2, 1, False)],
-        [LadderOperator(2, 1, True), LadderOperator(2, 0, False)],
-    ]
+    # operators = [
+    #     [LadderOperator(2, 0, True), LadderOperator(2, 0, False)],
+    #     [LadderOperator(2, 1, True), LadderOperator(2, 1, False)],
+    #     [LadderOperator(2, 0, True), LadderOperator(2, 1, False)],
+    #     [LadderOperator(2, 1, True), LadderOperator(2, 0, False)],
+    # ]
+    operators = (
+        ParticleOperator("a0^ a0")
+        + ParticleOperator("a1^ a1")
+        + ParticleOperator("a0^ a1")
+        + ParticleOperator("a1^ a0")
+    ).to_list()
+
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
     clean_ancilla = [cirq.LineQubit(i + 1) for i in range(2)]
@@ -201,20 +209,13 @@ def test_select_oracle_on_superposition_state_for_toy_bosonic_hamiltonian(
 @pytest.mark.parametrize(
     "operators",
     [
-        [
-            [
-                LadderOperator(2, 3, True),
-                LadderOperator(2, 2, True),
-                LadderOperator(2, 1, False),
-                LadderOperator(2, 0, False),
-            ]
-        ],
-        [
-            [LadderOperator(2, 0, True), LadderOperator(2, 0, False)],
-            [LadderOperator(2, 1, True), LadderOperator(2, 1, False)],
-            [LadderOperator(2, 0, True), LadderOperator(2, 1, False)],
-            [LadderOperator(2, 1, True), LadderOperator(2, 0, False)],
-        ],
+        ParticleOperator("a3^ a2^ a1 a0").to_list(),
+        (
+            ParticleOperator("a0^ a0")
+            + ParticleOperator("a1^ a1")
+            + ParticleOperator("a0^ a1")
+            + ParticleOperator("a1^ a0")
+        ).to_list(),
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", np.random.randint(2, 9, 3))
@@ -225,9 +226,11 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
 ):
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
     index = index % len(operators)
-    maximum_mode = max([op.mode for term in operators for op in term])
+    maximum_mode = max(
+        mode for modes in [op.modes for op in operators] for mode in modes
+    )
     number_of_occupation_qubits = int(np.ceil(np.log2(maximum_occupation_number)))
-    number_of_clean_ancilla = max([len(term) for term in operators]) + max(
+    number_of_clean_ancilla = max([len(op.modes) for op in operators]) + max(
         number_of_occupation_qubits - 2, 0
     )
 
@@ -296,36 +299,36 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
 
     term_fired = True
     if (
-        len(operators[index]) == 2
-        and operators[index][0].mode == operators[index][1].mode
+        len(operators[index].modes) == 2
+        and operators[index].modes[0] == operators[index].modes[1]
     ):
         if (
-            bosonic_registers_bitstrings[operators[index][0].mode]
+            bosonic_registers_bitstrings[operators[index].modes[0]]
             == "0" * number_of_occupation_qubits
         ):
             term_fired = False
     else:
-        for op in operators[index]:
-            if op.creation:
+        for op in operators[index].split():
+            if op.ca_string == "c":
                 if (
-                    bosonic_registers_bitstrings[op.mode]
+                    bosonic_registers_bitstrings[op.modes[0]]
                     == "1" * number_of_occupation_qubits
                 ):
                     term_fired = False
                 else:
-                    expected_bosonic_registers_bitstrings[op.mode] = format(
-                        int(bosonic_registers_bitstrings[op.mode], 2) + 1,
+                    expected_bosonic_registers_bitstrings[op.modes[0]] = format(
+                        int(bosonic_registers_bitstrings[op.modes[0]], 2) + 1,
                         f"#0{2+number_of_occupation_qubits}b",
                     )[2:]
             else:
                 if (
-                    bosonic_registers_bitstrings[op.mode]
+                    bosonic_registers_bitstrings[op.modes[0]]
                     == "0" * number_of_occupation_qubits
                 ):
                     term_fired = False
                 else:
-                    expected_bosonic_registers_bitstrings[op.mode] = format(
-                        int(bosonic_registers_bitstrings[op.mode], 2) - 1,
+                    expected_bosonic_registers_bitstrings[op.modes[0]] = format(
+                        int(bosonic_registers_bitstrings[op.modes[0]], 2) - 1,
                         f"#0{2+number_of_occupation_qubits}b",
                     )[2:]
 

@@ -30,24 +30,14 @@ TOY_FERMINOIC_HAMILTONIAN_SELECT_STATE_MAP = {
 def get_fermionic_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
-    # operators = [
-    #     [LadderOperator(0, 0, True), LadderOperator(0, 0, False)],
-    #     [LadderOperator(0, 0, True), LadderOperator(0, 1, False)],
-    #     [LadderOperator(0, 1, True), LadderOperator(0, 0, False)],
-    #     [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
-    # ]
-    # operators = (
-    #     ParticleOperator("b0^ b0")
-    #     + ParticleOperator("b1^ b1")
-    #     + ParticleOperator("b0^ b1")
-    #     + ParticleOperator("b1^ b0")
-    # )
+
     operators = (
         ParticleOperator("b0^ b0")
         + ParticleOperator("b0^ b1")
         + ParticleOperator("b1^ b0")
         + ParticleOperator("b1^ b1")
-    )
+    ).to_list()
+
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
     clean_ancilla = [cirq.LineQubit(1)]
@@ -166,7 +156,7 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     #         LadderOperator(0, 0, False),
     #     ]
     # ]
-    operators = ParticleOperator("b3^ b2^ b1 b0")
+    operators = ParticleOperator("b3^ b2^ b1 b0").to_list()
 
     number_of_index_qubits = 1
     number_of_system_qubits = 4
@@ -237,7 +227,7 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     #         LadderOperator(0, 0, False),
     #     ]
     # ]
-    operators = ParticleOperator("b4^ b3^ b1 b0")
+    operators = ParticleOperator("b4^ b3^ b1 b0").to_list()
 
     number_of_index_qubits = 1
     number_of_system_qubits = 5
@@ -315,7 +305,9 @@ def test_select_oracle_on_both_one_and_two_body_fermionic_terms(
     #     ],
     #     [LadderOperator(0, 3, True), LadderOperator(0, 1, False)],
     # ]
-    operators = ParticleOperator("b4^ b3^ b1 b0") + ParticleOperator("b3^ b1")
+    operators = (
+        ParticleOperator("b4^ b3^ b1 b0") + ParticleOperator("b3^ b1")
+    ).to_list()
 
     number_of_index_qubits = 1
     number_of_system_qubits = 5
