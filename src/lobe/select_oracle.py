@@ -1,6 +1,7 @@
 import cirq
 import numpy as np
 from .incrementer import add_incrementer
+from openparticle import ParticleOperator, ParticleOperatorSum
 
 
 def add_select_oracle(
@@ -14,23 +15,28 @@ def add_select_oracle(
         index_register (List[cirq.LineQubit]): The qubit register that is used to index the operators
         system (System): An instance of the System class that holds the qubit registers storing the
             state of the system.
-        operators (List[List[LadderOperator]]): The ladder operators included in the Hamiltonian.
+        operators (List[ParticleOpeartor/ParticleOperatorSum]): The ladder operators included in the Hamiltonian.
             Each item in the list is a list of LadderOperators and corresponds to a term comprising several
             ladder operators.
 
     Returns:
         cirq.Circuit: The updated quantum circuit
     """
+
+    if isinstance(operators, (ParticleOperator, ParticleOperatorSum)):
+        operators = operators.to_list()
+
     for operator_index, operator in enumerate(operators):
-        op_types = [ladder_op.particle_type for ladder_op in operator]
-        if np.allclose(op_types, 0):  # All terms are fermionic terms
-            if len(operator) == 2 and operator[0].mode == operator[1].mode:
+        op_types = operator.particle_type
+        if all(char == "b" for char in op_types):  # All terms are fermionic terms
+            modes = operator.modes
+            if len(modes) == 2 and modes[0] == modes[1]:  # b_p^dagger b_q
                 circuit = _add_fermionic_particle_number_op(
                     circuit,
                     validation,
                     index_register,
                     operator_index,
-                    system.fermionic_register[-operator[0].mode - 1],
+                    system.fermionic_register[-modes[0] - 1],
                 )
             else:
                 circuit = _add_fermionic_ladder_operator(
@@ -42,8 +48,9 @@ def add_select_oracle(
                     operator,
                     clean_ancilla,
                 )
-        elif np.allclose(op_types, 2):  # All terms are bosonic terms
-            if len(operator) == 2 and operator[0].mode == operator[1].mode:
+        elif all(char == "a" for char in op_types):  # All terms are bosonic terms
+            modes = operator.modes
+            if len(modes) == 2 and modes[0] == modes[1]:
                 circuit = _add_bosonic_particle_number_op(
                     circuit,
                     validation,
@@ -78,8 +85,8 @@ def _add_bosonic_particle_number_op(
     circuit.append(
         cirq.Moment(
             cirq.X.on(clean_ancilla[0]).controlled_by(
-                *system.bosonic_system[operator[0].mode],
-                control_values=[0] * len(system.bosonic_system[operator[0].mode]),
+                *system.bosonic_system[operator.modes[0]],
+                control_values=[0] * len(system.bosonic_system[operator.modes[0]]),
             )
         )
     )
@@ -99,8 +106,8 @@ def _add_bosonic_particle_number_op(
     circuit.append(
         cirq.Moment(
             cirq.X.on(clean_ancilla[0]).controlled_by(
-                *system.bosonic_system[operator[0].mode],
-                control_values=[0] * len(system.bosonic_system[operator[0].mode]),
+                *system.bosonic_system[operator.modes[0]],
+                control_values=[0] * len(system.bosonic_system[operator.modes[0]]),
             )
         )
     )
@@ -125,10 +132,10 @@ def _add_bosonic_ladder_operator(
 
     # left-elbows onto various ancilla
     used_ancilla = 0
-    for i, ladder_op in enumerate(operator[::-1]):
+    for i, ladder_op in enumerate(operator.split()[::-1]):
 
         if (
-            ladder_op.creation
+            ladder_op.ca_string == "c"
         ):  # creation op means particle number should be less than omega
             current_control_val = 1
         else:  # annihilation op means particle number should be greater than 0
@@ -138,11 +145,11 @@ def _add_bosonic_ladder_operator(
         circuit.append(
             cirq.Moment(
                 cirq.X.on(clean_ancilla[i]).controlled_by(
-                    *system.bosonic_system[ladder_op.mode]
+                    *system.bosonic_system[ladder_op.modes[0]]
                     + [validation]
                     + index_register,
                     control_values=[current_control_val]
-                    * len(system.bosonic_system[ladder_op.mode])
+                    * len(system.bosonic_system[ladder_op.modes[0]])
                     + [1]
                     + index_register_control_values,
                 )
@@ -154,13 +161,13 @@ def _add_bosonic_ladder_operator(
         used_ancilla += 1
 
     # Reverse loop because operators act starting from the right
-    for ladder_op in operator[::-1]:
+    for ladder_op in operator.split()[::-1]:
         # perform incrementers/decrementers
         circuit = add_incrementer(
             circuit,
-            system.bosonic_system[ladder_op.mode],
+            system.bosonic_system[ladder_op.modes[0]],
             clean_ancilla[used_ancilla:],
-            not ladder_op.creation,
+            not (ladder_op.ca_string == "c"),
             control_qubits,
             control_values,
         )
@@ -175,10 +182,10 @@ def _add_bosonic_ladder_operator(
     )
 
     # right-elbows to clean various ancilla
-    for i, ladder_op in enumerate(operator):
+    for i, ladder_op in enumerate(operator.split()):
 
         if (
-            ladder_op.creation
+            ladder_op.ca_string == "c"
         ):  # creation op means particle number should be less than omega
             current_control_val = 1
         else:  # annihilation op means particle number should be greater than 0
@@ -189,13 +196,13 @@ def _add_bosonic_ladder_operator(
             cirq.Moment(
                 cirq.X.on(clean_ancilla[used_ancilla - 1]).controlled_by(
                     *(
-                        system.bosonic_system[ladder_op.mode]
+                        system.bosonic_system[ladder_op.modes[0]]
                         + [validation]
                         + index_register
                     ),
                     control_values=(
                         [current_control_val]
-                        * len(system.bosonic_system[ladder_op.mode])
+                        * len(system.bosonic_system[ladder_op.modes[0]])
                     )
                     + [1]
                     + index_register_control_values,
@@ -239,16 +246,16 @@ def _add_fermionic_ladder_operator(
         [1]
         + index_register_control_values
         + (
-            [0] * (len(operator) // 2)
+            [0] * (len(operator.modes) // 2)
         )  # Make sure system qubits for creation ops are 0-ctrl's
         + (
-            [1] * (len(operator) // 2)
+            [1] * (len(operator.modes) // 2)
         )  # Make sure system qubits for annihilation ops are 1-ctrl's
     )
     control_qubits = [validation] + index_register
     # Add system qubits to control register
-    for ladder_op in operator:
-        control_qubits += [system[-ladder_op.mode - 1]]
+    for mode in operator.modes:
+        control_qubits += [system[-mode - 1]]
 
     # This is essentially a left-elbow
     circuit.append(
@@ -258,12 +265,10 @@ def _add_fermionic_ladder_operator(
     )
 
     # Reverse loop because operators act starting from the right
-    for ladder_op in operator[::-1]:
-        for system_qubit in system[::-1][: ladder_op.mode]:
+    for mode in operator.modes[::-1]:
+        for system_qubit in system[::-1][:mode]:
             circuit.append(cirq.Z.on(system_qubit).controlled_by(clean_ancilla[0]))
-        circuit.append(
-            cirq.X.on(system[-ladder_op.mode - 1]).controlled_by(clean_ancilla[0])
-        )
+        circuit.append(cirq.X.on(system[-mode - 1]).controlled_by(clean_ancilla[0]))
 
     circuit.append(cirq.X.on(validation).controlled_by(clean_ancilla[0]))
 
