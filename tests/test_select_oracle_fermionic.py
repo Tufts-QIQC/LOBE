@@ -36,11 +36,17 @@ def get_fermionic_select_oracle_test_inputs():
     #     [LadderOperator(0, 1, True), LadderOperator(0, 0, False)],
     #     [LadderOperator(0, 1, True), LadderOperator(0, 1, False)],
     # ]
+    # operators = (
+    #     ParticleOperator("b0^ b0")
+    #     + ParticleOperator("b1^ b1")
+    #     + ParticleOperator("b0^ b1")
+    #     + ParticleOperator("b1^ b0")
+    # )
     operators = (
         ParticleOperator("b0^ b0")
-        + ParticleOperator("b1^ b1")
         + ParticleOperator("b0^ b1")
         + ParticleOperator("b1^ b0")
+        + ParticleOperator("b1^ b1")
     )
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
