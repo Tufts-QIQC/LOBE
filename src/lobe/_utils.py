@@ -1,5 +1,9 @@
 import numpy as np
 from typing import List
+import openparticle as op
+import openparticle.utils
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def pretty_print(
@@ -30,3 +34,56 @@ def pretty_print(
             pretty_string += f"{str(amplitude.round(decimal_places)): <{left_padding}} {ket_string: >{right_padding}}>\n"
 
     return pretty_string
+
+
+def give_me_state(nn, Lambda, Omega):
+    # Credit to Kamil Serafin
+    n = nn
+    result = list()
+    for i in range(Lambda):
+        r = n % (Omega + 1)
+        n = n // (Omega + 1)
+        result += [r]
+
+    return list(enumerate(result))
+
+
+def generate_bosonic_pairing_hamiltonian_matrix(
+    mode_cutoff, occupancy_cutoff, imshow: bool = False
+):
+    """
+    Generating bosonic pairing Hamiltonians to test LOBE
+
+    Mode cutoff \Lambda
+
+    H = a_p^\dagger a_q
+
+    Set of states: \{|;;(0, \omega)(0, \omega') \rangle \} for omega, omega' \in Omega
+
+    By choosing some occupancy cutoff, \Omega, this (with \Lambda) defines the size of the Hamiltonian matrix
+
+    Matrix size goes as (Omega + 1) ** Lambda
+
+    """
+
+    H = op.ParticleOperatorSum([])
+    for lambda_p in range(mode_cutoff):
+        for lambda_q in range(mode_cutoff):
+            op_string = "a" + str(lambda_p) + "^ " + "a" + str(lambda_q)
+            H += op.ParticleOperator(op_string)
+    basis = []
+
+    for i in range((occupancy_cutoff + 1) ** mode_cutoff):
+        state = op.Fock([], [], give_me_state(i, mode_cutoff, occupancy_cutoff))
+        basis.append(state)
+
+    matrix = op.utils.generate_matrix_from_basis(H, basis)
+
+    if imshow == True:
+        plt.imshow(matrix)
+        plt.title(
+            f"$a_p^\dagger a_q$ Hamiltonian with $\Lambda = {mode_cutoff}, \Omega = {occupancy_cutoff}$"
+        )
+        plt.show()
+
+    return matrix
