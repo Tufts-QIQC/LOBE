@@ -209,7 +209,7 @@ def test_select_oracle_on_superposition_state_for_toy_bosonic_hamiltonian(
 @pytest.mark.parametrize(
     "operators",
     [
-        ParticleOperator("a3^ a2^ a1 a0").to_list(),
+        [ParticleOperator("a3^ a2^ a1 a0")],
         (
             ParticleOperator("a0^ a0")
             + ParticleOperator("a1^ a1")

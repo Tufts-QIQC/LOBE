@@ -23,8 +23,10 @@ def add_select_oracle(
         cirq.Circuit: The updated quantum circuit
     """
 
-    if isinstance(operators, (ParticleOperator, ParticleOperatorSum)):
+    if isinstance(operators, ParticleOperatorSum):
         operators = operators.to_list()
+    elif isinstance(operators, ParticleOperator):
+        operators = [operators]
 
     for operator_index, operator in enumerate(operators):
         op_types = operator.particle_type

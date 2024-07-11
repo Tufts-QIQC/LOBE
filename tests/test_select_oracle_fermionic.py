@@ -156,7 +156,7 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     #         LadderOperator(0, 0, False),
     #     ]
     # ]
-    operators = ParticleOperator("b3^ b2^ b1 b0").to_list()
+    operators = ParticleOperator("b3^ b2^ b1 b0")
 
     number_of_index_qubits = 1
     number_of_system_qubits = 4
@@ -227,7 +227,7 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     #         LadderOperator(0, 0, False),
     #     ]
     # ]
-    operators = ParticleOperator("b4^ b3^ b1 b0").to_list()
+    operators = ParticleOperator("b4^ b3^ b1 b0")
 
     number_of_index_qubits = 1
     number_of_system_qubits = 5
