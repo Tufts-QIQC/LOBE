@@ -4,7 +4,13 @@ from .incrementer import add_incrementer
 
 
 def add_select_oracle(
-    circuit, validation, index_register, system, operators, clean_ancilla=[]
+    circuit,
+    validation,
+    index_register,
+    system,
+    operators,
+    bosonic_rotation_register=[],
+    clean_ancilla=[],
 ):
     """Add the select oracle for LOBE into the quantum circuit.
 
@@ -51,6 +57,7 @@ def add_select_oracle(
                     operator_index,
                     operator,
                     system,
+                    bosonic_rotation_register,
                     clean_ancilla,
                 )
             else:
@@ -61,13 +68,21 @@ def add_select_oracle(
                     operator_index,
                     system,
                     operator,
+                    bosonic_rotation_register,
                     clean_ancilla,
                 )
     return circuit
 
 
 def _add_bosonic_particle_number_op(
-    circuit, validation, index_register, operator_index, operator, system, clean_ancilla
+    circuit,
+    validation,
+    index_register,
+    operator_index,
+    operator,
+    system,
+    bosonic_rotation_register,
+    clean_ancilla,
 ):
     # Get binary control values corresponding to current operator index
     index_register_control_values = [
@@ -86,6 +101,23 @@ def _add_bosonic_particle_number_op(
 
     control_values = index_register_control_values + [0]
     control_qubits = index_register + [clean_ancilla[0]]
+
+    # Perform two subsequent rotations to pickup a total coefficient of sqrt(N_p)/Omega
+    circuit = _add_bosonic_coefficient_rotation(
+        circuit,
+        system.bosonic_system[operator[0].mode],
+        bosonic_rotation_register[0],
+        ctrls=control_qubits + [validation],
+        ctrl_values=control_values + [1],
+    )
+    circuit = _add_bosonic_coefficient_rotation(
+        circuit,
+        system.bosonic_system[operator[0].mode],
+        bosonic_rotation_register[1],
+        ctrls=control_qubits + [validation],
+        ctrl_values=control_values + [1],
+    )
+
     # Flip validation to 0 to mark that we hit a state that statisfied this operator
     circuit.append(
         cirq.Moment(
@@ -114,6 +146,7 @@ def _add_bosonic_ladder_operator(
     operator_index,
     system,
     operator,
+    bosonic_rotation_register,
     clean_ancilla,
 ):
     # Get binary control values corresponding to current operator index
@@ -154,7 +187,17 @@ def _add_bosonic_ladder_operator(
         used_ancilla += 1
 
     # Reverse loop because operators act starting from the right
+    bosonic_rotation_counter = 0
     for ladder_op in operator[::-1]:
+        if not ladder_op.creation:
+            _add_bosonic_coefficient_rotation(
+                circuit,
+                system.bosonic_system[ladder_op.mode],
+                bosonic_rotation_register[bosonic_rotation_counter],
+                ctrls=control_qubits,
+                ctrl_values=control_values,
+            )
+            bosonic_rotation_counter += 1
         # perform incrementers/decrementers
         circuit = add_incrementer(
             circuit,
@@ -164,6 +207,15 @@ def _add_bosonic_ladder_operator(
             control_qubits,
             control_values,
         )
+        if ladder_op.creation:
+            _add_bosonic_coefficient_rotation(
+                circuit,
+                system.bosonic_system[ladder_op.mode],
+                bosonic_rotation_register[bosonic_rotation_counter],
+                ctrls=control_qubits,
+                ctrl_values=control_values,
+            )
+            bosonic_rotation_counter += 1
 
     # Mark validation qubit if term fired
     circuit.append(
@@ -206,6 +258,32 @@ def _add_bosonic_ladder_operator(
         used_ancilla -= 1
 
     assert used_ancilla == 0
+
+    return circuit
+
+
+def _add_bosonic_coefficient_rotation(
+    circuit, bosonic_mode, rotation_qubit, ctrls=[], ctrl_values=[]
+):
+    # Multiplexing over computational basis states of mode register
+    for particle_number in range(1, 1 << len(bosonic_mode)):
+        bosonic_register_control_values = [
+            int(i) for i in format(particle_number, f"#0{2+len(bosonic_mode)}b")[2:]
+        ]
+
+        # Rotate ancilla by sqrt(particle_number)
+        omega = 1 << len(bosonic_mode)
+        intended_coefficient = np.sqrt(particle_number / omega)
+        circuit.append(
+            cirq.Moment(
+                cirq.ry(2 * np.arccos(intended_coefficient))
+                .on(rotation_qubit)
+                .controlled_by(
+                    *(bosonic_mode + ctrls),
+                    control_values=bosonic_register_control_values + ctrl_values,
+                )
+            )
+        )
 
     return circuit
 
