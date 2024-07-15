@@ -1,9 +1,6 @@
 import numpy as np
 from typing import List
 import openparticle as op
-import openparticle.utils
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 def pretty_print(
@@ -48,9 +45,7 @@ def give_me_state(nn, Lambda, Omega):
     return list(enumerate(result))
 
 
-def generate_bosonic_pairing_hamiltonian_matrix(
-    mode_cutoff, occupancy_cutoff, imshow: bool = False
-):
+def generate_bosonic_pairing_hamiltonian_matrix(mode_cutoff, occupancy_cutoff):
     """
     Generating bosonic pairing Hamiltonians to test LOBE
 
@@ -78,12 +73,5 @@ def generate_bosonic_pairing_hamiltonian_matrix(
         basis.append(state)
 
     matrix = op.utils.generate_matrix_from_basis(H, basis)
-
-    if imshow == True:
-        plt.imshow(matrix)
-        plt.title(
-            f"$a_p^\dagger a_q$ Hamiltonian with $\Lambda = {mode_cutoff}, \Omega = {occupancy_cutoff}$"
-        )
-        plt.show()
 
     return matrix

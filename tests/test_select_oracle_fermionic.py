@@ -148,14 +148,7 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     """
     # Operator = b_3^dag b_2^dag b_1 b_0
     # This acts only on |0, 0, 1, 1> to output |1, 1, 0, 0>
-    # operators = [
-    #     [
-    #         LadderOperator(0, 3, True),
-    #         LadderOperator(0, 2, True),
-    #         LadderOperator(0, 1, False),
-    #         LadderOperator(0, 0, False),
-    #     ]
-    # ]
+
     operators = ParticleOperator("b3^ b2^ b1 b0")
 
     number_of_index_qubits = 1
@@ -219,14 +212,6 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     j_str, expect_j_str, parity_coeff
 ):
     # b_4^dag b_3^dag b_1 b_0 |00011> = -|11000> & |00111> = -|11100>
-    # operators = [
-    #     [
-    #         LadderOperator(0, 4, True),
-    #         LadderOperator(0, 3, True),
-    #         LadderOperator(0, 1, False),
-    #         LadderOperator(0, 0, False),
-    #     ]
-    # ]
     operators = ParticleOperator("b4^ b3^ b1 b0")
 
     number_of_index_qubits = 1
@@ -296,15 +281,7 @@ def test_select_oracle_on_both_one_and_two_body_fermionic_terms(
 ):
     # b_4^dag b_3^dag b_1 b_0 |00011> = |11000> & |00111> = -|11100>
     # operator = [((0, 4), (0, 3), (0, 1), (0, 0)), ((0, 3), (0, 1))]
-    # operators = [
-    #     [
-    #         LadderOperator(0, 4, True),
-    #         LadderOperator(0, 3, True),
-    #         LadderOperator(0, 1, False),
-    #         LadderOperator(0, 0, False),
-    #     ],
-    #     [LadderOperator(0, 3, True), LadderOperator(0, 1, False)],
-    # ]
+
     operators = (
         ParticleOperator("b4^ b3^ b1 b0") + ParticleOperator("b3^ b1")
     ).to_list()

@@ -80,12 +80,6 @@ TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP = {
 def get_bosonic_select_oracle_test_inputs():
     simulator = cirq.Simulator(dtype=np.complex128)
     number_of_index_qubits = 2
-    # operators = [
-    #     [LadderOperator(2, 0, True), LadderOperator(2, 0, False)],
-    #     [LadderOperator(2, 1, True), LadderOperator(2, 1, False)],
-    #     [LadderOperator(2, 0, True), LadderOperator(2, 1, False)],
-    #     [LadderOperator(2, 1, True), LadderOperator(2, 0, False)],
-    # ]
     operators = (
         ParticleOperator("a0^ a0")
         + ParticleOperator("a1^ a1")
