@@ -21,8 +21,8 @@ def add_select_oracle(
         index_register (List[cirq.LineQubit]): The qubit register that is used to index the operators
         system (System): An instance of the System class that holds the qubit registers storing the
             state of the system.
-        operators (List[ParticleOpeartor/ParticleOperatorSum]): The ladder operators included in the Hamiltonian.
-            Each item in the list is a list of LadderOperators and corresponds to a term comprising several
+        operators (List[ParticleOperator/ParticleOperatorSum]): The ladder operators included in the Hamiltonian.
+            Each item in the list is a ParticleOperator and corresponds to a term comprising several
             ladder operators.
 
     Returns:
@@ -198,10 +198,10 @@ def _add_bosonic_ladder_operator(
     # Reverse loop because operators act starting from the right
     bosonic_rotation_counter = 0
     for ladder_op in operator.split()[::-1]:
-        if not ladder_op.creation:
+        if not (ladder_op.ca_string == "c"):
             _add_bosonic_coefficient_rotation(
                 circuit,
-                system.bosonic_system[ladder_op.mode],
+                system.bosonic_system[ladder_op.modes[0]],
                 bosonic_rotation_register[bosonic_rotation_counter],
                 ctrls=control_qubits,
                 ctrl_values=control_values,
@@ -216,10 +216,10 @@ def _add_bosonic_ladder_operator(
             control_qubits,
             control_values,
         )
-        if ladder_op.creation:
+        if ladder_op.ca_string == "c":
             _add_bosonic_coefficient_rotation(
                 circuit,
-                system.bosonic_system[ladder_op.mode],
+                system.bosonic_system[ladder_op.modes[0]],
                 bosonic_rotation_register[bosonic_rotation_counter],
                 ctrls=control_qubits,
                 ctrl_values=control_values,

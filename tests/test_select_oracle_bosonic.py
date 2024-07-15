@@ -277,8 +277,8 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
 ):
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
     index = index % len(operators)
-    maximum_mode = max([op.mode for term in operators for op in term])
-    maximum_number_of_bosonic_ops_in_term = max([len(term) for term in operators])
+    maximum_mode = max([max(term.modes) for term in operators])
+    maximum_number_of_bosonic_ops_in_term = max([len(term.modes) for term in operators])
     number_of_occupation_qubits = int(np.ceil(np.log2(maximum_occupation_number)))
     number_of_clean_ancilla = max([len(op.modes) for op in operators]) + max(
         number_of_occupation_qubits - 2, 0
@@ -427,13 +427,13 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
         expected_coefficient = 1 / ((1 << number_of_occupation_qubits)) ** (
             maximum_number_of_bosonic_ops_in_term / 2
         )
-        for op in operators[index]:
-            if op.creation:
+        for op in operators[index].split():
+            if op.ca_string == "c":
                 expected_coefficient *= np.sqrt(
-                    int(expected_bosonic_registers_bitstrings[op.mode], 2)
+                    int(expected_bosonic_registers_bitstrings[op.modes[0]], 2)
                 )
             else:
                 expected_coefficient *= np.sqrt(
-                    int(bosonic_registers_bitstrings[op.mode], 2)
+                    int(bosonic_registers_bitstrings[op.modes[0]], 2)
                 )
     assert np.allclose(wavefunction[int(expected_bitstring, 2)], expected_coefficient)
