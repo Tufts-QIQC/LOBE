@@ -1,5 +1,5 @@
 name: Continuous Integration (CI)
-on: [push, pull_request]
+on: [pull_request]
 jobs:
   run:
     runs-on: ubuntu-latest
@@ -12,14 +12,18 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+      - name: Clone OpenParticle
+        run: |
+          git clone https://github.com/cgustin99/OpenParticle
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install numpy cirq
+          pip install numpy cirq coverage pytest
+          cd OpenParticle
+          pip install .
+          cd ..
       - name: Generate codecov report
         run: |
-          pip install coverage
-          pip install pytest
           coverage run -m pytest tests
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
