@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 import cirq
 from src.lobe.select_oracle import add_select_oracle
-from src.lobe.operators import LadderOperator
 from src.lobe.system import System
 import copy
 from openparticle import ParticleOperator
