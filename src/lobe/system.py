@@ -21,7 +21,6 @@ class System:
         self.number_of_system_qubits = 0
         self.fermionic_register = []
         self.antifermionic_register = []
-        self.bosonic_mode_register = []
         self.bosonic_occupation_register = []
 
         if self.has_fermions:
