@@ -27,19 +27,19 @@ class System:
             self.fermionic_register = [
                 cirq.LineQubit(i + number_of_used_qubits)
                 for i in range(self.number_of_modes)
-            ]
+            ][::-1]
             self.number_of_system_qubits += self.number_of_modes
 
         if self.has_antifermions:
             self.antifermionic_register = [
                 cirq.LineQubit(i + number_of_used_qubits + self.number_of_system_qubits)
                 for i in range(self.number_of_modes)
-            ]
+            ][::-1]
             self.number_of_system_qubits += self.number_of_modes
 
         if self.has_bosons:
-            number_of_occupation_qubits = int(
-                np.ceil(np.log2(self.maximum_occupation_number))
+            number_of_occupation_qubits = max(
+                int(np.ceil(np.log2(self.maximum_occupation_number + 1))), 1
             )
 
             self.bosonic_system = [
