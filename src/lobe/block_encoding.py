@@ -36,8 +36,13 @@ def add_lobe_oracle(
     clean_ancillae_counter = 0
 
     for index, term in enumerate(operators):
-        bosonic_rotation_index = 1
+        bosonic_rotation_index = 0
+        if perform_coefficient_oracle:
+            bosonic_rotation_index += 1
         gates_for_term = []
+
+        control_qubit = clean_ancillae[clean_ancillae_counter]
+        clean_ancillae_counter += 1
 
         # Left-elbow based on index of term
         circuit_ops, index_qbool = _get_index_register_qbool(
@@ -47,21 +52,35 @@ def add_lobe_oracle(
         clean_ancillae_counter += 1
 
         # Left-elbow based on system state
-        circuit_ops, system_qbool, number_of_ancillae_used = _get_system_qbool(
+        circuit_ops, system_qbool, number_of_bosonic_ancillae = _get_system_qbool(
             system,
             clean_ancillae[clean_ancillae_counter],
             term,
             clean_ancillae[clean_ancillae_counter + 1 :],
         )
+        bosonic_ancillae = clean_ancillae[
+            clean_ancillae_counter
+            + 1 : clean_ancillae_counter
+            + 1
+            + number_of_bosonic_ancillae
+        ]
         gates_for_term += circuit_ops
-        clean_ancillae_counter += 1 + number_of_ancillae_used
+        clean_ancillae_counter += 1 + number_of_bosonic_ancillae
+
+        gates_for_term.append(
+            cirq.Moment(
+                cirq.X.on(control_qubit).controlled_by(
+                    system_qbool, index_qbool, validation
+                )
+            )
+        )
 
         circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
             system,
             rotation_register[bosonic_rotation_index:],
             term,
             annihilation_ops=True,
-            ctrls=([validation, index_qbool, system_qbool], [1, 1, 1]),
+            ctrls=([control_qubit], [1]),
         )
         gates_for_term += circuit_ops
         bosonic_rotation_index += number_of_bosonic_rotations
@@ -69,7 +88,8 @@ def add_lobe_oracle(
         circuit_ops = _update_system(
             term,
             system,
-            ctrls=([validation, index_qbool, system_qbool], [1, 1, 1]),
+            clean_ancillae=clean_ancillae[clean_ancillae_counter:],
+            ctrls=([control_qubit], [1]),
         )
         gates_for_term += circuit_ops
 
@@ -78,27 +98,42 @@ def add_lobe_oracle(
             rotation_register[bosonic_rotation_index:],
             term,
             creation_ops=True,
-            ctrls=([validation, index_qbool, system_qbool], [1, 1, 1]),
+            ctrls=([control_qubit], [1]),
         )
         gates_for_term += circuit_ops
         bosonic_rotation_index += number_of_bosonic_rotations
 
         gates_for_term.append(
-            cirq.Moment(cirq.X.on(validation).controlled_by(index_qbool, system_qbool))
+            cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
         )
 
-        # Right-elbow to uncompute system qbool
-        clean_ancillae_counter -= 1
-        clean_ancillae_counter -= number_of_ancillae_used
-        circuit_ops, system_qbool, number_of_ancillae_used = _get_system_qbool(
+        # Right-elbow to uncompute system qbool assuming term did not fire
+        circuit_ops, system_qbool, _ = _get_system_qbool(
             system,
-            clean_ancillae[clean_ancillae_counter],
+            system_qbool,
             term,
-            clean_ancillae[clean_ancillae_counter + 1 :],
+            bosonic_ancillae,
             uncompute=True,
-            ctrls=([validation], [0]),
+            ctrls=([control_qubit], [0]),
         )
         gates_for_term += circuit_ops
+
+        # IFF term did fire, reset ancillae manually
+        for qubit in clean_ancillae[2:clean_ancillae_counter]:
+            gates_for_term.append(
+                cirq.Moment(cirq.X.on(qubit).controlled_by(control_qubit))
+            )
+        clean_ancillae_counter -= 1
+        clean_ancillae_counter -= number_of_bosonic_ancillae
+
+        gates_for_term.append(
+            cirq.Moment(
+                cirq.X.on(control_qubit).controlled_by(
+                    validation, index_qbool, control_values=[0, 1]
+                )
+            )
+        )
+        clean_ancillae_counter -= 1
 
         if perform_coefficient_oracle:
             gates_for_term.append(
@@ -110,13 +145,13 @@ def add_lobe_oracle(
             )
 
         # Right-elbow to uncompute index of term
-        clean_ancillae_counter -= 1
         circuit_ops, index_qbool = _get_index_register_qbool(
             index_register,
-            clean_ancillae[clean_ancillae_counter],
+            index_qbool,
             index,
             uncompute=True,
         )
+        clean_ancillae_counter -= 1
         gates_for_term += circuit_ops
 
         all_gates += gates_for_term
@@ -212,29 +247,27 @@ def _get_system_qbool(
                 # add control values for greater than zero
                 occupation_controls += [0] * len(occupation_qubits)
 
-            if uncompute:
-                # Essentially a right-elbow to clean up additional ancillae
-                gates.append(
-                    cirq.Moment(
-                        cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
-                            *ctrls[0], control_values=[1]
-                        )
-                    )
-                )
-                ancillae_counter += 1
-            else:
-                # Left-elbow (right-elbow if uncompute) onto additional ancillae to denote either fully occupied (creation)
-                #   or completelyf unoccupied (annihilation)
-                gates.append(
-                    cirq.Moment(
-                        cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
-                            *occupation_qubits, control_values=occupation_controls
-                        )
-                    )
-                )
-                control_qubits.append(additional_ancillae[ancillae_counter])
-                control_values.append(0)
-                ancillae_counter += 1
+            # Left-elbow (right-elbow if uncompute) onto additional ancillae to denote either fully occupied (creation)
+            #   or completelyf unoccupied (annihilation)
+            gates.append(
+                cirq.Moment(
+                    cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
+                        *occupation_qubits,
+                        *ctrls[0],
+                        control_values=occupation_controls + ctrls[1],
+                    ),
+                ),
+            )
+            gates.append(
+                cirq.Moment(
+                    cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
+                        *ctrls[0], control_values=ctrls[1]
+                    ),
+                ),
+            )
+            control_qubits.append(additional_ancillae[ancillae_counter])
+            control_values.append(1)
+            ancillae_counter += 1
 
         else:  # Fermionic or Antifermionic
             if particle_operator.ca_string == "c":
@@ -251,25 +284,16 @@ def _get_system_qbool(
                     system.antifermionic_register[particle_operator.modes[0]]
                 )
 
-    if uncompute:
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(ancilla).controlled_by(
-                    *ctrls[0],
-                    control_values=ctrls[1],
-                )
+    # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
+    gates.append(
+        cirq.Moment(
+            cirq.X.on(ancilla).controlled_by(
+                *control_qubits,
+                *ctrls[0],
+                control_values=control_values + ctrls[1],
             )
         )
-    else:
-        # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(ancilla).controlled_by(
-                    *control_qubits,
-                    control_values=control_values,
-                )
-            )
-        )
+    )
 
     if uncompute:
         gates = gates[::-1]
@@ -392,7 +416,7 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
             gates += add_incrementer(
                 [],
                 system.bosonic_system[mode],
-                clean_ancillae,
+                clean_ancillae[: len(system.bosonic_system[mode]) - 2],
                 not (particle_operator.ca_string == "c"),
                 ctrls[0],
                 ctrls[1],
