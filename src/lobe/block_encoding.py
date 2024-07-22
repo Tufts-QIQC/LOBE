@@ -11,6 +11,7 @@ def add_lobe_oracle(
     rotation_register,
     clean_ancillae=[],
     perform_coefficient_oracle=True,
+    decompose=True,
 ):
     """This function should add the Ladder Operator Block Encoding oracle.
 
@@ -28,6 +29,9 @@ def add_lobe_oracle(
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
             They are to be used as ancillae to store quantum booleans.
         perform_coefficient_oracle (bool): Classical boolean to dictate if the coefficient oracle should be added.
+        decompose (bool): Classical boolean determining if quantum conditions should be decomposed into ancillae
+            to reduce number of Toffolis (True) or if they should be left as a series of multiple controls to reduce
+            additional ancillae requirements (False).
 
     Returns:
         - The gates to perform the LOBE oracle
@@ -45,11 +49,14 @@ def add_lobe_oracle(
         clean_ancillae_counter += 1
 
         # Left-elbow based on index of term
-        circuit_ops, index_qbool = _get_index_register_qbool(
-            index_register, clean_ancillae[clean_ancillae_counter], index
+        circuit_ops, index_ctrls, number_of_used_ancillae = _get_index_register_ctrls(
+            index_register,
+            clean_ancillae[clean_ancillae_counter:],
+            index,
+            decompose=decompose,
         )
         gates_for_term += circuit_ops
-        clean_ancillae_counter += 1
+        clean_ancillae_counter += number_of_used_ancillae
 
         # Left-elbow based on system state
         circuit_ops, system_qbool, number_of_bosonic_ancillae = _get_system_qbool(
@@ -70,7 +77,10 @@ def add_lobe_oracle(
         gates_for_term.append(
             cirq.Moment(
                 cirq.X.on(control_qubit).controlled_by(
-                    system_qbool, index_qbool, validation
+                    system_qbool,
+                    *index_ctrls[0],
+                    validation,
+                    control_values=[1] + index_ctrls[1] + [1],
                 )
             )
         )
@@ -119,7 +129,10 @@ def add_lobe_oracle(
         gates_for_term += circuit_ops
 
         # IFF term did fire, reset ancillae manually
-        for qubit in clean_ancillae[2:clean_ancillae_counter]:
+        start = 1
+        if decompose:
+            start = 2
+        for qubit in clean_ancillae[start:clean_ancillae_counter]:
             gates_for_term.append(
                 cirq.Moment(cirq.X.on(qubit).controlled_by(control_qubit))
             )
@@ -129,7 +142,7 @@ def add_lobe_oracle(
         gates_for_term.append(
             cirq.Moment(
                 cirq.X.on(control_qubit).controlled_by(
-                    validation, index_qbool, control_values=[0, 1]
+                    validation, *index_ctrls[0], control_values=[0] + index_ctrls[1]
                 )
             )
         )
@@ -140,18 +153,19 @@ def add_lobe_oracle(
                 cirq.Moment(
                     cirq.ry(2 * np.arccos(term.coeff))
                     .on(rotation_register[0])
-                    .controlled_by(index_qbool)
+                    .controlled_by(*index_ctrls[0], control_values=index_ctrls[1])
                 )
             )
 
         # Right-elbow to uncompute index of term
-        circuit_ops, index_qbool = _get_index_register_qbool(
+        circuit_ops, _, number_of_used_ancillae = _get_index_register_ctrls(
             index_register,
-            index_qbool,
+            clean_ancillae[clean_ancillae_counter:],
             index,
             uncompute=True,
+            decompose=decompose,
         )
-        clean_ancillae_counter -= 1
+        clean_ancillae_counter -= number_of_used_ancillae
         gates_for_term += circuit_ops
 
         all_gates += gates_for_term
@@ -161,7 +175,9 @@ def add_lobe_oracle(
     return all_gates
 
 
-def _get_index_register_qbool(index_register, ancilla, index, uncompute=False):
+def _get_index_register_ctrls(
+    index_register, ancillae, index, uncompute=False, decompose=True
+):
     """Create a quantum Boolean that stores whether or not the index_register is in the state |index>
 
     This function operates as an N-Qubit left-elbow gate (Toffoli) controlled on the state of
@@ -169,7 +185,7 @@ def _get_index_register_qbool(index_register, ancilla, index, uncompute=False):
 
     Args:
         index_register (List[cirq.LineQubit]): The qubit register on which to control
-        ancilla (cirq.LineQubit): The ancilla qubit that will store the quantum boolean on output
+        ancillae (cirq.LineQubit): The ancilla qubit that will store the quantum boolean on output
         index (int): The computational basis state of index_register to control on. Stored as an integer
             and the binary representation gives the control structure on index_register
         uncompute (boolean): A classical flag to dictate whether or not this is a left or right elbow
@@ -185,17 +201,19 @@ def _get_index_register_qbool(index_register, ancilla, index, uncompute=False):
         int(i) for i in format(index, f"#0{2+len(index_register)}b")[2:]
     ]
 
-    # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
-    gates.append(
-        cirq.Moment(
-            cirq.X.on(ancilla).controlled_by(
-                *index_register,
-                control_values=index_register_control_values,
+    if decompose:
+        # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
+        gates.append(
+            cirq.Moment(
+                cirq.X.on(ancillae[0]).controlled_by(
+                    *index_register,
+                    control_values=index_register_control_values,
+                )
             )
         )
-    )
+        return gates, ([ancillae[0]], [1]), 1
 
-    return gates, ancilla
+    return gates, (index_register, index_register_control_values), 0
 
 
 def _get_system_qbool(
