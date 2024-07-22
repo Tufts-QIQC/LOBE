@@ -44,7 +44,7 @@ def get_fermionic_select_oracle_test_inputs():
     system = System(number_of_modes=2, number_of_used_qubits=4, has_fermions=True)
 
     circuit = add_select_oracle(
-        circuit, validation, index, system, operators, clean_ancilla
+        circuit, validation, index, system, operators, clean_ancilla=clean_ancilla
     )
 
     initial_state_of_validation = np.zeros(2)
@@ -170,7 +170,12 @@ def test_select_oracle_on_one_two_body_fermionic_terms():
     circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, index_register, system, operators, clean_ancilla
+        circuit,
+        validation,
+        index_register,
+        system,
+        operators,
+        clean_ancilla=clean_ancilla,
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
@@ -233,7 +238,12 @@ def test_parity_on_five_qubit_one_fermionic_two_body_term(
     circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, index_register, system, operators, clean_ancilla
+        circuit,
+        validation,
+        index_register,
+        system,
+        operators,
+        clean_ancilla=clean_ancilla,
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits
@@ -305,7 +315,12 @@ def test_select_oracle_on_both_one_and_two_body_fermionic_terms(
     circuit.append(cirq.I.on_each(*system.fermionic_register))
 
     circuit = add_select_oracle(
-        circuit, validation, index_register, system, operators, clean_ancilla
+        circuit,
+        validation,
+        index_register,
+        system,
+        operators,
+        clean_ancilla=clean_ancilla,
     )
 
     num_qubits = 3 + number_of_index_qubits + number_of_system_qubits

@@ -134,6 +134,7 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
     clean_ancilla = [cirq.LineQubit(1)]
     rotation = cirq.LineQubit(2)
     index = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
+    bosonic_rotation_register = []
     system = System(
         number_of_modes=max(modes) + 1,
         number_of_used_qubits=3 + number_of_index_qubits,
@@ -145,7 +146,13 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
     circuit = add_naive_usp(circuit, index)
     circuit.append(cirq.X.on(validation))
     circuit = add_select_oracle(
-        circuit, validation, index, system, operators, clean_ancilla
+        circuit,
+        validation,
+        index,
+        system,
+        operators,
+        bosonic_rotation_register,
+        clean_ancilla,
     )
     circuit = add_coefficient_oracle(
         circuit, rotation, index, normalized_coefficients, len(operators)
@@ -173,6 +180,7 @@ def test_select_and_coefficient_oracles_commute():
     rotation = cirq.LineQubit(1)
     index = [cirq.LineQubit(i + 2) for i in range(2)]
     clean_ancilla = [cirq.LineQubit(4)]
+    bosonic_rotation_register = []
     system = System(
         number_of_modes=2,
         number_of_used_qubits=5,
@@ -183,7 +191,13 @@ def test_select_and_coefficient_oracles_commute():
     circuit = add_naive_usp(circuit, index)
     circuit.append(cirq.X.on(validation))
     circuit = add_select_oracle(
-        circuit, validation, index, system, operators, clean_ancilla
+        circuit,
+        validation,
+        index,
+        system,
+        operators,
+        bosonic_rotation_register,
+        clean_ancilla,
     )
     circuit = add_coefficient_oracle(
         circuit, rotation, index, coefficients, len(operators)
@@ -198,7 +212,13 @@ def test_select_and_coefficient_oracles_commute():
         circuit, rotation, index, coefficients, len(operators)
     )
     circuit = add_select_oracle(
-        circuit, validation, index, system, operators, clean_ancilla
+        circuit,
+        validation,
+        index,
+        system,
+        operators,
+        bosonic_rotation_register,
+        clean_ancilla,
     )
     circuit = add_naive_usp(circuit, index)
     unitary_coefficient_first = circuit.unitary()

@@ -3,3 +3,4 @@
 *.pyc
 sparse_env/
 .DS_Store
+**/__pycache__/
