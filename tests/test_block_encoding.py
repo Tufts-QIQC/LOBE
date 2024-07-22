@@ -11,27 +11,44 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "terms",
+    "terms, has_bosons, has_fermions",
     [
-        [
-            ParticleOperator("a0", 1),
-            ParticleOperator("a1", 1),
-            ParticleOperator("a0^ a1", 1),
-            ParticleOperator("a1^ a0", 1),
-        ]
+        (
+            [
+                ParticleOperator("a0", 1),
+                ParticleOperator("a1", 1),
+                ParticleOperator("a0^ a1", 1),
+                ParticleOperator("a1^ a0", 1),
+            ],
+            True,
+            False,
+        ),
+        (
+            [
+                ParticleOperator("a0^ b0", 1),
+                ParticleOperator("b0^ a0", 0.25),
+            ],
+            True,
+            True,
+        ),
     ],
 )
-@pytest.mark.parametrize("decompose", [True, False])
-def test_lobe_block_encoding(terms, decompose):
+@pytest.mark.parametrize("maximum_occupation_number", [1, 3])
+@pytest.mark.parametrize("decompose", [False, True])
+def test_lobe_block_encoding(
+    terms, has_bosons, has_fermions, maximum_occupation_number, decompose
+):
     hamiltonian = terms[0]
     for term in terms[1:]:
         hamiltonian += term
 
-    maximum_occupation_number = 3
     number_of_modes = max([mode for term in terms for mode in term.modes]) + 1
 
     full_fock_basis = get_basis_of_full_system(
-        number_of_modes, maximum_occupation_number, has_bosons=True
+        number_of_modes,
+        maximum_occupation_number,
+        has_fermions=has_fermions,
+        has_bosons=has_bosons,
     )
     matrix = op.generate_matrix_from_basis(hamiltonian, full_fock_basis)
 
@@ -63,8 +80,8 @@ def test_lobe_block_encoding(terms, decompose):
         number_of_modes=number_of_modes,
         maximum_occupation_number=maximum_occupation_number,
         number_of_used_qubits=1 + number_of_ancillae + 3 + number_of_index_qubits,
-        has_fermions=False,
-        has_bosons=True,
+        has_fermions=has_fermions,
+        has_bosons=has_bosons,
     )
 
     # Generate full Block-Encoding circuit
@@ -78,6 +95,7 @@ def test_lobe_block_encoding(terms, decompose):
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=True,
+        decompose=decompose,
     )
     circuit += add_naive_usp(index_register)
 
