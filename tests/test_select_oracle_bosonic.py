@@ -260,13 +260,13 @@ def test_select_oracle_on_superposition_state_for_toy_bosonic_hamiltonian(
 @pytest.mark.parametrize(
     "operators",
     [
-        [ParticleOperator("a3^ a2^ a1 a0")],
+        ParticleOperator("a3^ a2^ a1 a0"),
         (
             ParticleOperator("a0^ a0")
             + ParticleOperator("a1^ a1")
             + ParticleOperator("a0^ a1")
             + ParticleOperator("a1^ a0")
-        ).to_list(),
+        ),
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", np.random.randint(2, 9, 3))
@@ -275,12 +275,16 @@ def test_select_oracle_on_superposition_state_for_toy_bosonic_hamiltonian(
 def test_select_oracle_on_one_two_body_bosonic_terms(
     operators, maximum_occupation_number, index, bosonic_state
 ):
-    number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
-    index = index % len(operators)
-    maximum_mode = max([max(term.modes) for term in operators])
-    maximum_number_of_bosonic_ops_in_term = max([len(term.modes) for term in operators])
+    number_of_index_qubits = max(
+        int(np.ceil(np.log2(len(list(operators.op_dict.keys()))))), 1
+    )
+    index = index % len(list(operators.op_dict.keys()))
+    maximum_mode = operators.max_mode()
+    maximum_number_of_bosonic_ops_in_term = max(
+        s.count("a") for s in list(operators.op_dict.keys())
+    )
     number_of_occupation_qubits = int(np.ceil(np.log2(maximum_occupation_number)))
-    number_of_clean_ancilla = max([len(op.modes) for op in operators]) + max(
+    number_of_clean_ancilla = maximum_number_of_bosonic_ops_in_term + max(
         number_of_occupation_qubits - 2, 0
     )
 
