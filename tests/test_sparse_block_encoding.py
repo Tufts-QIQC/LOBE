@@ -12,12 +12,12 @@ from openparticle import ParticleOperator
     ["operators", "coefficients", "hamiltonian"],
     [
         (
-            [
-                ParticleOperator("b0^ b0"),
-                ParticleOperator("b0^ b1"),
-                ParticleOperator("b1^ b0"),
-                ParticleOperator("b1^ b1"),
-            ],
+            (
+                ParticleOperator("b0^ b0")
+                + ParticleOperator("b0^ b1")
+                + ParticleOperator("b1^ b0")
+                + ParticleOperator("b1^ b1")
+            ),
             np.array([1, 1, 1, 1]),
             np.array(
                 [
@@ -29,12 +29,12 @@ from openparticle import ParticleOperator
             ),
         ),
         (
-            [
-                ParticleOperator("b0^ b0"),
-                ParticleOperator("b0^ b1"),
-                ParticleOperator("b1^ b0"),
-                ParticleOperator("b1^ b1"),
-            ],
+            (
+                ParticleOperator("b0^ b0")
+                + ParticleOperator("b0^ b1")
+                + ParticleOperator("b1^ b0")
+                + ParticleOperator("b1^ b1")
+            ),
             np.array([1, 0.5, 0.5, 1]),
             np.array(
                 [
@@ -46,11 +46,11 @@ from openparticle import ParticleOperator
             ),
         ),
         (
-            [
-                ParticleOperator("b0^ b0"),
-                ParticleOperator("b1^ b1"),
-                ParticleOperator("b2^ b2"),
-            ],
+            (
+                ParticleOperator("b0^ b0")
+                + ParticleOperator("b1^ b1")
+                + ParticleOperator("b2^ b2")
+            ),
             np.array([4, 2, 1]),
             np.array(
                 [
@@ -66,24 +66,24 @@ from openparticle import ParticleOperator
             ),
         ),
         (
-            [
-                ParticleOperator("b0^ b0"),
-                ParticleOperator("b0^ b1"),
-                ParticleOperator("b0^ b2"),
-                ParticleOperator("b0^ b3"),
-                ParticleOperator("b1^ b0"),
-                ParticleOperator("b1^ b1"),
-                ParticleOperator("b1^ b2"),
-                ParticleOperator("b1^ b3"),
-                ParticleOperator("b2^ b0"),
-                ParticleOperator("b2^ b1"),
-                ParticleOperator("b2^ b2"),
-                ParticleOperator("b2^ b3"),
-                ParticleOperator("b3^ b0"),
-                ParticleOperator("b3^ b1"),
-                ParticleOperator("b3^ b2"),
-                ParticleOperator("b3^ b3"),
-            ],
+            (
+                ParticleOperator("b0^ b0")
+                + ParticleOperator("b0^ b1")
+                + ParticleOperator("b0^ b2")
+                + ParticleOperator("b0^ b3")
+                + ParticleOperator("b1^ b0")
+                + ParticleOperator("b1^ b1")
+                + ParticleOperator("b1^ b2")
+                + ParticleOperator("b1^ b3")
+                + ParticleOperator("b2^ b0")
+                + ParticleOperator("b2^ b1")
+                + ParticleOperator("b2^ b2")
+                + ParticleOperator("b2^ b3")
+                + ParticleOperator("b3^ b0")
+                + ParticleOperator("b3^ b1")
+                + ParticleOperator("b3^ b2")
+                + ParticleOperator("b3^ b3")
+            ),
             np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]),
             np.array(
                 [
@@ -107,9 +107,9 @@ from openparticle import ParticleOperator
             ),
         ),
         (
-            [
+            (
                 ParticleOperator("b0^ b2")
-            ],  # Operator b^\dagger_0 b_2. Should map |100> -> |001> and |110> -> -|011>
+            ),  # Operator b^\dagger_0 b_2. Should map |100> -> |001> and |110> -> -|011>
             np.array([1]),
             np.array(
                 [
@@ -127,8 +127,8 @@ from openparticle import ParticleOperator
     ],
 )
 def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian):
-    modes = [i for j in [op.modes for op in operators] for i in j]
-    number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
+    # modes = [i for j in [op.modes for op in operators] for i in j]
+    number_of_index_qubits = max(int(np.ceil(np.log2(len(operators.to_list())))), 1)
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
     clean_ancilla = [cirq.LineQubit(1)]
@@ -136,7 +136,8 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
     index = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
     bosonic_rotation_register = []
     system = System(
-        number_of_modes=max(modes) + 1,
+        # number_of_modes=max(modes) + 1,
+        number_of_modes=operators.max_mode() + 1,
         number_of_used_qubits=3 + number_of_index_qubits,
         has_fermions=True,
     )
@@ -155,7 +156,7 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
         clean_ancilla,
     )
     circuit = add_coefficient_oracle(
-        circuit, rotation, index, normalized_coefficients, len(operators)
+        circuit, rotation, index, normalized_coefficients, len(operators.to_list())
     )
     circuit = add_naive_usp(circuit, index)
 
