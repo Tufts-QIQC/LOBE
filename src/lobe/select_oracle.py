@@ -55,7 +55,7 @@ def add_select_oracle(
                     operator,
                     clean_ancilla,
                 )
-        elif all(char == "boson" for char in op_types):  # All terms are bosonic terms
+        elif all(type == "boson" for type in op_types):  # All terms are bosonic terms
             modes = [i.mode for i in operator.split()]
             if len(modes) == 2 and modes[0] == modes[1]:
                 circuit = _add_bosonic_particle_number_op(
