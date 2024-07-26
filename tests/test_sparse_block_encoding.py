@@ -127,7 +127,6 @@ from openparticle import ParticleOperator
     ],
 )
 def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian):
-    # modes = [i for j in [op.modes for op in operators] for i in j]
     number_of_index_qubits = max(int(np.ceil(np.log2(len(operators.to_list())))), 1)
     circuit = cirq.Circuit()
     validation = cirq.LineQubit(0)
