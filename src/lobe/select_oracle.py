@@ -35,7 +35,7 @@ def add_select_oracle(
     for operator_index, operator in enumerate(operators):
         # op_types = operator.particle_type
         op_types = [i.particle_type for i in operator.split()]
-        if all(char == "fermion" for char in op_types):  # All terms are fermionic terms
+        if all(type == "fermion" for type in op_types):  # All terms are fermionic terms
             modes = [i.mode for i in operator.split()]
             if len(modes) == 2 and modes[0] == modes[1]:  # b_p^dagger b_q
                 circuit = _add_fermionic_particle_number_op(
