@@ -135,7 +135,6 @@ def test_block_encoding_for_toy_hamiltonian(operators, coefficients, hamiltonian
     index = [cirq.LineQubit(i + 3) for i in range(number_of_index_qubits)]
     bosonic_rotation_register = []
     system = System(
-        # number_of_modes=max(modes) + 1,
         number_of_modes=operators.max_mode() + 1,
         number_of_used_qubits=3 + number_of_index_qubits,
         has_fermions=True,
