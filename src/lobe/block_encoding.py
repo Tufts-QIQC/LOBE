@@ -1,6 +1,7 @@
 import cirq
 import numpy as np
 from .incrementer import add_incrementer
+from .numerical_comparator import is_less_than, is_greater_than
 
 
 def add_lobe_oracle(
@@ -237,6 +238,8 @@ def _get_system_ctrls(
             They are to be used as ancillae to store quantum booleans regarding the bosonic operators and are
             reset when the uncompute function is called.
         uncompute (boolean): A classical flag to dictate whether or not this is a left or right elbow
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
 
     Returns:
         - The gates to perform the unitary operation
@@ -254,41 +257,43 @@ def _get_system_ctrls(
         if particle_operator.particle_type == "a":  # Bosonic
             occupation_qubits = system.bosonic_system[particle_operator.modes[0]]
 
-            occupation_controls = []
             if particle_operator.ca_string == "c":
-                # Add control values corresponding to max occupation number
-                occupation_controls += [
-                    int(i)
-                    for i in format(
-                        system.maximum_occupation_number,
-                        f"#0{2+len(occupation_qubits)}b",
-                    )[2:]
-                ]
-            else:
-                # add control values for greater than zero
-                occupation_controls += [0] * len(occupation_qubits)
+                # check if greater than maximum_occupation_number - 1
+                operations, qbool, number_of_used_ancillae = is_greater_than(
+                    occupation_qubits,
+                    system.maximum_occupation_number - 1,
+                    additional_ancillae[ancillae_counter],
+                    clean_ancillae=additional_ancillae[ancillae_counter + 1 :],
+                    ctrls=ctrls,
+                )
+                gates.append(
+                    cirq.Moment(
+                        cirq.X.on(qbool).controlled_by(
+                            *ctrls[0], control_values=ctrls[1]
+                        )
+                    )
+                )
+                control_values.append(1)
 
-            # Left-elbow (right-elbow if uncompute) onto additional ancillae to denote either fully occupied (creation)
-            #   or completelyf unoccupied (annihilation)
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
-                        *occupation_qubits,
-                        *ctrls[0],
-                        control_values=occupation_controls + ctrls[1],
-                    ),
-                ),
-            )
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
-                        *ctrls[0], control_values=ctrls[1]
-                    ),
-                ),
-            )
-            control_qubits.append(additional_ancillae[ancillae_counter])
-            control_values.append(1)
-            ancillae_counter += 1
+            else:
+                operations, qbool, number_of_used_ancillae = is_less_than(
+                    occupation_qubits,
+                    1,
+                    additional_ancillae[ancillae_counter],
+                    clean_ancillae=additional_ancillae[ancillae_counter + 1 :],
+                    ctrls=ctrls,
+                )
+                gates.append(
+                    cirq.Moment(
+                        cirq.X.on(qbool).controlled_by(
+                            *ctrls[0], control_values=ctrls[1]
+                        )
+                    )
+                )
+                control_values.append(1)
+            gates += operations
+            control_qubits.append(qbool)
+            ancillae_counter += 1 + number_of_used_ancillae
 
         else:  # Fermionic or Antifermionic
             if particle_operator.ca_string == "c":

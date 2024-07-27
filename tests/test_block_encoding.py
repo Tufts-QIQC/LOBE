@@ -16,6 +16,22 @@ import pytest
         (
             [
                 ParticleOperator("a0", 1),
+            ],
+            True,
+            False,
+            False,
+        ),
+        (
+            [
+                ParticleOperator("a0^", 1),
+            ],
+            True,
+            False,
+            False,
+        ),
+        (
+            [
+                ParticleOperator("a0", 1),
                 ParticleOperator("a1", 1),
                 ParticleOperator("a0^ a1", 1),
                 ParticleOperator("a1^ a0", 1),
