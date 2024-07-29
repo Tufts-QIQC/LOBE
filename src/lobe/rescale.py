@@ -1,4 +1,5 @@
 from copy import deepcopy
+from openparticle import BosonOperator
 
 
 def rescale_terms(terms, maximum_occupation_number):
@@ -38,7 +39,7 @@ def rescale_terms(terms, maximum_occupation_number):
         scale *= (maximum_occupation_number + 1) ** (
             (max(numbers_of_bosonic_ops) - numbers_of_bosonic_ops[i]) / 2
         )
-        term.coeff /= scale
+        term = (1 / scale) * term
         rescaled_terms.append(term)
 
     scaling_factor = max_coeff * (
@@ -62,7 +63,7 @@ def get_numbers_of_bosonic_operators_in_terms(terms):
     for term in terms:
         numbers_of_bosonic_ops.append(0)
         for operator in term.split():
-            if operator.particle_type == "a":
+            if isinstance(operator, BosonOperator):
                 numbers_of_bosonic_ops[-1] += 1
 
     return numbers_of_bosonic_ops

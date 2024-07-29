@@ -262,14 +262,13 @@ TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP = {
 @pytest.mark.parametrize(
     "operators",
     [
-        [ParticleOperator("a3^ a2^ a1 a0")],
-        # TODO:
-        # (
-        #     ParticleOperator("a0^ a0")
-        #     + ParticleOperator("a1^ a1")
-        #     + ParticleOperator("a0^ a1")
-        #     + ParticleOperator("a1^ a0")
-        # ).to_list(),
+        ParticleOperator("a3^ a2^ a1 a0"),
+        (
+            ParticleOperator("a0^ a0")
+            + ParticleOperator("a1^ a1")
+            + ParticleOperator("a0^ a1")
+            + ParticleOperator("a1^ a0")
+        ),
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", np.random.randint(2, 7, size=3))
@@ -278,13 +277,15 @@ TOY_BOSONIC_HAMILTONIAN_SELECT_STATE_MAP = {
 def test_select_oracle_on_one_two_body_bosonic_terms(
     operators, maximum_occupation_number, index, bosonic_state
 ):
-    number_of_index_qubits = max(int(np.ceil(np.log2(len(operators)))), 1)
-    index = index % len(operators)
-    maximum_mode = max([max(term.modes) for term in operators])
-    maximum_number_of_bosonic_ops_in_term = max([len(term.modes) for term in operators])
-    number_of_occupation_qubits = int(np.ceil(np.log2(maximum_occupation_number + 1)))
+    number_of_index_qubits = max(int(np.ceil(np.log2(len(operators.to_list())))), 1)
+    index = index % len(operators.to_list())
+    maximum_mode = operators.max_mode()
+    maximum_number_of_bosonic_ops_in_term = max(
+        s.count("a") for s in list(operators.op_dict.keys())
+    )
+    number_of_occupation_qubits = int(np.ceil(np.log2(maximum_occupation_number)))
     number_of_clean_ancillae = (
-        max([len(op.modes) for op in operators])
+        maximum_number_of_bosonic_ops_in_term
         + max(number_of_occupation_qubits - 2, 0)
         + 4
     )
@@ -318,13 +319,14 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
     circuit.append(cirq.I.on_each(*clean_ancillae))
     circuit.append(cirq.I.on_each(*system.bosonic_system))
     circuit += add_lobe_oracle(
-        operators,
+        operators.to_list(),
         validation,
         index_register,
         system,
         bosonic_rotation_register,
         clean_ancillae,
         perform_coefficient_oracle=False,
+        decompose=False,
     )
 
     clean_ancillae_state = np.zeros(
@@ -363,36 +365,37 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
 
     term_fired = True
     if (
-        len(operators[index].modes) == 2
-        and operators[index].modes[0] == operators[index].modes[1]
+        len(operators.to_list()[index].split()) == 2
+        and operators.to_list()[index].split()[0].mode
+        == operators.to_list()[index].split()[1].mode
     ):
         if (
-            bosonic_registers_bitstrings[operators[index].modes[0]]
+            bosonic_registers_bitstrings[operators.to_list()[index].split()[0].mode]
             == "0" * number_of_occupation_qubits
         ):
             term_fired = False
     else:
-        for op in operators[index].split():
-            if op.ca_string == "c":
+        for op in operators.to_list()[index].split():
+            if op.creation:
                 if (
-                    bosonic_registers_bitstrings[op.modes[0]]
+                    bosonic_registers_bitstrings[op.mode]
                     == "1" * number_of_occupation_qubits
                 ):
                     term_fired = False
                 else:
-                    expected_bosonic_registers_bitstrings[op.modes[0]] = format(
-                        int(bosonic_registers_bitstrings[op.modes[0]], 2) + 1,
+                    expected_bosonic_registers_bitstrings[op.mode] = format(
+                        int(bosonic_registers_bitstrings[op.mode], 2) + 1,
                         f"#0{2+number_of_occupation_qubits}b",
                     )[2:]
             else:
                 if (
-                    bosonic_registers_bitstrings[op.modes[0]]
+                    bosonic_registers_bitstrings[op.mode]
                     == "0" * number_of_occupation_qubits
                 ):
                     term_fired = False
                 else:
-                    expected_bosonic_registers_bitstrings[op.modes[0]] = format(
-                        int(bosonic_registers_bitstrings[op.modes[0]], 2) - 1,
+                    expected_bosonic_registers_bitstrings[op.mode] = format(
+                        int(bosonic_registers_bitstrings[op.mode], 2) - 1,
                         f"#0{2+number_of_occupation_qubits}b",
                     )[2:]
 
@@ -420,13 +423,13 @@ def test_select_oracle_on_one_two_body_bosonic_terms(
         expected_coefficient = 1 / ((1 << number_of_occupation_qubits)) ** (
             maximum_number_of_bosonic_ops_in_term / 2
         )
-        for op in operators[index].split():
-            if op.ca_string == "c":
+        for op in operators.to_list()[index].split():
+            if op.creation:
                 expected_coefficient *= np.sqrt(
-                    int(expected_bosonic_registers_bitstrings[op.modes[0]], 2)
+                    int(expected_bosonic_registers_bitstrings[op.mode], 2)
                 )
             else:
                 expected_coefficient *= np.sqrt(
-                    int(bosonic_registers_bitstrings[op.modes[0]], 2)
+                    int(bosonic_registers_bitstrings[op.mode], 2)
                 )
     assert np.allclose(wavefunction[int(expected_bitstring, 2)], expected_coefficient)

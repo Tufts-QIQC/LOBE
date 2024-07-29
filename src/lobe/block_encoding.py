@@ -1,6 +1,7 @@
 import cirq
 import numpy as np
 from .incrementer import add_incrementer
+from openparticle import BosonOperator, FermionOperator, AntifermionOperator
 
 
 def add_lobe_oracle(
@@ -251,11 +252,11 @@ def _get_system_ctrls(
 
     for particle_operator in term.split():
 
-        if particle_operator.particle_type == "a":  # Bosonic
-            occupation_qubits = system.bosonic_system[particle_operator.modes[0]]
+        if isinstance(particle_operator, BosonOperator):  # Bosonic
+            occupation_qubits = system.bosonic_system[particle_operator.mode]
 
             occupation_controls = []
-            if particle_operator.ca_string == "c":
+            if particle_operator.creation:
                 # Add control values corresponding to max occupation number
                 occupation_controls += [
                     int(i)
@@ -291,18 +292,16 @@ def _get_system_ctrls(
             ancillae_counter += 1
 
         else:  # Fermionic or Antifermionic
-            if particle_operator.ca_string == "c":
+            if particle_operator.creation:
                 control_values.append(0)
             else:
                 control_values.append(1)
 
-            if particle_operator.particle_type == "b":  # Fermionic
-                control_qubits.append(
-                    system.fermionic_register[particle_operator.modes[0]]
-                )
+            if isinstance(particle_operator, FermionOperator):  # Fermionic
+                control_qubits.append(system.fermionic_register[particle_operator.mode])
             else:
                 control_qubits.append(
-                    system.antifermionic_register[particle_operator.modes[0]]
+                    system.antifermionic_register[particle_operator.mode]
                 )
 
     if decompose:
@@ -362,17 +361,17 @@ def _add_bosonic_rotations(
     number_of_bosonic_ops = 0
     for particle_operator in term.split():
         rotate_for_this_op = False
-        if particle_operator.particle_type == "a":
-            if particle_operator.ca_string == "c" and creation_ops:
+        if isinstance(particle_operator, BosonOperator):
+            if particle_operator.creation and creation_ops:
                 rotate_for_this_op = True
-            if particle_operator.ca_string != "c" and annihilation_ops:
+            if (not particle_operator.creation) and annihilation_ops:
                 rotate_for_this_op = True
 
         if rotate_for_this_op:
 
             # Multiplexing over computational basis states of mode register
             for particle_number in range(0, system.maximum_occupation_number + 1):
-                occupation_qubits = system.bosonic_system[particle_operator.modes[0]]
+                occupation_qubits = system.bosonic_system[particle_operator.mode]
                 occupation_control_values = [
                     int(i)
                     for i in format(particle_number, f"#0{2+len(occupation_qubits)}b")[
@@ -418,10 +417,12 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
     gates = []
 
     for particle_operator in term.split():
-        mode = particle_operator.modes[0]
-        if particle_operator.particle_type in ["b", "d"]:
+        mode = particle_operator.mode
+        if isinstance(particle_operator, FermionOperator) or isinstance(
+            particle_operator, AntifermionOperator
+        ):
 
-            if particle_operator.particle_type == "b":
+            if isinstance(particle_operator, FermionOperator):
                 register = system.fermionic_register
             else:
                 register = system.antifermionic_register
@@ -449,7 +450,7 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
                 [],
                 system.bosonic_system[mode],
                 clean_ancillae[: len(system.bosonic_system[mode]) - 2],
-                not (particle_operator.ca_string == "c"),
+                not (particle_operator.creation),
                 ctrls[0],
                 ctrls[1],
             )

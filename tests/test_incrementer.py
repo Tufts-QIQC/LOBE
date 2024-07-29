@@ -19,8 +19,8 @@ def test_binary_incrementer_on_basis_state(number_of_qubits, integer, decrement)
     if number_of_qubits > 2:
         ancilla = [cirq.LineQubit(i) for i in range(number_of_qubits - 2)]
     qubits = [cirq.LineQubit(i + number_of_qubits - 2) for i in range(number_of_qubits)]
-
-    circuit = add_incrementer(circuit, qubits, ancilla, decrement=decrement)
+    circuit = cirq.Circuit()
+    circuit.append(add_incrementer(circuit, qubits, ancilla, decrement=decrement))
 
     initial_state = np.zeros(1 << number_of_qubits)
     initial_state[integer] = 1
@@ -68,7 +68,8 @@ def test_binary_incrementer_on_superposition_state(
     )
     random_amplitudes /= np.linalg.norm(random_amplitudes)
 
-    circuit = add_incrementer(circuit, qubits, ancilla, decrement=decrement)
+    circuit = cirq.Circuit()
+    circuit.append(add_incrementer(circuit, qubits, ancilla, decrement=decrement))
 
     initial_state = np.zeros(1 << number_of_qubits, dtype=np.complex128)
     initial_state[integer_one] += random_amplitudes[0]
@@ -122,7 +123,8 @@ def test_binary_incrementer_is_properly_controlled(
         qubit_counter += number_of_qubits - 2
     qubits = [cirq.LineQubit(i + qubit_counter) for i in range(number_of_qubits)]
 
-    circuit = add_incrementer(circuit, qubits, ancilla, control_register=control)
+    circuit = cirq.Circuit()
+    circuit.append(add_incrementer(circuit, qubits, ancilla, control_register=control))
 
     initial_control_state = np.zeros(2)
     initial_control_state[control_value] = 1

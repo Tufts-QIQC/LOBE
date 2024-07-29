@@ -15,10 +15,10 @@ import pytest
     [
         (
             [
-                ParticleOperator("a0", 1),
-                ParticleOperator("a1", 1),
-                ParticleOperator("a0^ a1", 1),
-                ParticleOperator("a1^ a0", 1),
+                ParticleOperator("a0"),
+                ParticleOperator("a1"),
+                ParticleOperator("a0^ a1"),
+                ParticleOperator("a1^ a0"),
             ],
             True,
             False,
@@ -26,8 +26,8 @@ import pytest
         ),
         (
             [
-                ParticleOperator("a0^ b0", 1),
-                ParticleOperator("b0^ a0", 0.25),
+                ParticleOperator("a0^ b0"),
+                0.25 * ParticleOperator("b0^ a0"),
             ],
             True,
             True,
@@ -35,10 +35,10 @@ import pytest
         ),
         (
             [
-                ParticleOperator("d0^ a0^ b0", 1),
-                ParticleOperator("b0^ d0", -0.5),
-                ParticleOperator("b0^ d0^ a0", 0.25),
-                ParticleOperator("a0^ d0", 1 / 3),
+                ParticleOperator("d0^ a0^ b0"),
+                -0.5 * ParticleOperator("b0^ d0"),
+                0.25 * ParticleOperator("b0^ d0^ a0"),
+                1 / 3 * ParticleOperator("a0^ d0"),
             ],
             True,
             True,
@@ -60,7 +60,7 @@ def test_lobe_block_encoding(
     for term in terms[1:]:
         hamiltonian += term
 
-    number_of_modes = max([mode for term in terms for mode in term.modes]) + 1
+    number_of_modes = max([term.max_mode() for term in terms]) + 1
 
     full_fock_basis = get_basis_of_full_system(
         number_of_modes,
