@@ -85,7 +85,7 @@ def get_basis_of_full_system(
     has_bosons=False,
 ):
     number_of_occupation_qubits = max(
-        int(np.ceil(np.log2(maximum_occupation_number + 1))), 1
+        int(np.ceil(np.log2(maximum_occupation_number))), 1
     )
 
     total_number_of_qubits = 0
