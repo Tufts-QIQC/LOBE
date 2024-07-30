@@ -62,9 +62,7 @@ def test_lobe_block_encoding_undecomposed(
 
     rescaled_terms, scaling_factor = rescale_terms(terms, maximum_occupation_number)
 
-    max_number_of_bosonic_ops_in_term = max(
-        get_numbers_of_bosonic_operators_in_terms(terms)
-    )
+    max_number_of_bosonic_ops_in_term = max([len(term.split()) for term in terms])
 
     number_of_ancillae = 5
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
@@ -170,9 +168,7 @@ def test_lobe_block_encoding_decomposed(
 
     rescaled_terms, scaling_factor = rescale_terms(terms, maximum_occupation_number)
 
-    max_number_of_bosonic_ops_in_term = max(
-        get_numbers_of_bosonic_operators_in_terms(terms)
-    )
+    max_number_of_bosonic_ops_in_term = max([len(term.split()) for term in terms])
 
     number_of_ancillae = 5
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
