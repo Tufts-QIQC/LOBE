@@ -7,7 +7,7 @@ def rescale_terms(terms, maximum_occupation_number):
     """Rescale the coefficients of the terms to work with LOBE
 
     The two rescaling constraints that are accounted for are:
-        1. All term coefficients must have magnitude < 1. Therefore, all term
+        1. All term coefficients must have magnitude <= 1. Therefore, all term
             coefficients are divided by $max(\\alpha_i)$
         2. Bosonic operators pick up a coefficient of $\sqrt{\\frac{n}{\Omega + 1}}$
             (or $n+1$) instead of $\sqrt{n}$ (or $n+1$). Therefore, we block-encode
