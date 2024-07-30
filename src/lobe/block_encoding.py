@@ -133,16 +133,6 @@ def add_lobe_oracle(
                 )
                 gates_for_term += circuit_ops
 
-        # circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
-        #     system,
-        #     rotation_register[bosonic_rotation_index:],
-        #     term,
-        #     creation_ops=True,
-        #     ctrls=([control_qubit], [1]),
-        # )
-        # gates_for_term += circuit_ops
-        # bosonic_rotation_index += number_of_bosonic_rotations
-
         gates_for_term.append(
             cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
         )
@@ -158,16 +148,6 @@ def add_lobe_oracle(
         )
         gates_for_term += circuit_ops
         clean_ancillae_counter -= number_of_bosonic_ancillae
-
-        # # IFF term did fire, reset ancillae manually
-        # start = 1
-        # if decompose:
-        #     start = 2
-        # for qubit in clean_ancillae[start:clean_ancillae_counter]:
-        #     gates_for_term.append(
-        #         cirq.Moment(cirq.X.on(qubit).controlled_by(control_qubit))
-        #     )
-        # clean_ancillae_counter -= number_of_bosonic_ancillae
 
         gates_for_term.append(
             cirq.Moment(
@@ -314,47 +294,6 @@ def _get_system_ctrls(
     control_values = []
 
     for particle_operator in term.split():
-
-        # if isinstance(particle_operator, BosonOperator):  # Bosonic
-        #     occupation_qubits = system.bosonic_system[particle_operator.mode]
-
-        #     if particle_operator.creation:
-        #         # check if greater than maximum_occupation_number - 1
-        #         operations, qbool, number_of_used_ancillae = is_greater_than(
-        #             occupation_qubits,
-        #             system.maximum_occupation_number - 1,
-        #             additional_ancillae[ancillae_counter],
-        #             clean_ancillae=additional_ancillae[ancillae_counter + 1 :],
-        #             ctrls=ctrls,
-        #         )
-        #         gates.append(
-        #             cirq.Moment(
-        #                 cirq.X.on(qbool).controlled_by(
-        #                     *ctrls[0], control_values=ctrls[1]
-        #                 )
-        #             )
-        #         )
-        #         control_values.append(1)
-
-        #     else:
-        #         operations, qbool, number_of_used_ancillae = is_less_than(
-        #             occupation_qubits,
-        #             1,
-        #             additional_ancillae[ancillae_counter],
-        #             clean_ancillae=additional_ancillae[ancillae_counter + 1 :],
-        #             ctrls=ctrls,
-        #         )
-        #         gates.append(
-        #             cirq.Moment(
-        #                 cirq.X.on(qbool).controlled_by(
-        #                     *ctrls[0], control_values=ctrls[1]
-        #                 )
-        #             )
-        #         )
-        #         control_values.append(1)
-        #     gates += operations
-        #     control_qubits.append(qbool)
-        #     ancillae_counter += 1 + number_of_used_ancillae
 
         if type(particle_operator) in [
             FermionOperator,
