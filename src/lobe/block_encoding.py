@@ -159,7 +159,6 @@ def add_lobe_oracle(
         clean_ancillae_counter -= 1
 
         if perform_coefficient_oracle:
-            sign = 1
             if term.coeff < 0:
                 # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
                 gates_for_term.append(
@@ -192,7 +191,7 @@ def add_lobe_oracle(
                 )
             gates_for_term.append(
                 cirq.Moment(
-                    cirq.ry(sign * 2 * np.arccos(np.abs(term.coeff)))
+                    cirq.ry(2 * np.arccos(np.abs(term.coeff)))
                     .on(rotation_register[0])
                     .controlled_by(*index_ctrls[0], control_values=index_ctrls[1])
                 )
