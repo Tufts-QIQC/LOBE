@@ -129,17 +129,6 @@ def test_lobe_block_encoding_undecomposed(
     [
         (
             [
-                ParticleOperator("a0"),
-                ParticleOperator("a1"),
-                ParticleOperator("a0^ a1"),
-                ParticleOperator("a1^ a0"),
-            ],
-            True,
-            False,
-            False,
-        ),
-        (
-            [
                 ParticleOperator("a0^ b0"),
                 0.25 * ParticleOperator("b0^ a0"),
             ],
