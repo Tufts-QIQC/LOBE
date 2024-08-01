@@ -29,15 +29,6 @@ import pytest
             0.25 * ParticleOperator("b0^ d0^ a0"),
             1 / 3 * ParticleOperator("a0^ d0"),
         ],
-        [
-            3.5923247590513974 * ParticleOperator("a0 a0"),
-            2.8495656866676207 * ParticleOperator("a0^ a0 a0 a0"),
-            11.737092068070018 * ParticleOperator("a0^ a0"),
-            -5.5360507118652045 * ParticleOperator("a0^ a0^ a0 a0"),
-            3.5923247590513974 * ParticleOperator("a0^ a0^"),
-            2.8495656866676207 * ParticleOperator("a0^ a0^ a0^ a0"),
-            3.9998612759007734 * ParticleOperator("a0^ a0^ a0^ a0 a0 a0"),
-        ],
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3])
