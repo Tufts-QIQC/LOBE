@@ -26,15 +26,6 @@ import pytest
         ),
         (
             [
-                ParticleOperator("a0^ b0"),
-                0.25 * ParticleOperator("b0^ a0"),
-            ],
-            True,
-            True,
-            False,
-        ),
-        (
-            [
                 ParticleOperator("d0^ a0^ b0"),
                 -0.5 * ParticleOperator("b0^ d0"),
                 0.25 * ParticleOperator("b0^ d0^ a0"),
@@ -127,6 +118,22 @@ def test_lobe_block_encoding_undecomposed(
 @pytest.mark.parametrize(
     "terms, has_bosons, has_fermions, has_antifermions",
     [
+        (
+            [
+                ParticleOperator("a0"),
+            ],
+            True,
+            False,
+            False,
+        ),
+        (
+            [
+                ParticleOperator("a0^"),
+            ],
+            True,
+            False,
+            False,
+        ),
         (
             [
                 ParticleOperator("a0^ b0"),
