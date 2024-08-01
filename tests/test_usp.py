@@ -12,7 +12,7 @@ def test_naive_usp_prepares_correct_state(number_of_operators):
     circuit = cirq.Circuit()
     qubits = [cirq.LineQubit(i) for i in range(number_of_qubits)]
 
-    circuit = add_naive_usp(circuit, qubits)
+    circuit.append(add_naive_usp(qubits))
 
     wavefunction = simulator.simulate(circuit).final_state_vector
 

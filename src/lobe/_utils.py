@@ -75,3 +75,60 @@ def generate_bosonic_pairing_hamiltonian_matrix(mode_cutoff, occupancy_cutoff):
     matrix = op.utils.generate_matrix_from_basis(H, basis)
 
     return matrix
+
+
+def get_basis_of_full_system(
+    number_of_modes,
+    maximum_occupation_number,
+    has_fermions=False,
+    has_antifermions=False,
+    has_bosons=False,
+):
+    number_of_occupation_qubits = max(
+        int(np.ceil(np.log2(maximum_occupation_number))), 1
+    )
+
+    total_number_of_qubits = 0
+    if has_fermions:
+        total_number_of_qubits += number_of_modes
+    if has_antifermions:
+        total_number_of_qubits += number_of_modes
+    if has_bosons:
+        total_number_of_qubits += number_of_modes * number_of_occupation_qubits
+
+    basis = []
+    for basis_state in range(1 << total_number_of_qubits):
+        qubit_values = [
+            int(i) for i in format(basis_state, f"#0{2+total_number_of_qubits}b")[2:]
+        ]
+
+        index = 0
+        fermionic_fock_state = []
+        if has_fermions:
+            fermionic_fock_state = [
+                i for i in range(number_of_modes) if qubit_values[i] == 1
+            ]
+            index += number_of_modes
+
+        antifermionic_fock_state = []
+        if has_antifermions:
+            antifermionic_fock_state = [
+                i
+                for i in range(number_of_modes)
+                if qubit_values[number_of_modes + i] == 1
+            ]
+            index += number_of_modes
+
+        bosonic_fock_state = []
+        if has_bosons:
+            for mode in range(number_of_modes):
+                occupation = ""
+                for val in qubit_values[index : index + number_of_occupation_qubits]:
+                    occupation += str(val)
+                bosonic_fock_state.append((mode, int(occupation, 2)))
+                index += number_of_occupation_qubits
+
+        basis.append(
+            op.Fock(fermionic_fock_state, antifermionic_fock_state, bosonic_fock_state)
+        )
+    return basis

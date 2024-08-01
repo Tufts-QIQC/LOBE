@@ -13,6 +13,7 @@ def add_incrementer(
 
     Implementation: https://algassert.com/circuits/2015/06/12/Constructing-Large-Increment-Gates.html
     """
+    circuit = []
     if len(control_values) != len(control_register):
         control_values += [1] * (len(control_register) - len(control_values))
 
