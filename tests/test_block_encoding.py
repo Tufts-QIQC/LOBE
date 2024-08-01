@@ -35,6 +35,20 @@ import pytest
             True,
             True,
         ),
+        (
+            [
+                3.5923247590513974 * ParticleOperator("a0 a0"),
+                2.8495656866676207 * ParticleOperator("a0^ a0 a0 a0"),
+                11.737092068070018 * ParticleOperator("a0^ a0"),
+                -5.5360507118652045 * ParticleOperator("a0^ a0^ a0 a0"),
+                3.5923247590513974 * ParticleOperator("a0^ a0^"),
+                2.8495656866676207 * ParticleOperator("a0^ a0^ a0^ a0"),
+                3.9998612759007734 * ParticleOperator("a0^ a0^ a0^ a0 a0 a0"),
+            ],
+            True,
+            False,
+            False,
+        ),
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3])
@@ -81,13 +95,16 @@ def test_lobe_block_encoding_undecomposed(
         for i in range(number_of_rotation_qubits)
     ]
     index_register = [
-        cirq.LineQubit(i + 1 + number_of_ancillae + 3)
+        cirq.LineQubit(i + 1 + number_of_ancillae + number_of_rotation_qubits)
         for i in range(number_of_index_qubits)
     ]
     system = System(
         number_of_modes=number_of_modes,
         maximum_occupation_number=maximum_occupation_number,
-        number_of_used_qubits=1 + number_of_ancillae + 3 + number_of_index_qubits,
+        number_of_used_qubits=1
+        + number_of_ancillae
+        + number_of_rotation_qubits
+        + number_of_index_qubits,
         has_fermions=has_fermions,
         has_antifermions=has_antifermions,
         has_bosons=has_bosons,
