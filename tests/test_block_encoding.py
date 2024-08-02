@@ -1,4 +1,4 @@
-from openparticle import ParticleOperator
+from openparticle import ParticleOperator, FermionOperator
 import numpy as np
 import cirq
 from src.lobe.system import System
@@ -13,6 +13,23 @@ import pytest
 @pytest.mark.parametrize(
     "terms",
     [
+        [
+            ParticleOperator("a0^ a0"),
+        ],
+        [
+            ParticleOperator("b0^ b0"),
+        ],
+        [
+            ParticleOperator("d0^ d0"),
+        ],
+        [
+            ParticleOperator("b1^ b1"),
+            ParticleOperator("b0"),
+        ],
+        [
+            ParticleOperator("d1^ d1"),
+            ParticleOperator("d0"),
+        ],
         [
             ParticleOperator("a0"),
             ParticleOperator("a1"),
@@ -86,6 +103,10 @@ def test_lobe_block_encoding_undecomposed(
         has_antifermions=hamiltonian.has_antifermions,
         has_bosons=hamiltonian.has_bosons,
     )
+    circuit.append(cirq.I.on_each(*system.fermionic_register))
+    circuit.append(cirq.I.on_each(*system.antifermionic_register))
+    for bosonic_reg in system.bosonic_system:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
 
     # Generate full Block-Encoding circuit
     circuit.append(cirq.X.on(validation))

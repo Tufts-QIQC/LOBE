@@ -21,20 +21,21 @@ class System:
         self.number_of_system_qubits = 0
         self.fermionic_register = []
         self.antifermionic_register = []
+        self.bosonic_system = []
         self.bosonic_occupation_register = []
 
         if self.has_fermions:
             self.fermionic_register = [
                 cirq.LineQubit(i + number_of_used_qubits)
                 for i in range(self.number_of_modes)
-            ][::-1]
+            ]
             self.number_of_system_qubits += self.number_of_modes
 
         if self.has_antifermions:
             self.antifermionic_register = [
                 cirq.LineQubit(i + number_of_used_qubits + self.number_of_system_qubits)
                 for i in range(self.number_of_modes)
-            ][::-1]
+            ]
             self.number_of_system_qubits += self.number_of_modes
 
         if self.has_bosons:
@@ -53,8 +54,6 @@ class System:
                 ]
                 for j in range(self.number_of_modes)
             ]
-            # reverse order so that occupation_0 is at index 0
-            # self.bosonic_system = self.bosonic_system[::-1]
             self.number_of_system_qubits += (
                 self.number_of_modes * number_of_occupation_qubits
             )

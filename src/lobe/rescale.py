@@ -63,7 +63,7 @@ def get_numbers_of_bosonic_operators_in_terms(terms):
     numbers_of_bosonic_ops = []
     for term in terms:
         numbers_of_bosonic_ops.append(0)
-        for operator in term.split():
+        for operator in term.parse():
             if isinstance(operator, BosonOperator):
                 numbers_of_bosonic_ops[-1] += 1
 
