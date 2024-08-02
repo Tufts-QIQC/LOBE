@@ -11,38 +11,29 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "terms, has_bosons, has_fermions, has_antifermions",
+    "terms",
     [
-        (
-            [
-                ParticleOperator("a0"),
-                ParticleOperator("a1"),
-                ParticleOperator("a0^ a1"),
-                ParticleOperator("a1^ a0"),
-            ],
-            True,
-            False,
-            False,
-        ),
-        (
-            [
-                ParticleOperator("d0^ a0^ b0"),
-                -0.5 * ParticleOperator("b0^ d0"),
-                0.25 * ParticleOperator("b0^ d0^ a0"),
-                1 / 3 * ParticleOperator("a0^ d0"),
-            ],
-            True,
-            True,
-            True,
-        ),
+        [
+            ParticleOperator("a0"),
+            ParticleOperator("a1"),
+            ParticleOperator("a0^ a1"),
+            ParticleOperator("a1^ a0"),
+        ],
+        [
+            ParticleOperator("a0"),
+            ParticleOperator("a1^ a0"),
+        ],
+        [
+            ParticleOperator("d0^ a0^ b0"),
+            -0.5 * ParticleOperator("b0^ d0"),
+            0.25 * ParticleOperator("b0^ d0^ a0"),
+            1 / 3 * ParticleOperator("a0^ d0"),
+        ],
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3])
 def test_lobe_block_encoding_undecomposed(
     terms,
-    has_bosons,
-    has_fermions,
-    has_antifermions,
     maximum_occupation_number,
 ):
     hamiltonian = terms[0]
@@ -54,9 +45,9 @@ def test_lobe_block_encoding_undecomposed(
     full_fock_basis = get_basis_of_full_system(
         number_of_modes,
         maximum_occupation_number,
-        has_fermions=has_fermions,
-        has_antifermions=has_antifermions,
-        has_bosons=has_bosons,
+        has_fermions=hamiltonian.has_fermions,
+        has_antifermions=hamiltonian.has_antifermions,
+        has_bosons=hamiltonian.has_bosons,
     )
     matrix = op.generate_matrix_from_basis(hamiltonian, full_fock_basis)
 
@@ -81,16 +72,19 @@ def test_lobe_block_encoding_undecomposed(
         for i in range(number_of_rotation_qubits)
     ]
     index_register = [
-        cirq.LineQubit(i + 1 + number_of_ancillae + 3)
+        cirq.LineQubit(i + 1 + number_of_ancillae + number_of_rotation_qubits)
         for i in range(number_of_index_qubits)
     ]
     system = System(
         number_of_modes=number_of_modes,
         maximum_occupation_number=maximum_occupation_number,
-        number_of_used_qubits=1 + number_of_ancillae + 3 + number_of_index_qubits,
-        has_fermions=has_fermions,
-        has_antifermions=has_antifermions,
-        has_bosons=has_bosons,
+        number_of_used_qubits=1
+        + number_of_ancillae
+        + number_of_rotation_qubits
+        + number_of_index_qubits,
+        has_fermions=hamiltonian.has_fermions,
+        has_antifermions=hamiltonian.has_antifermions,
+        has_bosons=hamiltonian.has_bosons,
     )
 
     # Generate full Block-Encoding circuit
@@ -116,41 +110,23 @@ def test_lobe_block_encoding_undecomposed(
 
 
 @pytest.mark.parametrize(
-    "terms, has_bosons, has_fermions, has_antifermions",
+    "terms",
     [
-        (
-            [
-                ParticleOperator("a0"),
-            ],
-            True,
-            False,
-            False,
-        ),
-        (
-            [
-                ParticleOperator("a0^"),
-            ],
-            True,
-            False,
-            False,
-        ),
-        (
-            [
-                ParticleOperator("a0^ b0"),
-                0.25 * ParticleOperator("b0^ a0"),
-            ],
-            True,
-            True,
-            False,
-        ),
+        [
+            ParticleOperator("a0"),
+        ],
+        [
+            ParticleOperator("a0^"),
+        ],
+        [
+            ParticleOperator("a0^ b0"),
+            0.25 * ParticleOperator("b0^ a0"),
+        ],
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3])
 def test_lobe_block_encoding_decomposed(
     terms,
-    has_bosons,
-    has_fermions,
-    has_antifermions,
     maximum_occupation_number,
 ):
     hamiltonian = terms[0]
@@ -162,9 +138,9 @@ def test_lobe_block_encoding_decomposed(
     full_fock_basis = get_basis_of_full_system(
         number_of_modes,
         maximum_occupation_number,
-        has_fermions=has_fermions,
-        has_antifermions=has_antifermions,
-        has_bosons=has_bosons,
+        has_fermions=hamiltonian.has_fermions,
+        has_antifermions=hamiltonian.has_antifermions,
+        has_bosons=hamiltonian.has_bosons,
     )
     matrix = op.generate_matrix_from_basis(hamiltonian, full_fock_basis)
 
@@ -196,9 +172,9 @@ def test_lobe_block_encoding_decomposed(
         number_of_modes=number_of_modes,
         maximum_occupation_number=maximum_occupation_number,
         number_of_used_qubits=1 + number_of_ancillae + 3 + number_of_index_qubits,
-        has_fermions=has_fermions,
-        has_antifermions=has_antifermions,
-        has_bosons=has_bosons,
+        has_fermions=hamiltonian.has_fermions,
+        has_antifermions=hamiltonian.has_antifermions,
+        has_bosons=hamiltonian.has_bosons,
     )
 
     # Generate full Block-Encoding circuit

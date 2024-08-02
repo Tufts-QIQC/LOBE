@@ -1,4 +1,5 @@
 from copy import deepcopy
+import numpy as np
 from openparticle import BosonOperator
 
 
@@ -6,14 +7,14 @@ def rescale_terms(terms, maximum_occupation_number):
     """Rescale the coefficients of the terms to work with LOBE
 
     The two rescaling constraints that are accounted for are:
-        1. All term coefficients must have magnitude < 1. Therefore, all term
-            coefficients are divided by $max(\alpha_i)$
-        2. Bosonic operators pick up a coefficient of $\sqrt{\frac{n}{\Omega + 1}}$
+        1. All term coefficients must have magnitude <= 1. Therefore, all term
+            coefficients are divided by $max(\\alpha_i)$
+        2. Bosonic operators pick up a coefficient of $\sqrt{\\frac{n}{\Omega + 1}}$
             (or $n+1$) instead of $\sqrt{n}$ (or $n+1$). Therefore, we block-encode
-            a Hamiltonian that is rescaled by a factor of $\frac{1}{(\Omega+1)^{k/2}}$
+            a Hamiltonian that is rescaled by a factor of $\\frac{1}{(\Omega+1)^{k/2}}$
             where $k$ is the maximum number of bosonic operators appearing in a single
             term. Terms with $k^\prime < k$ must then be multiplied by a rescaling
-            factor of $\frac{1}{(\Omega + 1)^{k - k^\prime}}$ in order to abide by
+            factor of $\\frac{1}{(\Omega + 1)^{k - k^\prime}}$ in order to abide by
             this rescaling.
 
     NOTE: The terms returned by this function will NOT give a rescaled version of the
@@ -29,7 +30,7 @@ def rescale_terms(terms, maximum_occupation_number):
         List[ParticleOperator]: The rescaled terms to be used for LOBE
         float: The rescaling factor s.t. $\frac{H}{scaling_factor} = \bar{H}$
     """
-    max_coeff = max([term.coeff for term in terms])
+    max_coeff = max([np.abs(term.coeff) for term in terms])
 
     numbers_of_bosonic_ops = get_numbers_of_bosonic_operators_in_terms(terms)
 

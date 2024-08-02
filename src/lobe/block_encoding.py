@@ -66,7 +66,6 @@ def add_lobe_oracle(
             # clean_ancillae[clean_ancillae_counter],
             term,
             clean_ancillae[clean_ancillae_counter:],
-            decompose=decompose,
         )
         bosonic_ancillae = clean_ancillae[
             clean_ancillae_counter : clean_ancillae_counter + number_of_bosonic_ancillae
@@ -85,33 +84,54 @@ def add_lobe_oracle(
             )
         )
 
-        circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
-            system,
-            rotation_register[bosonic_rotation_index:],
-            term,
-            annihilation_ops=True,
-            ctrls=([control_qubit], [1]),
-        )
-        gates_for_term += circuit_ops
-        bosonic_rotation_index += number_of_bosonic_rotations
+        for operator in term.split()[::-1]:
+            if isinstance(operator, BosonOperator):
+                if operator.creation:
 
-        circuit_ops = _update_system(
-            term,
-            system,
-            clean_ancillae=clean_ancillae[clean_ancillae_counter:],
-            ctrls=([control_qubit], [1]),
-        )
-        gates_for_term += circuit_ops
+                    circuit_ops = _update_system(
+                        operator,
+                        system,
+                        clean_ancillae=clean_ancillae[clean_ancillae_counter:],
+                        ctrls=([control_qubit], [1]),
+                    )
+                    gates_for_term += circuit_ops
 
-        circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
-            system,
-            rotation_register[bosonic_rotation_index:],
-            term,
-            creation_ops=True,
-            ctrls=([control_qubit], [1]),
-        )
-        gates_for_term += circuit_ops
-        bosonic_rotation_index += number_of_bosonic_rotations
+                    circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
+                        system,
+                        rotation_register[bosonic_rotation_index:],
+                        operator,
+                        creation_ops=True,
+                        ctrls=([control_qubit], [1]),
+                    )
+                    gates_for_term += circuit_ops
+                    bosonic_rotation_index += number_of_bosonic_rotations
+                else:
+                    circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
+                        system,
+                        rotation_register[bosonic_rotation_index:],
+                        operator,
+                        annihilation_ops=True,
+                        ctrls=([control_qubit], [1]),
+                    )
+                    gates_for_term += circuit_ops
+                    bosonic_rotation_index += number_of_bosonic_rotations
+
+                    circuit_ops = _update_system(
+                        operator,
+                        system,
+                        clean_ancillae=clean_ancillae[clean_ancillae_counter:],
+                        ctrls=([control_qubit], [1]),
+                    )
+                    gates_for_term += circuit_ops
+
+            else:
+                circuit_ops = _update_system(
+                    operator,
+                    system,
+                    clean_ancillae=clean_ancillae[clean_ancillae_counter:],
+                    ctrls=([control_qubit], [1]),
+                )
+                gates_for_term += circuit_ops
 
         gates_for_term.append(
             cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
@@ -123,20 +143,10 @@ def add_lobe_oracle(
             # clean_ancillae[clean_ancillae_counter],
             term,
             bosonic_ancillae,
-            decompose=decompose,
             uncompute=True,
             ctrls=([control_qubit], [0]),
         )
         gates_for_term += circuit_ops
-
-        # IFF term did fire, reset ancillae manually
-        start = 1
-        if decompose:
-            start = 2
-        for qubit in clean_ancillae[start:clean_ancillae_counter]:
-            gates_for_term.append(
-                cirq.Moment(cirq.X.on(qubit).controlled_by(control_qubit))
-            )
         clean_ancillae_counter -= number_of_bosonic_ancillae
 
         gates_for_term.append(
@@ -149,9 +159,39 @@ def add_lobe_oracle(
         clean_ancillae_counter -= 1
 
         if perform_coefficient_oracle:
+            if term.coeff < 0:
+                # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.X.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
+                    )
+                )
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.Z.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
+                    )
+                )
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.X.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
+                    )
+                )
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.Z.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
+                    )
+                )
             gates_for_term.append(
                 cirq.Moment(
-                    cirq.ry(2 * np.arccos(term.coeff))
+                    cirq.ry(2 * np.arccos(np.abs(term.coeff)))
                     .on(rotation_register[0])
                     .controlled_by(*index_ctrls[0], control_values=index_ctrls[1])
                 )
@@ -221,7 +261,6 @@ def _get_system_ctrls(
     term,
     additional_ancillae=[],
     uncompute=False,
-    decompose=True,
     ctrls=([], []),
 ):
     """Create a quantum Boolean that stores if the system will be acted on nontrivially by the term.
@@ -255,48 +294,10 @@ def _get_system_ctrls(
 
     for particle_operator in term.split():
 
-        if isinstance(particle_operator, BosonOperator):  # Bosonic
-            occupation_qubits = system.bosonic_system[particle_operator.mode]
-
-            if particle_operator.creation:
-                # check if greater than maximum_occupation_number - 1
-                operations, qbool, number_of_used_ancillae = is_greater_than(
-                    occupation_qubits,
-                    system.maximum_occupation_number - 1,
-                    additional_ancillae[ancillae_counter],
-                    clean_ancillae=additional_ancillae[ancillae_counter + 1 :],
-                    ctrls=ctrls,
-                )
-                gates.append(
-                    cirq.Moment(
-                        cirq.X.on(qbool).controlled_by(
-                            *ctrls[0], control_values=ctrls[1]
-                        )
-                    )
-                )
-                control_values.append(1)
-
-            else:
-                operations, qbool, number_of_used_ancillae = is_less_than(
-                    occupation_qubits,
-                    1,
-                    additional_ancillae[ancillae_counter],
-                    clean_ancillae=additional_ancillae[ancillae_counter + 1 :],
-                    ctrls=ctrls,
-                )
-                gates.append(
-                    cirq.Moment(
-                        cirq.X.on(qbool).controlled_by(
-                            *ctrls[0], control_values=ctrls[1]
-                        )
-                    )
-                )
-                control_values.append(1)
-            gates += operations
-            control_qubits.append(qbool)
-            ancillae_counter += 1 + number_of_used_ancillae
-
-        else:  # Fermionic or Antifermionic
+        if type(particle_operator) in [
+            FermionOperator,
+            AntifermionOperator,
+        ]:  # Fermionic or Antifermionic
             if particle_operator.creation:
                 control_values.append(0)
             else:
@@ -308,28 +309,6 @@ def _get_system_ctrls(
                 control_qubits.append(
                     system.antifermionic_register[particle_operator.mode]
                 )
-
-    if decompose:
-        # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(additional_ancillae[ancillae_counter]).controlled_by(
-                    *control_qubits,
-                    *ctrls[0],
-                    control_values=control_values + ctrls[1],
-                )
-            )
-        )
-        ancillae_counter += 1
-
-        if uncompute:
-            gates = gates[::-1]
-
-        return (
-            gates,
-            ([additional_ancillae[ancillae_counter - 1]], [1]),
-            ancillae_counter,
-        )
 
     if uncompute:
         gates = gates[::-1]

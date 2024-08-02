@@ -54,7 +54,7 @@ class System:
                 for j in range(self.number_of_modes)
             ]
             # reverse order so that occupation_0 is at index 0
-            self.bosonic_system = self.bosonic_system[::-1]
+            # self.bosonic_system = self.bosonic_system[::-1]
             self.number_of_system_qubits += (
                 self.number_of_modes * number_of_occupation_qubits
             )
