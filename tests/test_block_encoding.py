@@ -20,6 +20,22 @@ import pytest
             ParticleOperator("b0^ b0"),
         ],
         [
+            ParticleOperator("b1^ b1"),
+            ParticleOperator("b0^ b0"),
+        ],
+        [
+            ParticleOperator("b0^ b0"),
+            ParticleOperator("b0^ b1"),
+            ParticleOperator("b1^ b0"),
+            ParticleOperator("b1^ b1"),
+        ],
+        [
+            ParticleOperator("d0^ d0"),
+            ParticleOperator("d0^ d1"),
+            ParticleOperator("d1^ d0"),
+            ParticleOperator("d1^ d1"),
+        ],
+        [
             ParticleOperator("d0^ d0"),
         ],
         [
