@@ -2,7 +2,12 @@ import cirq
 import numpy as np
 from .incrementer import add_incrementer
 from .numerical_comparator import is_less_than, is_greater_than
-from openparticle import BosonOperator, FermionOperator, AntifermionOperator
+from openparticle import (
+    BosonOperator,
+    FermionOperator,
+    AntifermionOperator,
+    NumberOperator,
+)
 
 
 def add_lobe_oracle(
@@ -84,7 +89,7 @@ def add_lobe_oracle(
             )
         )
 
-        for operator in term.split()[::-1]:
+        for operator in term.parse()[::-1]:
             if isinstance(operator, BosonOperator):
                 if operator.creation:
 
@@ -292,7 +297,7 @@ def _get_system_ctrls(
     control_qubits = []
     control_values = []
 
-    for particle_operator in term.split():
+    for particle_operator in term.parse()[::-1]:
 
         if type(particle_operator) in [
             FermionOperator,
@@ -308,6 +313,18 @@ def _get_system_ctrls(
             else:
                 control_qubits.append(
                     system.antifermionic_register[particle_operator.mode]
+                )
+        elif isinstance(particle_operator, NumberOperator):
+            control_values.append(1)
+            if particle_operator.particle_type == "b":  # Fermionic
+                control_qubits.append(system.fermionic_register[particle_operator.mode])
+            elif particle_operator.particle_type == "d":
+                control_qubits.append(
+                    system.antifermionic_register[particle_operator.mode]
+                )
+            else:
+                raise RuntimeError(
+                    "unknown particle type: {}".format(particle_operator.particle_type)
                 )
 
     if uncompute:
@@ -343,7 +360,7 @@ def _add_bosonic_rotations(
     """
     gates = []
     number_of_bosonic_ops = 0
-    for particle_operator in term.split():
+    for particle_operator in term.parse():
         rotate_for_this_op = False
         if isinstance(particle_operator, BosonOperator):
             if particle_operator.creation and creation_ops:
@@ -400,7 +417,7 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
     """
     gates = []
 
-    for particle_operator in term.split():
+    for particle_operator in term.parse()[::-1]:
         mode = particle_operator.mode
         if isinstance(particle_operator, FermionOperator) or isinstance(
             particle_operator, AntifermionOperator
@@ -412,7 +429,7 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
                 register = system.antifermionic_register
 
             # parity constraint
-            for system_qubit in register[::-1][:mode]:
+            for system_qubit in register[:mode]:
                 gates.append(
                     cirq.Moment(
                         cirq.Z.on(system_qubit).controlled_by(
@@ -424,12 +441,12 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
             # update occupation
             gates.append(
                 cirq.Moment(
-                    cirq.X.on(register[-mode - 1]).controlled_by(
+                    cirq.X.on(register[mode]).controlled_by(
                         *ctrls[0], control_values=ctrls[1]
                     )
                 )
             )
-        else:
+        elif isinstance(particle_operator, BosonOperator):
             gates += add_incrementer(
                 [],
                 system.bosonic_system[mode],

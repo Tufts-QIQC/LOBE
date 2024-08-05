@@ -113,9 +113,7 @@ def get_basis_of_full_system(
         antifermionic_fock_state = []
         if has_antifermions:
             antifermionic_fock_state = [
-                i
-                for i in range(number_of_modes)
-                if qubit_values[number_of_modes + i] == 1
+                i for i in range(number_of_modes) if qubit_values[index + i] == 1
             ]
             index += number_of_modes
 
