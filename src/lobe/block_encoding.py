@@ -6,7 +6,7 @@ from openparticle import (
     BosonOperator,
     FermionOperator,
     AntifermionOperator,
-    NumberOperator,
+    OccupationOperator,
 )
 
 
@@ -129,6 +129,19 @@ def add_lobe_oracle(
                     )
                     gates_for_term += circuit_ops
 
+            elif isinstance(operator, OccupationOperator) and (
+                operator.particle_type == "a"
+            ):
+                circuit_ops, number_of_bosonic_rotations = (
+                    _add_bosonic_occupation_operator_rotations(
+                        system,
+                        rotation_register[bosonic_rotation_index:],
+                        operator,
+                        ctrls=([control_qubit], [1]),
+                    )
+                )
+                gates_for_term += circuit_ops
+                bosonic_rotation_index += number_of_bosonic_rotations
             else:
                 circuit_ops = _update_system(
                     operator,
@@ -314,7 +327,9 @@ def _get_system_ctrls(
                 control_qubits.append(
                     system.antifermionic_register[particle_operator.mode]
                 )
-        elif isinstance(particle_operator, NumberOperator):
+        elif isinstance(particle_operator, OccupationOperator) and (
+            particle_operator.particle_type in ["b", "d"]
+        ):
             control_values.append(1)
             if particle_operator.particle_type == "b":  # Fermionic
                 control_qubits.append(system.fermionic_register[particle_operator.mode])
@@ -401,6 +416,64 @@ def _add_bosonic_rotations(
     return gates, number_of_bosonic_ops
 
 
+def _add_bosonic_occupation_operator_rotations(
+    system,
+    rotation_qubits,
+    term,
+    ctrls=([], []),
+):
+    """Add rotations to pickup bosonic coefficients for occupation operators
+
+    Args:
+        system (System): The qubit registers representing the system
+        rotation_qubits (List[cirq.LineQubit]): A list of qubits that can be rotated to pickup the
+            amplitudes corresponding to the coefficients that appear when a bosonic annihilation op
+            hits a quantum state
+        term (ParticleOperator/ParticleOperatorSum): The term in question
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - The gates to perform the unitary operation
+        - The number of bosonic operators that were accounted for
+    """
+    gates = []
+    number_of_bosonic_ops = 0
+    for particle_operator in term.parse():
+        assert isinstance(particle_operator, OccupationOperator)
+        assert particle_operator.particle_type == "a"
+
+        # Multiplexing over computational basis states of mode register
+        for particle_number in range(0, system.maximum_occupation_number + 1):
+            occupation_qubits = system.bosonic_system[particle_operator.mode]
+            occupation_control_values = [
+                int(i)
+                for i in format(particle_number, f"#0{2+len(occupation_qubits)}b")[2:]
+            ]
+
+            intended_coefficient = 1
+            for power in range(particle_operator.power):
+                intended_coefficient *= (particle_number - power) / (
+                    system.maximum_occupation_number + 1
+                )
+
+            gates.append(
+                cirq.Moment(
+                    cirq.ry(2 * np.arccos(intended_coefficient))
+                    .on(rotation_qubits[number_of_bosonic_ops])
+                    .controlled_by(
+                        *occupation_qubits,
+                        *ctrls[0],
+                        control_values=occupation_control_values + ctrls[1],
+                    )
+                )
+            )
+
+        number_of_bosonic_ops += 1
+
+    return gates, number_of_bosonic_ops
+
+
 def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
     """Add rotations to pickup bosonic annihilation coefficients.
 
@@ -454,6 +527,33 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
                 not (particle_operator.creation),
                 ctrls[0],
                 ctrls[1],
+            )
+        elif isinstance(particle_operator, OccupationOperator) and (
+            particle_operator.particle_type in ["b", "d"]
+        ):
+            pass
+            # if particle_operator.particle_type == "b":
+            #     register = system.fermionic_register
+            # elif particle_operator.particle_type == "d":
+            #     register = system.antifermionic_register
+            # else:
+            #     raise RuntimeError(
+            #         "Unknown particle type: ", particle_operator.particle_type
+            #     )
+
+            # # update occupation
+            # gates.append(
+            #     cirq.Moment(
+            #         cirq.X.on(register[mode]).controlled_by(
+            #             *ctrls[0], control_values=ctrls[1]
+            #         )
+            #     )
+            # )
+        else:
+            raise RuntimeError(
+                "Unknown action on state of operator: ",
+                particle_operator,
+                type(particle_operator),
             )
 
     return gates

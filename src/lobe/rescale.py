@@ -1,6 +1,6 @@
 from copy import deepcopy
 import numpy as np
-from openparticle import BosonOperator
+from openparticle import BosonOperator, OccupationOperator
 
 
 def rescale_terms(terms, maximum_occupation_number):
@@ -66,5 +66,10 @@ def get_numbers_of_bosonic_operators_in_terms(terms):
         for operator in term.parse():
             if isinstance(operator, BosonOperator):
                 numbers_of_bosonic_ops[-1] += 1
+            elif (
+                isinstance(operator, OccupationOperator)
+                and operator.particle_type == "a"
+            ):
+                numbers_of_bosonic_ops[-1] += 2 * operator.power
 
     return numbers_of_bosonic_ops
