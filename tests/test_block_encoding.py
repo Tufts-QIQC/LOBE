@@ -1,12 +1,11 @@
-from openparticle import ParticleOperator, FermionOperator
-import numpy as np
+from openparticle import *
 import cirq
 from src.lobe.system import System
 from src.lobe.block_encoding import add_lobe_oracle
 from src.lobe.usp import add_naive_usp
 from src.lobe._utils import get_basis_of_full_system
+from src.lobe.lobe_circuit import lobe_circuit
 from src.lobe.rescale import rescale_terms, get_numbers_of_bosonic_operators_in_terms
-import openparticle as op
 import pytest
 
 
@@ -82,7 +81,7 @@ def test_lobe_block_encoding_undecomposed(
         has_antifermions=hamiltonian.has_antifermions,
         has_bosons=hamiltonian.has_bosons,
     )
-    matrix = op.generate_matrix_from_basis(hamiltonian, full_fock_basis)
+    matrix = generate_matrix(hamiltonian, full_fock_basis)
 
     rescaled_terms, scaling_factor = rescale_terms(terms, maximum_occupation_number)
 
@@ -179,7 +178,7 @@ def test_lobe_block_encoding_decomposed(
         has_antifermions=hamiltonian.has_antifermions,
         has_bosons=hamiltonian.has_bosons,
     )
-    matrix = op.generate_matrix_from_basis(hamiltonian, full_fock_basis)
+    matrix = generate_matrix(hamiltonian, full_fock_basis)
 
     rescaled_terms, scaling_factor = rescale_terms(terms, maximum_occupation_number)
 
@@ -234,3 +233,18 @@ def test_lobe_block_encoding_decomposed(
     ]
 
     assert np.allclose(upper_left_block * block_encoding_scaling_factor, matrix)
+
+
+def test_lobe_function_toy_fermionic():
+    hamiltonian = ParticleOperator({"b0^ b0": 1, "b0^ b1": 1, "b1^ b0": 1, "b1^ b1": 1})
+
+    _, unitary, matrix = lobe_circuit(hamiltonian)
+    assert np.allclose(np.real(unitary), matrix)
+
+
+@pytest.mark.parametrize("max_bose_occ", [1, 3])
+def test_lobe_function_toy_bosonic(max_bose_occ):
+    hamiltonian = ParticleOperator({"a0^ a0": 1, "a0^ a1": 1, "a1^ a0": 1, "a1^ a1": 1})
+
+    _, unitary, matrix = lobe_circuit(hamiltonian, max_bose_occ=max_bose_occ)
+    assert np.allclose(np.real(unitary), matrix)
