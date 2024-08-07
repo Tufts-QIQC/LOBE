@@ -1,7 +1,8 @@
 import pytest
 import numpy as np
 import cirq
-from src.lobe.asp import add_prepare_circuit, get_target_state, _ZERO
+from src.lobe.asp import add_prepare_circuit, get_target_state
+from src.lobe._grover_rudolph import _ZERO
 
 
 @pytest.mark.parametrize("trial", range(100))
