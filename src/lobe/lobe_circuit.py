@@ -1,11 +1,11 @@
 from openparticle import *
 import numpy as np
 import cirq
-from src.lobe.system import System
-from src.lobe.block_encoding import add_lobe_oracle
-from src.lobe.usp import add_naive_usp
-from src.lobe._utils import get_basis_of_full_system
-from src.lobe.rescale import rescale_terms, get_numbers_of_bosonic_operators_in_terms
+from .system import System
+from .block_encoding import add_lobe_oracle
+from .usp import add_naive_usp
+from ._utils import get_basis_of_full_system
+from .rescale import rescale_terms, get_numbers_of_bosonic_operators_in_terms
 from typing import Union, List
 
 
