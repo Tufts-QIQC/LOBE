@@ -67,9 +67,7 @@ def add_lobe_oracle(
         # Left-elbow based on system state
         circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
             system,
-            # clean_ancillae[clean_ancillae_counter],
             term,
-            clean_ancillae[clean_ancillae_counter:],
         )
         bosonic_ancillae = clean_ancillae[
             clean_ancillae_counter : clean_ancillae_counter + number_of_bosonic_ancillae
@@ -107,9 +105,6 @@ def add_lobe_oracle(
         circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
             system,
             term,
-            bosonic_ancillae,
-            uncompute=True,
-            ctrls=([control_qubit], [0]),
         )
         gates_for_term += circuit_ops
         clean_ancillae_counter -= number_of_bosonic_ancillae
@@ -123,37 +118,38 @@ def add_lobe_oracle(
         )
         clean_ancillae_counter -= 1
 
+        if term.coeff < 0:
+            # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
+            gates_for_term.append(
+                cirq.Moment(
+                    cirq.X.on(rotation_register[0]).controlled_by(
+                        *index_ctrls[0], control_values=index_ctrls[1]
+                    )
+                )
+            )
+            gates_for_term.append(
+                cirq.Moment(
+                    cirq.Z.on(rotation_register[0]).controlled_by(
+                        *index_ctrls[0], control_values=index_ctrls[1]
+                    )
+                )
+            )
+            gates_for_term.append(
+                cirq.Moment(
+                    cirq.X.on(rotation_register[0]).controlled_by(
+                        *index_ctrls[0], control_values=index_ctrls[1]
+                    )
+                )
+            )
+            gates_for_term.append(
+                cirq.Moment(
+                    cirq.Z.on(rotation_register[0]).controlled_by(
+                        *index_ctrls[0], control_values=index_ctrls[1]
+                    )
+                )
+            )
+
         if perform_coefficient_oracle:
-            if term.coeff < 0:
-                # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.X.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
-                        )
-                    )
-                )
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.Z.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
-                        )
-                    )
-                )
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.X.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
-                        )
-                    )
-                )
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.Z.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
-                        )
-                    )
-                )
             gates_for_term.append(
                 cirq.Moment(
                     cirq.ry(2 * np.arccos(np.abs(term.coeff)))
@@ -167,7 +163,6 @@ def add_lobe_oracle(
             index_register,
             clean_ancillae[clean_ancillae_counter:],
             index,
-            uncompute=True,
             decompose=decompose,
         )
         clean_ancillae_counter -= number_of_used_ancillae
