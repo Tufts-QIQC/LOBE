@@ -26,17 +26,15 @@ def lobe_circuit(
 
     number_of_modes = max([term.max_mode() for term in terms]) + 1
 
-    full_fock_basis = get_fock_basis(operator=operator, max_bose_occ=max_bose_occ)
-
-    matrix = generate_matrix(operator, full_fock_basis)
-
     rescaled_terms, scaling_factor = rescale_terms(terms, max_bose_occ)
 
     max_number_of_bosonic_ops_in_term = max(
         get_numbers_of_bosonic_operators_in_terms(terms)
     )
 
-    number_of_ancillae = 5
+    number_of_ancillae = (
+        1000  # Some arbitrary large number with most ancilla disregarded
+    )
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
     number_of_rotation_qubits = max_number_of_bosonic_ops_in_term + 1
 
@@ -85,12 +83,18 @@ def lobe_circuit(
     )
     circuit += add_naive_usp(index_register)
 
-    upper_left_block = circuit.unitary(dtype=complex)[
-        : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
-    ]
-    unitary = upper_left_block * block_encoding_scaling_factor
+    unitary = None
+    matrix = None
 
     if return_unitary:
-        return circuit, unitary, matrix
-    else:
-        return circuit
+        # generate matrix representation of operator in a basis
+        full_fock_basis = get_fock_basis(operator=operator, max_bose_occ=max_bose_occ)
+        matrix = generate_matrix(operator, full_fock_basis)
+
+        # Generate top left corner of overall circuit unitary
+        upper_left_block = circuit.unitary(dtype=complex)[
+            : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
+        ]
+        unitary = upper_left_block * block_encoding_scaling_factor
+
+    return circuit, unitary, matrix
