@@ -1,0 +1,53 @@
+\section{Theory}
+
+\subsection{Encoding}
+\label{subsec:encoding}
+Here we'll discuss how we encode the physical states we are interested in terms of qubits/registers.
+
+\subsection{Ladder Operators}
+\label{subsec:operators}
+
+\subsubsection{Feromons and Antiferomons}
+
+Fermions (and antifermions) obey the Pauli-exclusion principle \ws{citation} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
+Fermionic (and antifermionic) ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
+
+The fermionic creation operator is given by:
+\begin{equation}
+    b_i^\dagger \ket{\psi_{b_i}} = 
+    \begin{cases} 
+        (-1)^{\sum_{j < i} b_j} \ket{1}  & when \ket{\psi_{b_i}} is \ket{0} \\
+        0 & when \ket{\psi_{b_i}} is \ket{1}
+    \end{cases}
+\end{equation}
+where $b$ denotes a fermionic ladder operator, $i$ is the index of the mode that is being acted on, $\ket{\psi}$ is the whole system and $\ket{\psi_{b_i}}$ is the subsystem of the $b^{th}$ fermionic mode.
+An antifermionic creation operator is defined as above with the symbol $d$ to denote that the operator acts on antifermions.
+
+For a fermionic creation operator, if the mode being acted upon is unoccupied, then the creation operator "creates" a fermion in that mode and applies a phase determined by the parity of the occupation of the previous modes.
+Therefore the ordering of the modes in the encoding has an implication on the action of the operator that must be accounted for.
+Since fermionic modes can only be either occupied or unoccupied, then if the mode is already occupied the operator zeroes the amplitude of the quantum state, thereby "destoying" that portion of the quantum state. 
+
+The fermionic annihilation operator is given by:
+\begin{equation}
+    b_i \ket{\psi_{b_i}} = 
+    \begin{cases} 
+        (-1)^{\sum_{j < i} b_j} \ket{0}  & when \ket{\psi_{b_i}} is \ket{1} \\
+        0 & when \ket{\psi_{b_i}} is \ket{0}
+    \end{cases}
+\end{equation}
+and the antifermionic annihilation operator is likewise defined for $d$ instead of $b$.
+
+The action of the annihilation operators is similar (and opposite) to the creation operators.
+If the mode is already occupied, then the annihilation operator "annihilates" the fermion at that mode by setting the occupation to zero and applies a phase based on the parity of the occupation of the preceeding modes.
+If the mode is unoccupied before the operator is applied, then the annihilation operator zeroes the amplitude.
+
+\subsubsection{Bosos}
+
+\subsection{Observables}
+\label{subsec:observables}
+
+\subsubsection{Products of Ladder Operators (Terms)}
+
+
+\subsubsection{Linear Combinations of Terms}
+
