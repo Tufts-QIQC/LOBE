@@ -69,9 +69,6 @@ def add_lobe_oracle(
             system,
             term,
         )
-        bosonic_ancillae = clean_ancillae[
-            clean_ancillae_counter : clean_ancillae_counter + number_of_bosonic_ancillae
-        ]
         gates_for_term += circuit_ops
         clean_ancillae_counter += number_of_bosonic_ancillae
 
@@ -105,6 +102,7 @@ def add_lobe_oracle(
         circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
             system,
             term,
+            uncompute=True,
         )
         gates_for_term += circuit_ops
         clean_ancillae_counter -= number_of_bosonic_ancillae
