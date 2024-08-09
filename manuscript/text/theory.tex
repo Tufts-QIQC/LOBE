@@ -1,26 +1,34 @@
 \section{Theory}
 
+Give background of ladder operators and constructions of realistic Hamiltonians/Observables from ladder operators
+
 \subsection{Encoding}
 \label{subsec:encoding}
+
 Here we'll discuss how we encode the physical states we are interested in terms of qubits/registers.
 
 \subsection{Ladder Operators}
 \label{subsec:operators}
 
+\ws{@Gus, you probably have much better language to define all of this stuff. I just needed to write something down so I could reference it in the circuit construction. Don't hesitate to scrap anything in here.}
+
+
 \subsubsection{Feromons and Antiferomons}
+
+Define action of fermionic ladder operators.
 
 Fermions (and antifermions) obey the Pauli-exclusion principle \ws{citation} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
 Fermionic (and antifermionic) ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
 
 The fermionic creation operator is given by:
 \begin{equation}
-    b_i^\dagger \ket{\psi_{b_i}} = 
+    b_i^\dagger \ket{n_{b_i}} = 
     \begin{cases} 
-        (-1)^{\sum_{j < i} b_j} \ket{1}  & when \ket{\psi_{b_i}} is \ket{0} \\
-        0 & when \ket{\psi_{b_i}} is \ket{1}
+        (-1)^{\sum_{j < i} b_j} \ket{1}  & when \ket{n_{b_i}} is \ket{0} \\
+        0 & when \ket{n_{b_i}} is \ket{1}
     \end{cases}
 \end{equation}
-where $b$ denotes a fermionic ladder operator, $i$ is the index of the mode that is being acted on, $\ket{\psi}$ is the whole system and $\ket{\psi_{b_i}}$ is the subsystem of the $b^{th}$ fermionic mode.
+where $b_i$ denotes a fermionic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, and $\ket{n_{b_i}}$ is the occupation of the $i^{th}$ fermionic mode.
 An antifermionic creation operator is defined as above with the symbol $d$ to denote that the operator acts on antifermions.
 
 For a fermionic creation operator, if the mode being acted upon is unoccupied, then the creation operator "creates" a fermion in that mode and applies a phase determined by the parity of the occupation of the previous modes.
@@ -29,10 +37,10 @@ Since fermionic modes can only be either occupied or unoccupied, then if the mod
 
 The fermionic annihilation operator is given by:
 \begin{equation}
-    b_i \ket{\psi_{b_i}} = 
+    b_i \ket{n_{b_i}} = 
     \begin{cases} 
-        (-1)^{\sum_{j < i} b_j} \ket{0}  & when \ket{\psi_{b_i}} is \ket{1} \\
-        0 & when \ket{\psi_{b_i}} is \ket{0}
+        (-1)^{\sum_{j < i} b_j} \ket{0}  & when \ket{n_{b_i}} = \ket{1} \\
+        0 & when \ket{n_{b_i}} = \ket{0}
     \end{cases}
 \end{equation}
 and the antifermionic annihilation operator is likewise defined for $d$ instead of $b$.
@@ -43,11 +51,52 @@ If the mode is unoccupied before the operator is applied, then the annihilation 
 
 \subsubsection{Bosos}
 
+\begin{equation}
+    a_i^\dagger \ket{n_{a_i}} = 
+    \begin{cases} 
+        \sqrt{n_{a_i} + 1} \ket{n_{a_i} + 1}  & when \ket{n_{a_i}} \neq \ket{\Omega} \\
+        0 & when \ket{n_{a_i}} = \ket{\Omega}
+    \end{cases}
+\end{equation}
+where $a_i$ denotes a bosonic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, $\ket{n_{a_i}}$ is the occupation of the $i^{th}$ bosonic mode, and $\Omega$ is the maximum allowable bosonic occupation.
+
+\begin{equation}
+    a_i \ket{n_{a_i}} = 
+    \begin{cases} 
+        \sqrt{n_{a_i}} \ket{n_{a_i} - 1}  & when \ket{n_{a_i}} \neq \ket{0} \\
+        0 & when \ket{n_{a_i}} = \ket{0}
+    \end{cases}
+\end{equation}
+
+\subsubsection{Commutation Rules}
+\label{subsec:commutation}
+
+
 \subsection{Observables}
 \label{subsec:observables}
 
 \subsubsection{Products of Ladder Operators (Terms)}
 
+We define a \textit{term} ($T$) as a product of ladder operators that can act on fermionic, antifermionic, and bosonic modes:
+\begin{equation}
+    T = \prod_{m=0}^{M-1} c_m
+\end{equation}
+where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^\dagger, d_i, d_i^\dagger, a_i, a_i^\dagger\}$.
+
+The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules described in \ref{subsec:commutation}.
+In this work, we will have a preference for \textit{normal ordering} of the operators to obey the following structure:
+\begin{equation}
+    T = \Big( \prod_i (\delta_{b_i^\dagger} b_i^\dagger)(\delta_{b_i} b_i) \Big) \Big( \prod_i (\delta_{d_i^\dagger} d_i^\dagger)(\delta_{d_i} d_i) \Big) \Big( \prod_i (\delta_{a_i^\dagger} (a_i^\dagger)^r)(\delta_{a_i} (a_i)^s) \Big) 
+\end{equation}
+where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $r$ and $s$ are positive integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on that particular bosonic mode.
+
+\ws{Describe number/occupation operators acting on fermions/antifermions and bosons and rewrite previous equation for $T$ including these operators.}
 
 \subsubsection{Linear Combinations of Terms}
 
+We can write Hamiltonians (or observables) in the form of linear combinations of terms:
+\begin{equation}
+    \label{eq:lclo}
+    H = \sum_{l=0}^{L-1} \alpha_l T_l
+\end{equation}
+where $L$ is the total number of terms and $\alpha_l$ is a real-valued coefficient associated with the term $T_l$.
