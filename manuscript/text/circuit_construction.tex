@@ -14,8 +14,20 @@ In this section of the text, we'll do the following:
 stuff from Liu et al
 \ws{Might ask you to fill this out @Gus}
 
+\subsection{Rescaling of Coefficients Due to Bosonic Terms}
+\label{subsec:rescaling}
+
+
 \subsection{Circuit Construction}
 \label{subsec:circuit}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=8cm]{figures/lobe-block-encoding.pdf}
+    \caption{\textbf{Ladder Operator Block-Encoding.}
+    }
+    \label{fig:lobe}
+\end{figure}
 
 In Figure \ref{fig:lobe}, we define the LOBE circuit in terms of generic oracles.
 Disregarding the (optional) control qubit ($\ket{\textit{ctrl}}$), the LOBE circuit makes use of 5 qubit registers: $\ket{\textit{index}}$, $\ket{\textit{valid}}$, $\ket{\textit{coeff}}$, $\ket{\psi}$, and $\ket{0^{\otimes \alpha}}$.
@@ -39,13 +51,61 @@ The encoding studied in this work is outlined in more detail in Subsection \ref{
 Finally, the register denoted $\ket{0^{\otimes \alpha}}$ is referred to as the clean ancillae register.
 This register includes ancillae qubits that are promised to begin in the $\ket{0}$ state and are returned to this state at the end of the block-encoding circuit.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=8cm]{figures/lobe-block-encoding.pdf}
-    \caption{\textbf{Ladder Operator Block-Encoding.}
-    }
-    \label{fig:lobe}
-\end{figure}
+The LOBE circuit is structured similarly to an LCU circuit in that it involves sequential application of a $\textit{Prepare}$ oracle, a $\textit{Select}$ oracle, and then uncomputing the $\textit{Prepare}$ oracle using the daggered circuit.
+In addition to these oracles, a single $X$ gate is applied to the $\ket{\textit{valid}}$ qubit in order to prepare this qubit in the $\ket{1}$ state.
+This single $X$ gate is \textit{not} repeated on subsequent applications of the block-encoding.
+
+\subsubsection{Prepare Oracle}
+The $\textit{Prepare}$ oracle is applied to the index register to prepare a superposition over the computational basis states of this register.
+
+\textbf{Uniform State Preparation}
+
+The simplest implementation of the $\textit{Prepare}$ oracle is to prepare a uniform superposition over the computational basis states using a series of Hadamard gates on each qubit in the register.
+The rescaling condition for this implementation is that the coefficients must be rescaled such that they all have magnitude $\leq 1$.
+Let the largest coefficient magnitude be given by $\alpha^* = \max{|\alpha_l|}$.
+Then, this rescaling imposes a constant rescaling factor on the Hamiltonian of $1 / \alpha^*$
+We refer to these rescaled coeffifients as $\Tilde{\alpha_l}$.
+An additional rescaling factor of $2^{-\lceil \log_2{L} \rceil}$ from the uniform superposition results in an overall rescaling of the Hamiltonian by a constant factor of:
+\begin{equation}
+    \lambda_{usp} = \frac{1}{2^{\lceil \log_2{L} \rceil} \alpha^*}
+\end{equation}
+
+The quantum resource requirements of this implementation of $\textit{Prepare}$ are negligible as no ancillae are required and only Clifford operations (Hadamards) are performed.
+However, this implementation of $\textit{Prepare}$ requires that the rescaled coefficients of the terms ($\Tilde{\alpha_l}$) be incorporated within the $\textit{Select}$ oracle which will be described in Subsubsection \ref{subsubsec:select}.
+
+\textbf{Arbitrary State Preparation}
+
+An alternative implementation of $\textit{Prepare}$ is to use the same implementation traditionally used in LCU circuits.
+The coefficients are first rescaled by their $L1-norm$:
+\begin{equation}
+    \lambda_{asp} = \sum_{l=0}^{L-1} |\alpha_l|
+\end{equation}
+Then, a state preparation routine is applied that performs the following operation:
+\begin{equation}
+    \ket{0^{\otimes \lceil \log_2{L} \rceil}} \rightarrow_{\textit{Prepare}} \sum_{l = 0}^{L-1} \sqrt{|\alpha_l| / \lambda} \ket{l}
+\end{equation}
+This results in a weighted superposition over the computational basis states where the squared amplitudes of the basis states are equal to the magnitude of the associated coefficients.
+
+For Hamiltonians that have structure among the coefficients of the terms, implementations of the $\textit{Prepare}$ oracle can be constructed that leverage this structure.
+In certain cases, this can drastically reduce the cost of $\textit{Prepare}$ such as is done for the Fermi-Hubbard model in \cite{babbush2018encoding}.
+However, when a certain structure cannot be assumed, the Grover-Rudolph algorithm from \cite{grover2002creating} gives a formulaic routine to generate these $\textit{Prepare}$ circuits.
+
+Gover-Rudolph requires $L-1$ rotations, with $1$ being uncontrolled and the others controlled.
+The implementation also requires several series of multiplexing.
+\ws{I think we can make the implementation use fewer Toffolis by doing some smart multiplexing.}
+The total number of Toffolis \ws{(if my assumption is correct)} is given by:
+\begin{equation}
+    N_{\textit{toff}} = \lfloor \frac{L}{2} \rfloor
+\end{equation}
+and the total number of ancillae is given by:
+\begin{equation}
+    Q_{asp} = \lceil \log_2{L} \rceil - 2
+\end{equation}
+\ws{check this.}
+It should be noted that these ancillae, which will be returned to $\ket{0}$ after the oracle call completes, will likely be reused in the $\textit{Select}$ oracle and therefore will not contribute to the total qubit requirement of the block-encoding.
+
+\subsubsection{Select Oracle}
+\label{subsubsec:select}
 
 \begin{figure}
     \centering
@@ -55,9 +115,6 @@ This register includes ancillae qubits that are promised to begin in the $\ket{0
     \label{fig:lobe-term}
 \end{figure}
 
-
-\subsection{Hamiltonian Rescaling}
-\label{subsec:rescaling}
 
 \subsection{Analytical Cost Analysis}
 \label{subsec:analytics}
