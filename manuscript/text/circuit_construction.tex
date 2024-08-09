@@ -22,10 +22,6 @@ Disregarding the (optional) control qubit ($\ket{\textit{ctrl}}$), the LOBE circ
 
 The register denoted $\ket{\textit{index}}$ is referred to as the index register and is used to index the terms in the Hamiltonian as is done in LCU constructions. 
 The integer representations of the computational basis states of the index register corresponds to the indices $l$ in Eq. \ref{eq:lclo}. 
-The minimum number of qubits required for this register is given by:
-\begin{equation}
-    Q_{\textit{index}} = \lceil \log_2{L} \rceil
-\end{equation}
 
 The register denoted $\ket{\textit{valid}}$ consists of a single qubit and is referred to as the validation qubit.
 It serves the same purpose as in \cite{liu2024efficient} which is to denote whether or not the term at the current index ($T_l$) will annihilate the quantum state.
@@ -35,13 +31,13 @@ If the term will not annihilate the state, then the validation qubit gets flippe
 The register denoted $\ket{\textit{coeff}}$ is referred to as the coefficient register and is used to apply the coefficients associate with the term $T_l$. 
 These coefficients include both the coefficients of the terms in the linear combination ($\alpha_l$) as well as the coefficients associated with the bosonic ladder operators.
 One qubit is used to apply the $\alpha_l$ coefficient while a separate qubit will be required for each bosonic operator (defined as a creation, annihilation, or occupation operator acting with a positive integer-valued exponent) in the term.
-If we let $K$ denote the maximum number of bosonic operators within a single term, then the number of qubits in the coefficient register is given by:
-\begin{equation}
-    Q_{\textit{coeff}} = K + 1
-\end{equation} 
 
-In addition to the system register - of which the encoding was described in Section \ref{subsec:encoding} - the LOBE cicuit makes use of 5 additional qubit registers.
-The top register is a 
+The register denoted $\ket{\psi}$ is referred to as the system register and is used to encode the state of the system.
+This register can be broken up into three subsequent registers: the fermionic system $\ket{\psi_b}$, the antifermionic system ($\ket{\psi_d}$), and the bosonic system ($\ket{\psi_a}$).
+The encoding studied in this work is outlined in more detail in Subsection \ref{subsec:encoding}.
+
+Finally, the register denoted $\ket{0^{\otimes \alpha}}$ is referred to as the clean ancillae register.
+This register includes ancillae qubits that are promised to begin in the $\ket{0}$ state and are returned to this state at the end of the block-encoding circuit.
 
 \begin{figure}
     \centering
@@ -65,7 +61,42 @@ The top register is a
 
 \subsection{Analytical Cost Analysis}
 \label{subsec:analytics}
-Detail analytic cost of different variations
+
+The minimum number of qubits required for the index register is given by:
+\begin{equation}
+    Q_{\textit{index}} = \lceil \log_2{L} \rceil
+\end{equation}
+
+If we let $K$ denote the maximum number of bosonic operators within a single term, then the minimum number of qubits in the coefficient register is given by:
+\begin{equation}
+    Q_{\textit{coeff}} = K + 1
+\end{equation} 
+
+Using the qubit-efficient encoding described in Subsection \ref{subsec:encoding}, the minimum number of qubits required for the system registers is given by:
+\begin{equation}
+    \begin{split}
+        &Q_{\psi_b} = \Lambda \\
+        &Q_{\psi_d} = \Lambda \\
+        &Q_{\psi_a} = \Lambda \lceil \log_2{(\Omega + 1)} \rceil
+    \end{split}
+\end{equation} 
+
+There are numerous space-time tradeoffs that one can make to either reduce the number of ancillae qubits at the cost of more gates or vice versa.
+In this work, we opt for compilations that minimize the number of non-Clifford operations at the expense of more ancillae qubits.
+With this choice, the number of clean ancillae required is given by:
+\begin{equation}
+    \alpha = \lceil \log_2{L} \rceil + (B + 1) + \lceil \log_2{(\Omega + 1)} \rceil
+\end{equation}
+where $\lceil \log_2{L} \rceil$ qubits are used for multiplexing over the index register, $ \lceil \log_2{(\Omega + 1)} \rceil$ qubits are used for multiplexing over the bosonic occupation registers, and $B$ denotes the maximum number of fermionic and antifermionic ladder operators within a single term.
+And we assume that any left-elbow with $N$ controls and one ancilla qubit storing the quantum boolean can be decomposed into $N-1$ left-elbows, each using $2$ controls at the expense of $N-1$ total ancillae.
+
+Therefore, the total qubit requirement under these compilation choices - disregarding the control qubit - is given by:
+\begin{equation}
+    \begin{split}
+        N &= Q_{\textit{index}} + 1 + Q_{\textit{coeff}} + Q_{\psi_b} + Q_{\psi_d} + Q_{\psi_a} + \alpha \\
+        &= 2 \lceil \log_2{L} \rceil + 2 \Lambda + (\Lambda + 1) \lceil \log_2{(\Omega + 1)} \rceil + B + K + 3
+    \end{split}
+\end{equation}
 
 \subsection{Example}
 \label{subsec:example}
