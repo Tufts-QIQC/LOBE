@@ -271,6 +271,41 @@ This rotation is used to account for the rescaled coefficient of the term ($\Til
 \end{equation}
 If the \textit{arbitrary state preparation} protocol is used, then this rotation is not needed as the coefficient of the term is already accounted for and one fewer qubit is needed in the coefficient register.
 
+\begin{tcolorbox}[enhanced,attach boxed title to top center={yshift=-3mm,yshifttext=-1mm}, colback=blue!5!white,colframe=blue!75!black,colbacktitle=orange!80!black, title=Alternative Bosonic Operator Implementation,fonttitle=\bfseries, boxed title style={size=small,colframe=orange!50!black}]
+    \ws{This needs to be confirmed, but should be much more efficient.}
+
+    Let any series of bosonic operators acting on the $i^{th}$ mode be described by:
+    \begin{equation}
+        (a_i^\dagger)^R (a_i)^S
+    \end{equation}
+    where $R$ and $S$ are nonzero integers in the range $[0, \Omega]$.
+
+    We can describe the action of the rescaled operator on the state of the $i^{th}$ bosonic mode with initial occupation $\omega$ as:
+    \begin{equation}
+        (a_i^\dagger)^R (a_i)^S \ket{\omega} = \prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big) \ket{\omega + R - S}
+    \end{equation}
+
+    This operation can implemented in the block-encoding via a quantum circuit as follows with all operations controlled on the ancilla qubit indicating if the current term should be applied:
+    \begin{enumerate}
+        \item Apply a Pauli-X gate on the $k^{th}$ qubit in the coefficient register to rotate it completely outside of the encoded subspace
+        \item Multiplex over the occupation of the $i^{th}$ bosonic mode for occupation states in the range: $S \leq \omega_i \leq \min(\Omega, \Omega - S + R)$. Any state beginning with an occupation less than $S$ will be "zeroed-out" and therefore can be left outside of the encoded subspace and the multiplexor can ignore these states. Likewise, any state that should end with an occupation greater than $\Omega$ will also be "zeroed-out" and therefore the multiplexor can terminate early.
+        \item For each value of $\omega_i$ in the multiplexor, apply a rotation on the $k^{th}$ qubit in the coefficient register of angle $\theta$ given by Eq. \ref{eq:smarter-rot-angle}. \ws{Need to figure out if this should be an Ry rotation or something else or perhaps a rotation of $\pi - \theta$, etc... regardless I'm confident this should be do-able.}
+        \item If $S > R$, apply a decrementer to the $i^{th}$ bosonic mode, reducing the occupation by a value of $S - R$.
+        \item If $S < R$, apply an incrementer to the $i^{th}$ bosonic mode, increasing the occupation by a value of $R - S$.
+        \item If $S = R$, don't do anything
+    \end{enumerate}
+
+    \begin{equation}
+        \label{eq:smarter-rot-angle}
+        \theta(\omega_i, S, R) = 2 \cos^{-1}{\Big(\prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big)\Big)}
+    \end{equation}
+
+    Overall, this implementation would mean that only one multiplexor would be required for each bosonic mode that is being acted upon, instead of one for each bosonic operator in the term.
+    Additionally, the multiplexor will have a reduced number of occupation modees to multiplex over, thereby reducing the number of Toffolis required for the multiplexor.
+    With this implementation, $K$ is redefined as the maximum number of bosonic modes being acted upon in a single term (instead of the maximum number of bosonic operators within a term) which will reduce the number of qubits needed in the coefficient register.
+    Lastly, only one incrementer/decrementer circuit is required since the occupation state will only need to be updated once for each bosonic mode being acted upon.
+\end{tcolorbox}
+
 \subsection{Analytical Cost Analysis}
 \label{subsec:analytics}
 
