@@ -282,6 +282,7 @@ If the \textit{arbitrary state preparation} protocol is used, then this rotation
 
     We can describe the action of the rescaled operator on the state of the $i^{th}$ bosonic mode with initial occupation $\omega$ as:
     \begin{equation}
+        \label{eq:bosonic-operator-action}
         (a_i^\dagger)^R (a_i)^S \ket{\omega} = \prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big) \ket{\omega + R - S}
     \end{equation}
 
@@ -289,7 +290,7 @@ If the \textit{arbitrary state preparation} protocol is used, then this rotation
     \begin{enumerate}
         \item Apply a Pauli-X gate on the $k^{th}$ qubit in the coefficient register to rotate it completely outside of the encoded subspace
         \item Multiplex over the occupation of the $i^{th}$ bosonic mode for occupation states in the range: $S \leq \omega_i \leq \min(\Omega, \Omega - S + R)$. Any state beginning with an occupation less than $S$ will be "zeroed-out" and therefore can be left outside of the encoded subspace and the multiplexor can ignore these states. Likewise, any state that should end with an occupation greater than $\Omega$ will also be "zeroed-out" and therefore the multiplexor can terminate early.
-        \item For each value of $\omega_i$ in the multiplexor, apply a rotation on the $k^{th}$ qubit in the coefficient register of angle $\theta$ given by Eq. \ref{eq:smarter-rot-angle}. \ws{Need to figure out if this should be an Ry rotation or something else or perhaps a rotation of $\pi - \theta$, etc... regardless I'm confident this should be do-able.}
+        \item For each value of $\omega_i$ in the multiplexor, apply a rotation on the $k^{th}$ qubit in the coefficient register of angle $\theta$ given by Eq. \ref{eq:smarter-rot-angle}. The purpose here will be to rotate the qubit back into the encoded subspace with an amplitude in the $\ket{0}$ state equal to the amplitude in Eq. \ref{eq:bosonic-operator-action}. \ws{Need to figure out if this should be an Ry rotation or something else or perhaps a rotation of $\pi - \theta$, etc... regardless I'm confident this is do-able.}
         \item If $S > R$, apply a decrementer to the $i^{th}$ bosonic mode, reducing the occupation by a value of $S - R$.
         \item If $S < R$, apply an incrementer to the $i^{th}$ bosonic mode, increasing the occupation by a value of $R - S$.
         \item If $S = R$, don't do anything
