@@ -1,0 +1,107 @@
+\documentclass[%
+ reprint,
+%superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose, 
+%preprint,
+%preprintnumbers,
+nofootinbib,
+%nobibnotes,
+%bibnotes,
+ amsmath,amssymb,
+ aps,
+%pra,
+%prb,
+%rmp,
+%prstab,
+%prstper,
+%floatfix,
+]{revtex4-2}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{fancyhdr}       % header
+\usepackage{blindtext}
+\usepackage{physics}
+\usepackage{amssymb,amsmath}
+\numberwithin{equation}{section}
+\usepackage{bbm}
+\usepackage{listings}
+
+\bibliographystyle{apsrev4-2}
+
+
+
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+%\usepackage{hyperref}% add hypertext capabilities
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+%\usepackage[showframe,%Uncomment any one of the following lines to test 
+%%scale=0.7, marginratio={1:1, 2:3}, ignoreall,% default settings
+%%text={7in,10in},centering,
+%%margin=1.5in,
+%%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
+%%height=10in,a5paper,hmargin={3cm,0.8in},
+%]{geometry}
+
+\begin{document}
+
+\preprint{APS/123-QED}
+
+\title{Working Title: Block Encoding the Renormalized Quartic Oscillator Hamiltonian}% Force line breaks with \\
+
+\author{Gustin, Serafin, Simon, Goldstein, Love}%
+ %\email{carter.gustin@tufts.edu}
+
+\affiliation{Tufts University}%
+
+
+
+\date{\today}% It is always \today, today,
+             %  but any date may be explicitly specified
+
+\begin{abstract}
+Abstract
+\end{abstract}
+
+%\keywords{Suggested keywords}%Use showkeys class option if keyword
+                              %display desired
+\maketitle
+
+\section{Introduction}
+\subsection{The Quartic Oscillator Model} 
+
+\section{Renormalization}
+The quartic oscillator is a model that is not studied here within the context
+of quantum field theories; however, we can utilize techniques from these 
+theories to reduce the resources needed to simulate this model. 
+In quantum field theories, Renormalization is the process of removing infinities
+that arise when doing calculations beyond leading order. Here, Gaussian elimination 
+is performed to systematically remove one row and column from the "infinitely"
+large Hamiltonian, thus reducing the dimension of the matrix. This is done
+approximately, since pure Gaussian elimination isn't any cheaper than 
+diagonalizing the infinite matrix. 
+
+Guassian elimination starts by writing down the eigenvalue equation for the 
+largest energy eigenvalue of the Hamiltonian. 
+\subsection{Renormalized Hamiltonian}
+
+\section{Simulation of Renormalized Hamiltonian via LOBE}
+\subsection{Overview of LOBE}
+
+\section{Conclusion}
+
+\end{document}
