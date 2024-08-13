@@ -1,3 +1,8 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
+\textbf{Future Directions}
+The application of the bosonic coefficients is a potential area of improvement for more efficient implementations.
+Primarily, if one could coherently compute $\cos^{-1}{\sqrt{\omega_i}}$ either in-place or out-of-place, it may be possible to use techniques such as hamming weight phasing to apply the appropriate coefficient without the need for multiplexing over all possible occupation states.
+Alternatively, if the coefficient qubits begin outside of the encoded subspace (as opposed to inside), it may be possible to multiplex only over the $\Omega - R$ occupation states that will not be "zeroed-out". 
+This would reduce the number of Toffolis by $R$ ($S$/$T$) for each bosonic ladder operator.

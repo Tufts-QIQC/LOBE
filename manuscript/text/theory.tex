@@ -54,6 +54,7 @@ If the mode is unoccupied before the operator is applied, then the annihilation 
 \subsubsection{Bosos}
 
 \begin{equation}
+    \label{eq:bosonic-creation}
     a_i^\dagger \ket{n_{a_i}} = 
     \begin{cases} 
         \sqrt{n_{a_i} + 1} \ket{n_{a_i} + 1}  & when \ket{n_{a_i}} \neq \ket{\Omega} \\
@@ -63,6 +64,7 @@ If the mode is unoccupied before the operator is applied, then the annihilation 
 where $a_i$ denotes a bosonic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, $\ket{n_{a_i}}$ is the occupation of the $i^{th}$ bosonic mode, and $\Omega$ is the maximum allowable bosonic occupation.
 
 \begin{equation}
+    \label{eq:bosonic-annihilation}
     a_i \ket{n_{a_i}} = 
     \begin{cases} 
         \sqrt{n_{a_i}} \ket{n_{a_i} - 1}  & when \ket{n_{a_i}} \neq \ket{0} \\
@@ -88,9 +90,10 @@ where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^
 The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules described in \ref{subsec:commutation}.
 In this work, we will have a preference for \textit{normal ordering} of the operators to obey the following structure:
 \begin{equation}
-    T = \Big( \prod_i (\delta_{b_i^\dagger} b_i^\dagger)(\delta_{b_i} b_i) \Big) \Big( \prod_i (\delta_{d_i^\dagger} d_i^\dagger)(\delta_{d_i} d_i) \Big) \Big( \prod_i (\delta_{a_i^\dagger} (a_i^\dagger)^r)(\delta_{a_i} (a_i)^s) \Big) 
+    T = \Big( \prod_i ((a_i^\dagger)^S)(A_i)^R((a_i)^P) \Big) \Big( \prod_i \big( (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (D_i)^{\delta_{D_i}} (d_i)^{\delta_{d_i}} \big) \Big) \Big( \prod_i \big( (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (B_i)^{\delta_{B_i}} (b_i)^{\delta_{b_i}} \big) \Big) 
 \end{equation}
-where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $r$ and $s$ are positive integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on that particular bosonic mode.
+where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $P$, $R$, and $S$ are integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on that particular bosonic mode.
+The operators $A_i$, $D_i$, and $B_i$ denote occupation operators acting on the $i^{th}$ bosonic, antifermionic, and fermionic modes respectively.
 
 \ws{Describe number/occupation operators acting on fermions/antifermions and bosons and rewrite previous equation for $T$ including these operators.}
 
