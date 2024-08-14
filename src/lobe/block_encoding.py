@@ -117,35 +117,42 @@ def add_lobe_oracle(
         clean_ancillae_counter -= 1
 
         if term.coeff < 0:
-            # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
-            gates_for_term.append(
-                cirq.Moment(
-                    cirq.X.on(rotation_register[0]).controlled_by(
-                        *index_ctrls[0], control_values=index_ctrls[1]
+            if len(index_ctrls[0]) == 1:
+                if index_ctrls[1][0] == 0:
+                    gates_for_term.append(cirq.Moment(cirq.X.on(index_ctrls[0][0])))
+                gates_for_term.append(cirq.Moment(cirq.Z.on(index_ctrls[0][0])))
+                if index_ctrls[1][0] == 0:
+                    gates_for_term.append(cirq.Moment(cirq.X.on(index_ctrls[0][0])))
+            else:
+                # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.X.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
                     )
                 )
-            )
-            gates_for_term.append(
-                cirq.Moment(
-                    cirq.Z.on(rotation_register[0]).controlled_by(
-                        *index_ctrls[0], control_values=index_ctrls[1]
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.Z.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
                     )
                 )
-            )
-            gates_for_term.append(
-                cirq.Moment(
-                    cirq.X.on(rotation_register[0]).controlled_by(
-                        *index_ctrls[0], control_values=index_ctrls[1]
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.X.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
                     )
                 )
-            )
-            gates_for_term.append(
-                cirq.Moment(
-                    cirq.Z.on(rotation_register[0]).controlled_by(
-                        *index_ctrls[0], control_values=index_ctrls[1]
+                gates_for_term.append(
+                    cirq.Moment(
+                        cirq.Z.on(rotation_register[0]).controlled_by(
+                            *index_ctrls[0], control_values=index_ctrls[1]
+                        )
                     )
                 )
-            )
 
         if perform_coefficient_oracle:
             gates_for_term.append(
