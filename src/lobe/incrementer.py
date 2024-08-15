@@ -3,6 +3,8 @@ import numpy as np
 
 
 def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], [])):
+    classical_value = classical_value % (1 << len(register))
+
     if classical_value == 0:
         return []
 

@@ -165,7 +165,6 @@ def test_add_classical_value_on_basis_state(
     number_of_qubits, integer, classical_value, decrement, is_controlled
 ):
     integer = integer % (1 << number_of_qubits)
-    classical_value = classical_value % (1 << number_of_qubits)
     if decrement:
         classical_value *= -1
 
