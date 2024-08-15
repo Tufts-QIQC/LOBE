@@ -1,4 +1,33 @@
 import cirq
+import numpy as np
+
+
+def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], [])):
+    if classical_value == 0:
+        return []
+
+    gates = []
+    num_levels = int(np.ceil(np.log2(np.abs(classical_value)))) + 1
+    decrement = False
+    if classical_value < 0:
+        decrement = True
+    classical_value = np.abs(classical_value)
+    for level in range(num_levels - 1, -1, -1):
+        qubits_involved = register
+        if level > 0:
+            qubits_involved = register[:-level]
+
+        if (1 << level) <= classical_value:
+            gates += add_incrementer(
+                [],
+                qubits_involved,
+                clean_ancillae[: len(qubits_involved) - 2],
+                decrement=decrement,
+                control_register=ctrls[0],
+                control_values=ctrls[1],
+            )
+            classical_value -= 1 << level
+    return gates
 
 
 def add_incrementer(
