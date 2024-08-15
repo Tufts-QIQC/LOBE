@@ -36,6 +36,7 @@ nofootinbib,
 \numberwithin{equation}{section}
 \usepackage{bbm}
 \usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
 
 \bibliographystyle{apsrev4-2}
 
@@ -83,24 +84,93 @@ Abstract
 
 \section{Introduction}
 \subsection{The Quartic Oscillator Model} 
+The quartic oscillator can be viewed as a quantum field theory as $\phi^4$ constrained to
+one point in space time. Althernatively, it can be viewed as an extension of the quantum
+simple harmonic oscillator with a quartic potential term added, e.g.:
+\begin{equation}
+  H = \frac{\dot{\phi}^2}{2} + \frac{m^2\phi^2}{2} + gm^3\phi^4.
+\end{equation}
+
+In second quantized form, the Hamiltonian can be expressed in terms of creation and 
+annihilation operators as
+
+\begin{equation}
+  H = a^\dagger a + g(a + a^\dagger)^4
+\end{equation}
+where $m = 1$, and $g$ is an arbitrary coupling constant. The normalized eigenstates of
+the free part of the Hamiltonian, $H_0$ are $\ket{k} = (k!)^{-1/2}a^k\ket{0}$. The goal
+is thus, given this basis, finding the ground state eigenvalue of the problem when the 
+quartic potential is turned on ($g \neq 0$). 
+
+In the basis of states defined above, the Hamiltonian matrix, 
+$H_{kl} \equiv\matrixel{k}{H}{l}$ is 5-band-diagonal. We first must pick some cutoff
+on the basis states to get an explicit matrix form. In general, we want this cutoff, $N$,
+to be very large, such that diagonalizing this $N \times N$ Hamiltonian gives a very good 
+approximation to the true ground state. Note that in this model, when it is said that
+there is no divergence, it means that as $N \rightarrow \infty$, the ground state energy
+$E_0$ tends to the true ground state of the infinite problem. In more complicated field
+theories, this won't be true and will require more advanced renormalization techniques.
+
+This $N \times N$ matrix can be diagonalized exactly, or simulated to give an approximation to
+$E_0$; however, this will be very expensive. \textcolor{red}{We should be explicit in 
+what we mean by expensive?} Alternatively, we can ``renormalize'' the model, allowing quantum
+simulation to be performed. This is done with Gaussian elimination.
 
 \section{Renormalization}
 The quartic oscillator is a model that is not studied here within the context
 of quantum field theories; however, we can utilize techniques from these 
 theories to reduce the resources needed to simulate this model. 
-In quantum field theories, Renormalization is the process of removing infinities
+In quantum field theories, renormalization is the process of removing infinities
 that arise when doing calculations beyond leading order. Here, Gaussian elimination 
-is performed to systematically remove one row and column from the "infinitely"
-large Hamiltonian, thus reducing the dimension of the matrix. This is done
+is performed to systematically remove one row and column from the ``infinitely''
+large Hamiltonian, thus reducing the dimension of the matrix. Although there are no 
+divergences that arise in this model, Gaussian elimination still is useful. This is done
 approximately, since pure Gaussian elimination isn't any cheaper than 
 diagonalizing the infinite matrix. 
 
-Guassian elimination starts by writing down the eigenvalue equation for the 
-largest energy eigenvalue of the Hamiltonian. 
+Guassian elimination starts by writing down the eigenvalue equation: 
+
+\begin{equation}
+  H\psi^{(0)} = E_0 \psi^{(0)}
+\end{equation}
+where $\psi^{(0)}$ is a $N \times 1$ vector with entries $\psi_0, \dots \psi_{N - 1}$ and $H$
+is a $N \times N$ matrix. Writing $H\psi = E\psi$ for the ground state in matrix form gives 
+$N$ coupled equations. To perform Gaussian elimination, one writes down the equation
+corresponding to $\psi^{(0)}_{N - 1}$:
+
+\begin{equation}
+  \sum_{l = 0}^{N - 1} H_{N - 1, l}\psi_l = E_0\psi_{N - 1}
+\end{equation}
+From here, we rewrite this equation in terms of $\psi_{N - 1}$ and plug this into the equation
+for $\psi^{(0)}_{N - 2}$. We say this removes a row and column from the matrix because now
+there is one less independent degree of freedom. The resulting set of equations is now given
+as:
+
+\begin{equation}
+  \sum_{l = 0}^{N - 2}\left(H_{N-2, l} + \frac{H_{N-2, N}H_{N, l}}{E_0 - H_{N, N}} \right)\psi_{N - 2} = E_0\psi_{N - 2}
+\end{equation}
+
+A problem now becomes evident: the eigenvalue equation for $\psi_{N - 2}$ now depends on $E_0$ in two places.
+This is where an approximation comes in that allows us to ``approximately'' Gaussian eliminate the
+Hamiltonian matrix, leading to a recurrsion relation that shrinks the size of the matrix. We assume
+that the ground state eigenvalue is small compared to the bottom-right-most matrix element (which 
+is the large-energy corner). Thus, we can let $E_0 - H_{N, N} \approx -H_{N, N}$.
+
+Now, a recurrsion relation can be defined on each matrix element $H_{kl}$ where the ``new'' matrix
+after one Gaussian elimination step is one row and column smaller:
+
+\begin{equation}
+  H_{kl}^{(j)} = H_{kl}^{(j - 1)} - g\frac{H_{k,N-j}^{(j - 1)}H_{N-j,l}^{(j - 1)}}{H_{N-j,N-j}^{{j - 1}}}
+\end{equation}
+
 \subsection{Renormalized Hamiltonian}
 
 \section{Simulation of Renormalized Hamiltonian via LOBE}
 \subsection{Overview of LOBE}
+
+\subsection{Resource Estimates}
+\textcolor{red}{What are LOBE estimates for the ``infinite'' Hamiltonian matrix vs. the 
+renormalized matrix. How do we quantify if this trade-off is useful?}
 
 \section{Conclusion}
 
