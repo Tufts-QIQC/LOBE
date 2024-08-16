@@ -136,17 +136,15 @@ In certain cases, this can drastically reduce the cost of $\textit{Prepare}$ suc
 However, when a certain structure cannot be assumed, the Grover-Rudolph algorithm from \cite{grover2002creating} gives a formulaic routine to generate these $\textit{Prepare}$ circuits.
 
 Gover-Rudolph requires $L-1$ rotations, with $1$ being uncontrolled and the others controlled.
-The implementation also requires several series of multiplexing.
-\ws{I think we can make the implementation use fewer Toffolis by doing some smart multiplexing.}
-The total number of Toffolis \ws{(if my assumption is correct)} is given by:
+The total number of left-elbows is given by:
 \begin{equation}
-    N_{\textit{toff}} = \lfloor \frac{L}{2} \rfloor
+    N_{\textit{left-elbow}} = L + 1 
 \end{equation}
-and the total number of ancillae is given by:
+with an equal number of right-elbows.
+The total number of ancillae is given by:
 \begin{equation}
     Q_{asp} = \lceil \log_2{L} \rceil - 2
 \end{equation}
-\ws{check this.}
 It should be noted that these ancillae, which will be returned to $\ket{0}$ after the oracle call completes, will likely be reused in the $\textit{Select}$ oracle and therefore will not contribute to the total qubit requirement of the block-encoding.
 
 Overall, after the bosonic coefficient rescaling is applied and one of these $Prepare$ oracle compilations is chosen and the coefficients rescaled again, the overall rescaling of the Hamiltonian that is block-encoded is given by:
