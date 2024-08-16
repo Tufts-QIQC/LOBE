@@ -1,23 +1,27 @@
 \section{Theory}
 
-Give background of ladder operators and constructions of realistic Hamiltonians/Observables from ladder operators
+%Give background of ladder operators and constructions of realistic Hamiltonians/Observables from ladder Operators
+In quantum field theories and quantum chemistry, the main method of keeping track of multiparticle states is known as second quantization \cite{Sakurai_Napolitano_2020}.
+In second quantization, multiparticle state vectors are written as $\ket{n} = \ket{n_\Lambda, \dots, n_1, n_0}$ where $n_i \in \mathbb{Z}$ is the number of particles present in mode $i$.
+For fermions, $n_i \in [0, 1]$ necessarily due to the Pauli exclusion principle \gus{cite PEP}; whereas for bosons, $n_i \in [0, 1, 2, \dots)$.
+The vector space of all second-quantized state vectors is called the Fock space, with the state vectors called Fock states. In second quantization, the Hilbert space is promoted to the Fock space via \cite{Schwartz_2013}:
 
-\subsection{Encoding}
-\label{subsec:encoding}
+\begin{equation}
+    \mathcal{F} = \oplus_n \mathcal{H}_n.
+\end{equation}
 
-Here we'll discuss how we encode the physical states we are interested in terms of qubits/registers.
-
-\ws{Question: do we want to also cost-out the unary encoding or just the "compact" encoding that we've been primarily working with?}
+Second quantization apperas in quantum chemistry after projecting the Hamiltonian onto basis wavefunctions, and assuring exchange symmetry via Slater determinants. \gus{Will, you know more about quantum chemistry than me, so please edit this as needed}.
+Similarly, in quantum field theories, field operators, rather than wavefunctions, are the main objects of the theory. These field operators act on second-quantized states to create and annihilate particles in the field. 
 
 \subsection{Ladder Operators}
 \label{subsec:operators}
+In addition to Fock states, the other main aspect of second quantization is the presence of creation and annihilation operators, which collectively will be refered to as \emph{ladder operators}. These operators are essential parts of the theory that manipulate the Fock states and change the nature of the multiparticle system. 
 
-\ws{@Gus, you probably have much better language to define all of this stuff. I just needed to write something down so I could reference it in the circuit construction. Don't hesitate to scrap anything in here.}
 
-
+%\ws{@Gus, you probably have much better language to define all of this stuff. I just needed to write something down so I could reference it in the circuit construction. Don't hesitate to scrap anything in here.}
 \subsubsection{Feromons and Antiferomons}
 
-Define action of fermionic ladder operators.
+%Define action of fermionic ladder operators.
 
 Fermions (and antifermions) obey the Pauli-exclusion principle \ws{citation} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
 Fermionic (and antifermionic) ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
@@ -72,8 +76,53 @@ where $a_i$ denotes a bosonic ladder operator on the $i^{th}$ mode, the $^\dagge
     \end{cases}
 \end{equation}
 
-\subsubsection{Commutation Rules}
+\subsubsection{Hamiltonians via Fields}
+Field operators in quantum field theories are written in terms of ladder operators as
+\begin{equation}
+    \phi(x) = \int \frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}\left(a_p e^{ipx} + a_p^\dagger e^{-ipx}\right).
+\end{equation}
+In classical field theory, the Hamiltonian is derived from the field operators via 
+
+\begin{equation}
+    H = \int d^3x \left(\frac{\partial \mathcal{L}}{\partial \dot{\phi}}\dot{\phi} - \mathcal{L} \right)
+\end{equation}
+\gus{Maybe this is unnecessary.}
+This will necessarily lead to Hamiltonians written in terms of creation and annihilation operators, similarly to quantum chemistry. The main difference is that 
+Hamiltonians in quantum field theory will contain products of \emph{different types} of particles. The block encoding presented in this paper takes this into account and allows any general quantum field theory Hamiltonian to be block encoded. 
+
+\subsection{Commutation Rules and Normal Ordering}
 \label{subsec:commutation}
+It is important to mention the commutation relations between the different types of ladder operators. They are given as:
+
+\begin{align*}
+    &\{b_i, b_j^\dagger\} = \{d_i, d_j^\dagger\} = [a_i, a_j^\dagger] = \delta_{ij}\\
+    & [b_i, b_j] = [b_i^\dagger, b_j^\dagger] = 0 \\
+    & [d_i, d_j] = [d_i^\dagger, d_j^\dagger] = 0 \\
+    & [a_i, a_j] = [a_i^\dagger, a_j^\dagger] = 0 \\
+    & \{b_i, d_j\} = \delta_{ij}
+\end{align*}
+
+\subsection{Encoding}
+\label{subsec:encoding}
+In order to map information about the multiparticle system to Fock states (and thus qubit states), an encoding must be decided. Due to the different statistics obeyed by fermions and bosons, these encodings will be different for these different types of particles. 
+
+The fermionic encoding used is the Jordan-Wigner encoding \cite{jordan-wigner}. The map between a Fock state to a qubit state is given as 
+\begin{equation}
+    \ket{n_\Lambda, \dots, n_1, n_0} \rightarrow \ket{q_\Lambda, \dots, q_1, q_0}
+\end{equation}
+where $n_i = q_i \in [0, 1]$ depending on if mode $i$ is occupied or not. Thus, mapping a state to a qubit register corresponds to intializing qubits in the $\ket{0}$ or $\ket{1}$ state for each wire in the register. 
+
+Alternatively, for bosons, the encoding is slightly more complicated due to the absence of the Pauli exclusion principle. For bosons, we map a Fock state to a qubit register with $n_{\text{qubits}} = \Lambda \lceil \log_2{\Omega}\rceil$.
+This is because for each mode $\lambda_i \in [0, \Lambda]$, we must encode the corresponding occupancy of bosons in this mode in binary. 
+
+Thus, for a general Fock state with fermions, antifermions, and bosons, the total number of qubits needed to map this state to a qubit register is $\Lambda_{\text{fermi}} + \Lambda_{\text{antifermi}} + \Lambda_{\text{bose}} \lceil \log_2{\Omega}\rceil$.
+Throughout this work, we assume that the mode cutoffs are the same for each type of particle $\Lambda_{\text{fermi}} + \Lambda_{\text{antifermi}} + \Lambda_{\text{bose}} \equiv \Lambda$.
+
+%Here we'll discuss how we encode the physical states we are interested in terms of qubits/registers.
+
+\ws{Question: do we want to also cost-out the unary encoding or just the "compact" encoding that we've been primarily working with?}
+
+
 
 
 \subsection{Observables}
@@ -92,6 +141,7 @@ In this work, we will have a preference for \textit{normal ordering} of the oper
 \begin{equation}
     T = \Big( \prod_i ((a_i^\dagger)^S)(A_i)^R((a_i)^P) \Big) \Big( \prod_i \big( (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (D_i)^{\delta_{D_i}} (d_i)^{\delta_{d_i}} \big) \Big) \Big( \prod_i \big( (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (B_i)^{\delta_{B_i}} (b_i)^{\delta_{b_i}} \big) \Big) 
 \end{equation}
+\gus{Can we order this as fermions, antifermions, bosons, rather than the other way around? That is the style we have been using (they commute so it's technically the same).}
 where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $P$, $R$, and $S$ are integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on that particular bosonic mode.
 The operators $A_i$, $D_i$, and $B_i$ denote occupation operators acting on the $i^{th}$ bosonic, antifermionic, and fermionic modes respectively.
 
