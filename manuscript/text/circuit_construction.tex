@@ -296,7 +296,7 @@ If the \textit{arbitrary state preparation} protocol is used, then this rotation
 
     \begin{equation}
         \label{eq:smarter-rot-angle}
-        \theta(\omega_i, S, R) = 2 \cos^{-1}{\Big(\prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big)\Big)}
+        \theta(\omega_i, S, R) = 2 \sin^{-1}{\Big(\prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big)\Big)}
     \end{equation}
 
     Overall, this implementation would mean that only one multiplexor would be required for each bosonic mode that is being acted upon, instead of one for each bosonic operator in the term.
