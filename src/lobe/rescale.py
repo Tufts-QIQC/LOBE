@@ -73,3 +73,25 @@ def get_numbers_of_bosonic_operators_in_terms(terms):
                 numbers_of_bosonic_ops[-1] += 2 * operator.power
 
     return numbers_of_bosonic_ops
+
+
+def get_number_of_active_bosonic_modes(terms):
+    """Get a list of the number of bosonic modes being acted on in each term.
+
+    Args:
+        terms (List[ParticleOperator]): The terms comprising the original Hamiltonian
+            given as a linear combination of ladder operators.
+
+    Returns:
+        List[int]: A list of the number of bosonic operators in each term
+    """
+    numbers_of_active_bosonic_modes = []
+    for term in terms:
+        active_modes = []
+        for operator in term.split():
+            if isinstance(operator, BosonOperator):
+                if operator.mode not in active_modes:
+                    active_modes.append(operator.mode)
+        numbers_of_active_bosonic_modes.append(len(active_modes))
+
+    return numbers_of_active_bosonic_modes

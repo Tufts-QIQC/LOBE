@@ -7,7 +7,7 @@ from src.lobe.block_encoding import add_lobe_oracle
 from src.lobe.usp import add_naive_usp
 from src.lobe._utils import get_basis_of_full_system
 from src.lobe.lobe_circuit import lobe_circuit
-from src.lobe.rescale import rescale_terms, get_numbers_of_bosonic_operators_in_terms
+from src.lobe.rescale import rescale_terms, get_number_of_active_bosonic_modes
 import pytest
 
 
@@ -18,24 +18,11 @@ def _test_helper(terms, maximum_occupation_number, decompose):
 
     number_of_modes = max([term.max_mode() for term in terms]) + 1
 
-    full_fock_basis = get_basis_of_full_system(
-        number_of_modes,
-        maximum_occupation_number,
-        has_fermions=hamiltonian.has_fermions,
-        has_antifermions=hamiltonian.has_antifermions,
-        has_bosons=hamiltonian.has_bosons,
-    )
-    matrix = generate_matrix(hamiltonian, full_fock_basis)
-
     rescaled_terms, scaling_factor = rescale_terms(terms, maximum_occupation_number)
 
-    max_number_of_bosonic_ops_in_term = max(
-        get_numbers_of_bosonic_operators_in_terms(terms)
-    )
-
-    number_of_ancillae = 5
+    number_of_ancillae = 100
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
-    number_of_rotation_qubits = max_number_of_bosonic_ops_in_term + 1
+    number_of_rotation_qubits = max(get_number_of_active_bosonic_modes(terms)) + 1
 
     block_encoding_scaling_factor = (1 << number_of_index_qubits) * scaling_factor
 
@@ -62,10 +49,20 @@ def _test_helper(terms, maximum_occupation_number, decompose):
         has_antifermions=hamiltonian.has_antifermions,
         has_bosons=hamiltonian.has_bosons,
     )
-    circuit.append(cirq.I.on_each(*system.fermionic_register))
-    circuit.append(cirq.I.on_each(*system.antifermionic_register))
+    circuit.append(
+        cirq.I.on_each(
+            validation,
+            *rotation_qubits,
+            *index_register,
+            *system.fermionic_register,
+            *system.antifermionic_register,
+        )
+    )
     for bosonic_reg in system.bosonic_system:
         circuit.append(cirq.I.on_each(*bosonic_reg))
+
+    if len(circuit.all_qubits()) >= 32:
+        pytest.skip(f"too many qubits {len(circuit.all_qubits())} to build circuit")
 
     # Generate full Block-Encoding circuit
     circuit.append(cirq.X.on(validation))
@@ -82,11 +79,25 @@ def _test_helper(terms, maximum_occupation_number, decompose):
     )
     circuit += add_naive_usp(index_register)
 
-    upper_left_block = circuit.unitary(dtype=complex)[
-        : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
-    ]
+    if len(circuit.all_qubits()) >= 14:
+        pytest.skip(
+            f"too many qubits {len(circuit.all_qubits())} to explicitly validate"
+        )
+    else:
+        full_fock_basis = get_basis_of_full_system(
+            number_of_modes,
+            maximum_occupation_number,
+            has_fermions=hamiltonian.has_fermions,
+            has_antifermions=hamiltonian.has_antifermions,
+            has_bosons=hamiltonian.has_bosons,
+        )
+        matrix = generate_matrix(hamiltonian, full_fock_basis)
 
-    assert np.allclose(upper_left_block * block_encoding_scaling_factor, matrix)
+        upper_left_block = circuit.unitary(dtype=complex)[
+            : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
+        ]
+
+        assert np.allclose(upper_left_block * block_encoding_scaling_factor, matrix)
 
 
 @pytest.mark.parametrize(
@@ -97,6 +108,9 @@ def _test_helper(terms, maximum_occupation_number, decompose):
         ],
         [
             ParticleOperator("b0^ b0"),
+        ],
+        [
+            ParticleOperator("b0^ b1 b0"),
         ],
         [
             ParticleOperator("b1^ b1"),
@@ -143,7 +157,7 @@ def _test_helper(terms, maximum_occupation_number, decompose):
         ],
     ],
 )
-@pytest.mark.parametrize("maximum_occupation_number", [1, 3])
+@pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
 def test_lobe_block_encoding_undecomposed(
     terms,
     maximum_occupation_number,
@@ -166,7 +180,7 @@ def test_lobe_block_encoding_undecomposed(
         ],
     ],
 )
-@pytest.mark.parametrize("maximum_occupation_number", [1, 3])
+@pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
 def test_lobe_block_encoding_decomposed(
     terms,
     maximum_occupation_number,
@@ -197,3 +211,33 @@ def test_lobe_block_encoding_large_occupancy(
     maximum_occupation_number,
 ):
     _test_helper(terms, maximum_occupation_number, False)
+
+
+# Roughly 75% of these will get skipped due to needing too many qubits
+@pytest.mark.parametrize("trial", range(100))
+@pytest.mark.parametrize("decompose", [True, False])
+def test_lobe_block_encoding_random(trial, decompose):
+    possible_types = [
+        ["fermion"],
+        ["antifermion"],
+        ["boson"],
+        ["fermion", "antifermion"],
+        ["fermion", "boson"],
+        ["antifermion", "boson"],
+        ["fermion", "antifermion", "boson"],
+    ]
+    types = possible_types[np.random.choice(range(7))]
+    n_terms = np.random.choice(range(1, 17))
+    max_mode = np.random.choice(range(1, 9))
+    max_len_of_terms = np.random.choice(range(1, 9))
+    operator = ParticleOperator.random(
+        types,
+        n_terms,
+        max_mode=max_mode,
+        max_len_of_terms=max_len_of_terms,
+        complex_coeffs=False,
+        normal_order=True,
+    ).normal_order()
+    operator.remove_identity()
+    maximum_occupation_number = np.random.choice([1, 3, 7])
+    _test_helper(operator.to_list(), maximum_occupation_number, decompose)
