@@ -84,6 +84,10 @@ def add_lobe_oracle(
             )
         )
 
+        gates_for_term.append(
+            cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
+        )
+
         circuit_ops, bosonic_rotation_index = _apply_term(
             term,
             system,
@@ -94,19 +98,6 @@ def add_lobe_oracle(
             bosonic_rotation_index,
         )
         gates_for_term += circuit_ops
-
-        gates_for_term.append(
-            cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
-        )
-
-        # Right-elbow to uncompute system qbool assuming term did not fire
-        circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
-            system,
-            term,
-            uncompute=True,
-        )
-        gates_for_term += circuit_ops
-        clean_ancillae_counter -= number_of_bosonic_ancillae
 
         gates_for_term.append(
             cirq.Moment(
@@ -120,34 +111,38 @@ def add_lobe_oracle(
         if perform_coefficient_oracle:
             if term.coeff < 0:
                 # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.X.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
+                if decompose:
+                    gates_for_term.append(cirq.Moment(cirq.Z.on(index_ctrls[0][0])))
+
+                else:
+                    gates_for_term.append(
+                        cirq.Moment(
+                            cirq.X.on(rotation_register[0]).controlled_by(
+                                *index_ctrls[0], control_values=index_ctrls[1]
+                            )
                         )
                     )
-                )
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.Z.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
+                    gates_for_term.append(
+                        cirq.Moment(
+                            cirq.Z.on(rotation_register[0]).controlled_by(
+                                *index_ctrls[0], control_values=index_ctrls[1]
+                            )
                         )
                     )
-                )
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.X.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
+                    gates_for_term.append(
+                        cirq.Moment(
+                            cirq.X.on(rotation_register[0]).controlled_by(
+                                *index_ctrls[0], control_values=index_ctrls[1]
+                            )
                         )
                     )
-                )
-                gates_for_term.append(
-                    cirq.Moment(
-                        cirq.Z.on(rotation_register[0]).controlled_by(
-                            *index_ctrls[0], control_values=index_ctrls[1]
+                    gates_for_term.append(
+                        cirq.Moment(
+                            cirq.Z.on(rotation_register[0]).controlled_by(
+                                *index_ctrls[0], control_values=index_ctrls[1]
+                            )
                         )
                     )
-                )
             gates_for_term.append(
                 cirq.Moment(
                     cirq.ry(2 * np.arccos(np.abs(term.coeff)))
