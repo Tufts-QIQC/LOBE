@@ -13,6 +13,7 @@ def lobe_circuit(
     operator: Union[ParticleOperator, List],
     max_bose_occ: int = 1,
     return_unitary: bool = True,
+    return_matrix: bool = False,
 ):
 
     if isinstance(operator, List):
@@ -87,9 +88,12 @@ def lobe_circuit(
     matrix = None
 
     if return_unitary:
-        # generate matrix representation of operator in a basis
-        full_fock_basis = get_fock_basis(operator=operator, max_bose_occ=max_bose_occ)
-        matrix = generate_matrix(operator, full_fock_basis)
+        if return_matrix:
+            # generate matrix representation of operator in a basis
+            full_fock_basis = get_fock_basis(
+                operator=operator, max_bose_occ=max_bose_occ
+            )
+            matrix = generate_matrix(operator, full_fock_basis)
 
         # Generate top left corner of overall circuit unitary
         upper_left_block = circuit.unitary(dtype=complex)[
