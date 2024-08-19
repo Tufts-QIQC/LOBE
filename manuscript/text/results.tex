@@ -30,4 +30,30 @@ Without going into the mathematics of this, we can contrive a toy Hamiltonian th
 The first three terms are the kinetic energies of the individual particles ($b_n$ corresponds to a fermion, $d_n$ corresponds to an antifermion, $a_n$ corresponds to a boson). The last term describes the pair creation and pair annihilation respectively. 
 Since this is a toy model, we take small mode cutoffs: $\Lambda_f = \Lambda_{af} = \Lambda_b = 2$. Additionally, it is necessary to set an occupancy cutoff for bosons. This will be set to $\Omega = 3$. The number of qubits for this problem is 17 (1 for validation, 1 for control, 1 for coefficient ancilla, 1 for normalization coefficient ancilla, 5 for the index qubits (there are 22 terms in the Hamiltonian), 8 for $\ket{\psi}$ (2 for fermions, 2 for antifermions, 2 for each of the 2 bosonic modes)).
 
-Each term in the Hamiltonian will get its own unitary that block encodes it. Here, a few of the unitaries that block encode terms in equation \ref{H_pair} are shown:
+Each term in the Hamiltonian will get its own unitary that block encodes it. The circuit loosely appears as follows:
+
+\begin{figure}[h]
+    \includegraphics[width = \linewidth]{figures/H_example_LOBE_circuit.png}
+\end{figure}
+
+In what follows, we show the explicit form of the first \textit{Apply} unitary, as well as one example term from each of the following two \textit{apply} unitaries:
+
+\begin{figure}[h]
+    \includegraphics[width = \linewidth]{figures/fermi_free.png}
+    \caption{Applying the fermionic free Hamiltonian}
+\end{figure}
+
+\begin{figure}[h]
+    \includegraphics[width = \linewidth]{figures/bose_free.png}
+    \caption{Applying the bosonic free Hamiltonian}
+\end{figure}
+
+\begin{figure}[h]
+    \includegraphics[width = \linewidth]{figures/pair_create.png}
+    \caption{Applying $b_1^\dagger d_1^\dagger a_1$}
+\end{figure}
+
+\begin{figure}[h]
+    \includegraphics[width = \linewidth]{figures/pair_annihilate.png}
+    \caption{Applying $b_0d_1a_1^\dagger$}
+\end{figure}
