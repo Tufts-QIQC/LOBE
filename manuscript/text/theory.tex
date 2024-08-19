@@ -146,7 +146,7 @@ where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^
 The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules described in \ref{subsec:commutation}.
 In this work, we will have a preference for \textit{normal ordering} \gus{\textit{canonically ordering}} the operators to obey the following structure:
 \begin{equation}
-    T = \Big( \prod_i ((a_i^\dagger)^S)(A_i)^R((a_i)^P) \Big) \Big( \prod_i \big( (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (D_i)^{\delta_{D_i}} (d_i)^{\delta_{d_i}} \big) \Big) \Big( \prod_i \big( (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (B_i)^{\delta_{B_i}} (b_i)^{\delta_{b_i}} \big) \Big) 
+    T = \Big( \prod_i (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (B_i)^{\delta_{B_i}} (b_i)^{\delta_{b_i}} \Big) \Big( \prod_i (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (D_i)^{\delta_{D_i}} (d_i)^{\delta_{d_i}} \Big)   \Big( \prod_i (a_i^\dagger)^R(a_i)^S \Big) 
 \end{equation}
 \gus{Can we order this as fermions, antifermions, bosons, rather than the other way around? That is the style we have been using (they commute so it's technically the same).}
 where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $P$, $R$, and $S$ are integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on that particular bosonic mode.
