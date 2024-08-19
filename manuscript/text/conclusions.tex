@@ -2,7 +2,11 @@
 \label{sec:conclusions}
 
 \textbf{Future Directions}
-The application of the bosonic coefficients is a potential area of improvement for more efficient implementations.
-Primarily, if one could coherently compute $\cos^{-1}{\sqrt{\omega_i}}$ either in-place or out-of-place, it may be possible to use techniques such as hamming weight phasing to apply the appropriate coefficient without the need for multiplexing over all possible occupation states.
-Alternatively, if the coefficient qubits begin outside of the encoded subspace (as opposed to inside), it may be possible to multiplex only over the $\Omega - R$ occupation states that will not be "zeroed-out". 
-This would reduce the number of Toffolis by $R$ ($S$/$T$) for each bosonic ladder operator.
+
+This block-encoding creates an extension of the block-encodings known as LCU (Linear Combination of Unitaries).
+It would be interesting to try to do a side-by-side cost analysis for a traditional LCU block-encoding using standard transformations to map ladder operators to Paulis vs a LOBE block-encoding.
+
+Separately, an alternative encoding scheme (which we refer to as "unary encoding") creates a "one-hot" encoding for the occupation of the bosonic modes.
+This encoding using $\Lambda (\Omega + 1)$ qubits to encode the bosonic system.
+It would be interesting to also compile the oracles for this encoding and cost it out and compare with the "compact" encoding used in this work.
+  

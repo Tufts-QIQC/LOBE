@@ -156,7 +156,6 @@ with $\lambda$ being either $\lambda_{usp}$ or $\lambda_{asp}$.
 \subsubsection{Select Oracle}
 \label{subsubsec:select}
 
-
 \begin{figure}
     \centering
     \includegraphics[width=16cm]{figures/select-broad.pdf}
@@ -165,145 +164,12 @@ with $\lambda$ being either $\lambda_{usp}$ or $\lambda_{asp}$.
     \label{fig:select-broad}
 \end{figure}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=16cm]{figures/select-specific.pdf}
-    \caption{\textbf{Ladder Operator Select Oracle.}
-    }
-    \label{fig:select-specific}
-\end{figure}
-
 The $Select$ oracle is shown in Figure \ref{fig:lobe} as the oracle within the blue shaded region.
 As is done in standard LCU circuits, the $Select$ oracle is designed such that it applies the term $T_l$ onto the system when the index register is in the computational basis state $\ket{l}$.
 In Figure \ref{fig:lobe}, the hexagonal box represents the multiplexing operation given in Figure 7 of \cite{babbush2018encoding} which creates a coherent for-loop over the computational basis states using $L - 1$ left-elbows and $\lceil \log_2{L} \rceil$ ancillae qubits.
 
-In Figure \ref{fig:select-broad}, we depict a broad schematic for applying a single term within the $Select$ oracle in LOBE and in Figure \ref{fig:select-specific} we give a more explicit compilation.
+In Figure \ref{fig:select-broad}, we depict a broad schematic for applying a single term within the $Select$ oracle in LOBE and in Figure \ref{fig:select-normal-ordering} we give a more explicit compilation.
 The entire $Select$ oracle can be constructed by applying the circuit for each term ($T_l$) when the ancilla qubit of the multiplexing operator over the index register is in the corresponding computational basis state.
-
-% First, we will give a broad overview of the $Select$ oracle to describe the purpose of each part of the circuit.
-Working from left to right, the first operation shown in Figure \ref{fig:select-specific} is the left-elbow of the multiplexor which puts the ancilla qubit in the $\ket{1}$ state when the index register is in the computational basis state $\ket{l}$.
-Next, a left-elbow - controlled on the validation qubit being in the $\ket{1}$ state, the index register being in the $\ket{l}$ state, and the system being in a state that will not be annihilated - is applied to produce a new ancilla qubit.
-To perform a check on if the state will be annihilated, we control based on the occupation of the fermionic and antifermionic modes.
-The controls on the fermionic and antifermionic modes are determined by the operators that are present within the current term.
-For each fermionic (antifermionic) creation operator acting on mode $i$, a $0$-control is added on $i^{th}$ fermionic (antifermionic) mode within $\ket{\psi_b}$ ($\ket{\psi_d}$).
-Likewise, for each fermionic (antifermionic) annihilation operator acting on mode $i$, a $1$-control is added on $i^{th}$ fermionic (antifermionic) mode within $\ket{\psi_b}$ ($\ket{\psi_d}$).
-For each occupation operator acting on a fermionic (or antifermionic) mode, we include a $1$-control on the $i^{th}$ mode since the state gets "zeroed-out" if the mode is unoccupied.
-If any of these conditions are not satisfied, then the state should be "zeroed-out" and the ancilla qubit will be in the $\ket{0}$ state for that branch of the wavefunction.
-The quantum states that should be "zeroed-out" due to the bosonic operators will be handled when applying the bosonic operators to the system.
-
-After these checks are performed, the bottom ancilla qubit will be in the $\ket{1}$ state if and only if the three conditions are met, indicating that the term $T_l$ should be applied onto the system.
-If the ancilla is in the $\ket{1}$ state, the validation qubit is first flipped from $\ket{1}$ to $\ket{0}$ to put the appropriate branch of the wavefunction into the encoded subspace.
-Then the term $T_l$ is applied to the system registers as portrayed in the shaded boxes with the dashed borders in Figure \ref{fig:select-specific}.
-
-In Figure \ref{fig:select-specific}, the first shaded box (red) shows the update on the fermionic system corresponding to a single creation or annihilation operator acting on the $i^{th}$ mode.
-Since both the creation and annihilation operators flip the occupation and apply a phase dependent on the parity of the occupation of the preceeding modes, they can both be applied using the same circuit.
-To apply the appropriate phase, Pauli $Z$ gates are applied on all the fermionic modes for $j < i$.
-To flip the occupation of the mode that the ladder operator acts on, a Pauli $X$ gate is applied to the $i^{th}$ fermionic qubit.
-This series of gates is repeated for all fermionic creation or annihilation operators.
-Many of these gates could be compiled out of the circuit, however, they are all Clifford operations and therefore will not significantly contribute to the cost of the block-encoding.
-Fermionic occupation (number) operators will not affect the occupation of the fermionic modes and therefore do not need to be accounted for when updating the state of the system. 
-The second shaded box (orange) in Figure \ref{fig:select-specific} portays the application of an antifermionic ladder operator and is constructed in an analogous way, but acts on the corresponding antifermionic modes.
-
-Next, the third shaded box (green) in Figure \ref{fig:select-specific} depicts the action of a bosonic annihilation operator acting on the system.
-This box is repeated for each bosonic annihilation operator within the current term.
-We begin by accounting for the coefficients associated with applying the annihilation operators onto the system.
-To achieve this, we multiplex over the possible occupation states of the corresponding bosonic mode and apply a rotation on a qubit in the coefficient register.
-Let $k$ count the number of bosonic operators that have already been applied in this term ($T_l$) and $P$ denote the exponent on the annihilation operator.
-A controlled-Ry rotation is applied on the $k^{th}$ qubit in the coefficient register with an angle given by:
-\begin{equation}
-    \theta(\omega_i, P) \equiv 2 \cos^{-1}{\Big(\sqrt{\frac{\prod_{p=0}^{P-1} \big( \omega_i - p \big)}{\big(\Omega + 1\big)^P}}\Big)}
-\end{equation}
-where $\omega_i$ is the occupation of the $i^{th}$ bosonic mode that we are currently multiplexed on.
-
-This rotates the $k^{th}$ qubit in the coefficient register such that the amplitude in the $\ket{0}$ state (encoded subspace) is given by:
-\begin{equation}
-    R_y\Big(\theta(\omega_i, P)\Big) \ket{0} = \sqrt{\frac{\prod_{p=0}^{P-1} \big( \omega_i - p \big)}{\big(\Omega + 1\big)^P}} \ket{0} + \beta \ket{1}
-\end{equation}
-where $\beta$ is a complex coefficient that normalizes the state of the qubit.
-When multiple bosonic ladder operators exist within a single term, these rotations must be applied on separate qubits such that the coefficient of the all-zero state of the coefficient register is the product of these amplitudes. 
-
-For states that should be "zeroed-out" due to these operators, the coefficient picked up will be zero, therefore the state will be completely outside the encoded subspace.
-Alternatively, since we are multiplexing over the occupation states of the bosonic mode, one could perform classical logic to determine if the occupation ($\omega_i$) is less than the exponent ($P$).
-If the occupation is less than the exponent, the rotation gate is equivalent to a CNOT gate which will clearly flip the state outside of the encoded subspace.
-
-Next, the occupation of the $i^{th}$ bosonic mode is updated by decrementing occupation mode by a value of $P$.
-We note that for states that will be "zeroed-out", these decrementers may raise the occupation from $\ket{0}$ to $\ket{\Omega}$, however since these states are already outside of the encoded subspace, we do not need to ensure that the occupation states are consistent.
-The circuit for decrementing (or incrementing) the occupation state is shown in Figure \ref{fig:incrementer}.
-
-The fourth shaded box (blue) depicts the application of a bosonic occupation operator and is likewise repeated for each bosonic occupation operator in the term.
-For these operators, we do not need to update the occupation of the modes as the occupation states should remain unchanged.
-Therefore we only need to apply the bosonic coefficients which we can do in a similar way to what is done for the bosonic annihilation operators. 
-The angle of the rotation for these gates is given by:
-\begin{equation}
-    \phi(\omega_i, R) \equiv 2 \cos^{-1}{\Big(\frac{\prod_{r=0}^{R-1} \big(\omega_i - r \big)}{\big(\Omega + 1\big)^R}\Big)}
-\end{equation}
-where $R$ is the exponent of the occupation operator.
-As was done for the bosonic annihilation operators, these rotations are applied on the $k^{th}$ qubit in the coefficient register such that the amplitude of the all-zero subspace of the coefficient register picks up a factor of:
-\begin{equation}
-    \frac{\prod_{r=0}^{R-1} \big(\omega_i - r \big)}{\big(\Omega + 1\big)^R}
-\end{equation}
-
-Next, the fifth shaded box (purple) shows the application of a bosonic creation operator this box is repeated for each bosonic creation operator in the term.
-These operations are analogous to the bosonic annihilation operators.
-First, the occupation of the $i^{th}$ bosonic mode is incremented by $S$ using the circuits shown in Figure \ref{fig:incrementer}.
-Then, a multiplexor is applied on the $\Omega$ occupation states of the $i^{th}$ bosonic mode and Pauli-Y rotations are applied on the $k^{th}$ qubit in the coefficient register with an angle given by:
-\begin{equation}
-    \theta^\dagger(\omega_i, S) \equiv 2 \cos^{-1}{\Big(\sqrt{\frac{\prod_{s=0}^{S-1} \big( \omega_i - s \big)}{\big(\Omega + 1\big)^S}}\Big)}
-\end{equation}
-where $S$ is the exponent of the bosonic creation operator.
-Since the occupation states are updated prior to the rotations (as opposed to afterwards in the annihilation operators), the coefficient of the rotations is computed using the same function of the occupation ($\omega_i$) and the exponent ($P$ or $S$) as is used for the annihilation operators.
-
-Once the state of the system is updated and the bosonic coefficients have been applied, the bottom ancilla qubit can be uncomputed (reset to $\ket{0}$).
-This can be achieved by applying a Toffoli onto this qubit with a zero-control on the validation qubit and a one-control on the ancilla qubit used for multiplexing over the index register.
-\ws{It's not quite clear to me if we can use a right-elbow here instead of a Toffoli since we are changing the states of fermionic/antifermionic modes after the left-elbow. Obviously it's only one Toff so it's not a big deal, but I wanna try to do some derivations for this.}
-
-Next, if the sign of the coefficient of the current term is $-1$, we apply a $- \mathds{1}$ - controlled on the index register being in the state $\ket{l}$ - to the state, regardless of which $Prepare$ oracle is used.
-This operation is shown in the sixth shaded box (cyan) with the dotted border to indicate that this operation may or may not be present depending on the sign of the term.
-This can be achieved in many ways, but we show an implementation using only Clifford gates in Figure \ref{fig:negative-identity}.
-
-Finally, if the \textit{uniform state perparation} protocol is used for the $Prepare$ oracle, then a controlled Pauli-Y rotation is applied onto the final qubit in the coefficient register.
-This is shown in the seventh shaded box (red-orange) with the dotted border to indicate that this operation may or may not be present depending on which $Prepare$ oracle is used.
-This rotation is used to account for the rescaled coefficient of the term ($\Tilde{\alpha_l}$) and is achieved by applying a rotation with an angle given by:
-\begin{equation}
-    \sigma(\Tilde{\alpha_l}) \equiv 2 \cos^{-1}{|\Tilde{\alpha_l}|}
-\end{equation}
-If the \textit{arbitrary state preparation} protocol is used, then this rotation is not needed as the coefficient of the term is already accounted for and one fewer qubit is needed in the coefficient register.
-
-\begin{tcolorbox}[enhanced,attach boxed title to top center={yshift=-3mm,yshifttext=-1mm}, colback=blue!5!white,colframe=blue!75!black,colbacktitle=orange!80!black, title=Alternative Bosonic Operator Implementation,fonttitle=\bfseries, boxed title style={size=small,colframe=orange!50!black}]
-    \ws{This needs to be confirmed, but should be much more efficient.}
-
-    Let any series of bosonic operators acting on the $i^{th}$ mode be described by:
-    \begin{equation}
-        (a_i^\dagger)^R (a_i)^S
-    \end{equation}
-    where $R$ and $S$ are nonzero integers in the range $[0, \Omega]$.
-
-    We can describe the action of the rescaled operator on the state of the $i^{th}$ bosonic mode with initial occupation $\omega$ as:
-    \begin{equation}
-        \label{eq:bosonic-operator-action}
-        (a_i^\dagger)^R (a_i)^S \ket{\omega} = \prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big) \ket{\omega + R - S}
-    \end{equation}
-
-    This operation can implemented in the block-encoding via a quantum circuit as follows with all operations controlled on the ancilla qubit indicating if the current term should be applied:
-    \begin{enumerate}
-        \item Apply a Pauli-X gate on the $k^{th}$ qubit in the coefficient register to rotate it completely outside of the encoded subspace
-        \item Multiplex over the occupation of the $i^{th}$ bosonic mode for occupation states in the range: $S \leq \omega_i \leq \min(\Omega, \Omega - S + R)$. Any state beginning with an occupation less than $S$ will be "zeroed-out" and therefore can be left outside of the encoded subspace and the multiplexor can ignore these states. Likewise, any state that should end with an occupation greater than $\Omega$ will also be "zeroed-out" and therefore the multiplexor can terminate early.
-        \item For each value of $\omega_i$ in the multiplexor, apply a rotation on the $k^{th}$ qubit in the coefficient register of angle $\theta$ given by Eq. \ref{eq:smarter-rot-angle}. The purpose here will be to rotate the qubit back into the encoded subspace with an amplitude in the $\ket{0}$ state equal to the amplitude in Eq. \ref{eq:bosonic-operator-action}. \ws{Need to figure out if this should be an Ry rotation or something else or perhaps a rotation of $\pi - \theta$, etc... regardless I'm confident this is do-able.}
-        \item If $S > R$, apply a decrementer to the $i^{th}$ bosonic mode, reducing the occupation by a value of $S - R$.
-        \item If $S < R$, apply an incrementer to the $i^{th}$ bosonic mode, increasing the occupation by a value of $R - S$.
-        \item If $S = R$, don't do anything
-    \end{enumerate}
-
-    \begin{equation}
-        \label{eq:smarter-rot-angle}
-        \theta(\omega_i, S, R) = 2 \sin^{-1}{\Big(\prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega - s}{\Omega + 1}} \big)\Big)}
-    \end{equation}
-
-    Overall, this implementation would mean that only one multiplexor would be required for each bosonic mode that is being acted upon, instead of one for each bosonic operator in the term.
-    Additionally, the multiplexor will have a reduced number of occupation modees to multiplex over, thereby reducing the number of Toffolis required for the multiplexor.
-    With this implementation, $K$ is redefined as the maximum number of bosonic modes being acted upon in a single term (instead of the maximum number of bosonic operators within a term) which will reduce the number of qubits needed in the coefficient register.
-    Lastly, only one incrementer/decrementer circuit is required since the occupation state will only need to be updated once for each bosonic mode being acted upon.
-\end{tcolorbox}
 
 \begin{figure}
     \centering
@@ -312,6 +178,78 @@ If the \textit{arbitrary state preparation} protocol is used, then this rotation
     }
     \label{fig:select-normal-ordering}
 \end{figure}
+
+Working from left to right, the first operation shown in Figure \ref{fig:select-normal-ordering} is the left-elbow of the multiplexor which puts the ancilla qubit in the $\ket{1}$ state when the index register is in the computational basis state $\ket{l}$.
+Next, a left-elbow - controlled on the validation qubit being in the $\ket{1}$ state, the index register being in the $\ket{l}$ state, and the system being in a state that will not be annihilated - is applied to produce a new ancilla qubit.
+To perform a check on if the state will be annihilated, we control based on the occupation of the fermionic and antifermionic modes.
+The controls on the fermionic and antifermionic modes are determined by the operators that are present within the current term.
+For each fermionic (antifermionic) creation operator acting on mode $i$, a $0$-control is added on $i^{th}$ fermionic (antifermionic) mode within $\ket{\psi_b}$ ($\ket{\psi_d}$).
+Likewise, for each fermionic (antifermionic) annihilation operator acting on mode $i$, a $1$-control is added on $i^{th}$ fermionic (antifermionic) mode within $\ket{\psi_b}$ ($\ket{\psi_d}$).
+If both ladder operators are present, then only the $1$-control on the $i^{th}$ mode remains since the state gets "zeroed-out" if the mode is unoccupied.
+If any of these conditions are not satisfied, then the state should be "zeroed-out" and the ancilla qubit will be in the $\ket{0}$ state for that branch of the wavefunction meaning none of the subsequent operations will be applied.
+The quantum states that should be "zeroed-out" due to the bosonic operators will be handled when applying the bosonic operators to the system.
+
+After these checks are performed, the bottom ancilla qubit will be in the $\ket{1}$ state if and only if the three conditions are met, indicating that the term $T_l$ should be applied onto the system.
+If the ancilla is in the $\ket{1}$ state, the validation qubit is first flipped from $\ket{1}$ to $\ket{0}$ to put the appropriate branch of the wavefunction into the encoded subspace.
+Then the term $T_l$ is applied to the system registers as portrayed in the shaded boxes with the dashed borders in Figure \ref{fig:select-normal-ordering}.
+
+In Figure \ref{fig:select-normal-ordering}, the first shaded box (red) shows the update on the fermionic system corresponding to a single creation or annihilation operator acting on the $i^{th}$ mode.
+Since both the creation and annihilation operators flip the occupation and apply a phase - dependent on the parity of the occupation of the preceeding modes - they can both be applied using the same circuit.
+To apply the appropriate phase, Pauli $Z$ gates are applied on all the fermionic modes for $j < i$.
+To flip the occupation of the mode that the ladder operator acts on, a Pauli $X$ gate is applied to the $i^{th}$ fermionic qubit.
+This series of gates is repeated for all fermionic creation or annihilation operators.
+Many of these gates could be compiled out of the circuit, however, they are all Clifford operations and therefore will not significantly contribute to the cost of the block-encoding.
+The second shaded box (orange) in Figure \ref{fig:select-normal-ordering} portays the application of an antifermionic ladder operator and is constructed in an analogous way, but acts on the corresponding antifermionic modes.
+
+Next, the third shaded box (green) in Figure \ref{fig:select-normal-ordering} depicts the action of bosonic ladder operators acting on the $i^{th}$ bosonic mode of the system.
+This box is repeated for each bosonic mode that is being acted upon within the current term.
+We will define our construction assuming that each term has be normal-ordered, however, we note that the patterns presented here will generalize to terms that are not normal ordered with slight modifications.
+
+Let any series of (normal-ordered) bosonic operators acting on the $i^{th}$ mode be described by:
+\begin{equation}
+    (a_i^\dagger)^R (a_i)^S
+\end{equation}
+where $R$ and $S$ are nonzero integers in the range $[0, \Omega]$.
+
+We can describe the action of the rescaled operator on the state of the $i^{th}$ bosonic mode with initial occupation $\omega_i$ as:
+\begin{equation}
+    \label{eq:bosonic-operator-action}
+    (a_i^\dagger)^R (a_i)^S \ket{\omega_i} = \prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega_i - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega_i - s}{\Omega + 1}} \big) \ket{\omega_i + R - S}
+\end{equation}
+
+This operation can implemented in the block-encoding via a quantum circuit as follows with all operations controlled on the ancilla qubit indicating if the current term should be applied, with $k$ denoting the number of bosonic modes that have already been accoutned for in this term:
+\begin{enumerate}
+    \item Apply a Pauli-X gate on the $k^{th}$ qubit in the coefficient register to rotate it completely outside of the encoded subspace.
+    \item Multiplex over the occupation of the $i^{th}$ bosonic mode for occupation states in the range: $S \leq \omega_i \leq \min(\Omega, \Omega - S + R)$. Any state beginning with an occupation less than $S$ will be "zeroed-out" and therefore can be left outside of the encoded subspace without any additional operations. Likewise, any state that should \textit{end} with an occupation greater than $\Omega$ will also be "zeroed-out" and therefore can also be left unmodified.
+    \item For each value of $\omega_i$ in the multiplexor, apply a rotation on the $k^{th}$ qubit in the coefficient register of angle $\theta$ given by Eq. \ref{eq:smarter-rot-angle}. The purpose here will be to rotate the qubit back into the encoded subspace with an amplitude in the $\ket{0}$ state equal to the amplitude in Eq. \ref{eq:bosonic-operator-action}. 
+
+    \begin{equation}
+        \label{eq:smarter-rot-angle}
+        \theta(\omega_i, S, R) = 2 \sin^{-1}{\Big(\prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega_i - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega_i - s}{\Omega + 1}} \big)\Big)}
+    \end{equation}
+
+    \item Update the occupation by a value of $+ R - S$. If $R = S$, no update is needed.
+\end{enumerate}
+
+Overall, this requires one multiplexor and one qubit in the coefficient register for each bosonic mode that is being acted upon within the term.
+The multiplexors will also have a reduced number of occupation modes to multiplex over, thereby reducing the number of Toffolis required for each multiplexor.
+
+Once the state of the system is updated and the bosonic coefficients have been applied, the bottom ancilla qubit can be uncomputed (reset to $\ket{0}$).
+This can be achieved by applying a Toffoli onto this qubit with a zero-control on the validation qubit and a one-control on the ancilla qubit used for multiplexing over the index register.
+\ws{It's not quite clear to me if we can use a right-elbow here instead of a Toffoli since we are changing the states of fermionic/antifermionic modes after the left-elbow. Obviously it's only one Toff so it's not a big deal, but I wanna try to do some derivations for this.}
+
+Next, if the sign of the coefficient of the current term is $-1$, we apply a $- \mathds{1}$ - controlled on the index register being in the state $\ket{l}$ - to the state, regardless of which $Prepare$ oracle is used.
+This operation is shown in the fourth shaded box (blue) with the dotted border to indicate that this operation may or may not be present depending on the sign of the term.
+This can be achieved in many ways, but here we simply use a Pauli-Z gate acting on the ancilla qubit storing the state of the multiplexor acting on the index register.
+
+Finally, if the \textit{uniform state perparation} protocol is used for the $Prepare$ oracle, then a controlled Pauli-Y rotation is applied onto the final qubit in the coefficient register.
+This is shown in the fifth shaded box (purple) with the dotted border to indicate that this operation may or may not be present depending on which $Prepare$ oracle is used.
+This rotation is used to account for the rescaled coefficient of the term ($\Tilde{\alpha_l}$) and is achieved by applying a rotation with an angle given by:
+\begin{equation}
+    \sigma(\Tilde{\alpha_l}) \equiv 2 \cos^{-1}{|\Tilde{\alpha_l}|}
+\end{equation}
+If the \textit{arbitrary state preparation} protocol is used, then this rotation is not needed as the coefficient of the term is already accounted for and one fewer qubit is needed in the coefficient register.
+
 
 \subsection{Analytical Cost Analysis}
 \label{subsec:analytics}
