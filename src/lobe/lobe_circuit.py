@@ -4,8 +4,7 @@ import cirq
 from .system import System
 from .block_encoding import add_lobe_oracle
 from .usp import add_naive_usp
-from ._utils import get_basis_of_full_system
-from .rescale import rescale_terms, get_numbers_of_bosonic_operators_in_terms
+from .rescale import rescale_terms, get_number_of_active_bosonic_modes
 from typing import Union, List
 
 
@@ -29,15 +28,11 @@ def lobe_circuit(
 
     rescaled_terms, scaling_factor = rescale_terms(terms, max_bose_occ)
 
-    max_number_of_bosonic_ops_in_term = max(
-        get_numbers_of_bosonic_operators_in_terms(terms)
-    )
-
     number_of_ancillae = (
         1000  # Some arbitrary large number with most ancilla disregarded
     )
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
-    number_of_rotation_qubits = max_number_of_bosonic_ops_in_term + 1
+    number_of_rotation_qubits = max(get_number_of_active_bosonic_modes(terms)) + 1
 
     block_encoding_scaling_factor = (1 << number_of_index_qubits) * scaling_factor
 

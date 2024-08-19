@@ -1,12 +1,12 @@
 import cirq
 import numpy as np
-from .incrementer import add_incrementer
+from .incrementer import add_classical_value
 from openparticle import (
     BosonOperator,
     FermionOperator,
     AntifermionOperator,
-    OccupationOperator,
 )
+from ._utils import get_parsed_dictionary
 
 
 def add_lobe_oracle(
@@ -46,9 +46,12 @@ def add_lobe_oracle(
     clean_ancillae_counter = 0
 
     for index, term in enumerate(operators):
-        bosonic_rotation_index = 0
+        # assert term.is_normal_ordered(term.split())
+
+        bosonic_rotation_register = rotation_register
         if perform_coefficient_oracle:
-            bosonic_rotation_index += 1
+            bosonic_rotation_register = rotation_register[1:]
+
         gates_for_term = []
 
         control_qubit = clean_ancillae[clean_ancillae_counter]
@@ -68,11 +71,11 @@ def add_lobe_oracle(
         circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
             system,
             term,
-            clean_ancillae[clean_ancillae_counter:],
         )
         gates_for_term += circuit_ops
         clean_ancillae_counter += number_of_bosonic_ancillae
 
+        # Left-elbow onto qubit to mark if term should fire
         gates_for_term.append(
             cirq.Moment(
                 cirq.X.on(control_qubit).controlled_by(
@@ -84,30 +87,21 @@ def add_lobe_oracle(
             )
         )
 
-        circuit_ops, bosonic_rotation_index = _apply_term(
-            term,
-            system,
-            clean_ancillae,
-            clean_ancillae_counter,
-            control_qubit,
-            rotation_register,
-            bosonic_rotation_index,
-        )
-        gates_for_term += circuit_ops
-
+        # Flip validation qubit if term fires
         gates_for_term.append(
             cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
         )
 
-        # Right-elbow to uncompute system qbool assuming term did not fire
-        circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
-            system,
+        # Apply term onto system
+        gates_for_term += _apply_term(
             term,
-            uncompute=True,
+            system,
+            clean_ancillae[clean_ancillae_counter:],
+            bosonic_rotation_register,
+            ctrls=([control_qubit], [1]),
         )
-        gates_for_term += circuit_ops
-        clean_ancillae_counter -= number_of_bosonic_ancillae
 
+        # Uncompute control qubit
         gates_for_term.append(
             cirq.Moment(
                 cirq.X.on(control_qubit).controlled_by(
@@ -117,8 +111,10 @@ def add_lobe_oracle(
         )
         clean_ancillae_counter -= 1
 
-        if perform_coefficient_oracle:
-            if term.coeff < 0:
+        if term.coeff < 0:
+            if decompose:
+                gates_for_term.append(cirq.Moment(cirq.Z.on(index_ctrls[0][0])))
+            else:
                 # get a negative 1 coeff by using pauli algebra to get a -Identity on the rotation qubit
                 gates_for_term.append(
                     cirq.Moment(
@@ -148,6 +144,9 @@ def add_lobe_oracle(
                         )
                     )
                 )
+
+        # Perform rotations related to term coefficients
+        if perform_coefficient_oracle:
             gates_for_term.append(
                 cirq.Moment(
                     cirq.ry(2 * np.arccos(np.abs(term.coeff)))
@@ -174,77 +173,56 @@ def add_lobe_oracle(
 
 
 def _apply_term(
-    term,
-    system,
-    clean_ancillae,
-    clean_ancillae_counter,
-    control_qubit,
-    rotation_register,
-    bosonic_rotation_index,
+    term, system, clean_ancillae, bosonic_rotation_register, ctrls=([], [])
 ):
+    """Apply a single term to the state of the system and apply bosonic coefficient rotations.
+
+    Args:
+        term (ParticleOperator/ParticleOperatorSum): The term in question
+        system (System): The qubit registers representing the system
+        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+            They are to be used as ancillae to store quantum booleans.
+        bosonic_rotation_register (List[cirq.LineQubit]): A list of qubits that are rotated corresponding
+            to the coefficients that are picked up by the bosonic operators.
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - The gates to perform the unitary operation
+    """
     gates = []
-    for operator in term.parse()[::-1]:
-        if isinstance(operator, BosonOperator):
-            if operator.creation:
+    # assert term.is_normal_ordered(term.split())
+    operator_dictionary = get_parsed_dictionary(term, system.number_of_modes)
 
-                circuit_ops = _update_system(
-                    operator,
-                    system,
-                    clean_ancillae=clean_ancillae[clean_ancillae_counter:],
-                    ctrls=([control_qubit], [1]),
-                )
-                gates += circuit_ops
+    gates += _update_fermionic_and_antifermionic_system(
+        term,
+        system,
+        ctrls=ctrls,
+    )
 
-                circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
-                    system,
-                    rotation_register[bosonic_rotation_index:],
-                    operator,
-                    creation_ops=True,
-                    ctrls=([control_qubit], [1]),
-                )
-                gates += circuit_ops
-                bosonic_rotation_index += number_of_bosonic_rotations
-            else:
-                circuit_ops, number_of_bosonic_rotations = _add_bosonic_rotations(
-                    system,
-                    rotation_register[bosonic_rotation_index:],
-                    operator,
-                    annihilation_ops=True,
-                    ctrls=([control_qubit], [1]),
-                )
-                gates += circuit_ops
-                bosonic_rotation_index += number_of_bosonic_rotations
+    bosonic_counter = 0
+    # Bosonic Ladder Operators
+    for mode in range(system.number_of_modes):
+        creation_exponent = operator_dictionary["boson"]["creation"][mode]
+        annihilation_exponent = operator_dictionary["boson"]["annihilation"][mode]
 
-                circuit_ops = _update_system(
-                    operator,
-                    system,
-                    clean_ancillae=clean_ancillae[clean_ancillae_counter:],
-                    ctrls=([control_qubit], [1]),
-                )
-                gates += circuit_ops
-
-        elif isinstance(operator, OccupationOperator) and (
-            operator.particle_type == "a"
-        ):
-            circuit_ops, number_of_bosonic_rotations = (
-                _add_bosonic_occupation_operator_rotations(
-                    system,
-                    rotation_register[bosonic_rotation_index:],
-                    operator,
-                    ctrls=([control_qubit], [1]),
-                )
+        if not ((creation_exponent == 0) and (annihilation_exponent == 0)):
+            gates += _add_bosonic_rotations(
+                bosonic_rotation_register[bosonic_counter],
+                system.bosonic_system[mode],
+                creation_exponent,
+                annihilation_exponent,
+                ctrls=ctrls,
             )
-            gates += circuit_ops
-            bosonic_rotation_index += number_of_bosonic_rotations
-        else:
-            circuit_ops = _update_system(
-                operator,
-                system,
-                clean_ancillae=clean_ancillae[clean_ancillae_counter:],
-                ctrls=([control_qubit], [1]),
+            bosonic_counter += 1
+            gates += add_classical_value(
+                system.bosonic_system[mode],
+                creation_exponent - annihilation_exponent,
+                clean_ancillae,
+                ctrls=ctrls,
             )
-            gates += circuit_ops
-    return gates, bosonic_rotation_index
+
+    return gates
 
 
 def _get_index_register_ctrls(index_register, ancillae, index, decompose=True):
@@ -318,7 +296,7 @@ def _get_system_ctrls(
     control_qubits = []
     control_values = []
 
-    for particle_operator in term.parse()[::-1]:
+    for particle_operator in term.split()[::-1]:
 
         if type(particle_operator) in [
             FermionOperator,
@@ -330,22 +308,20 @@ def _get_system_ctrls(
                 control_values.append(1)
 
             if isinstance(particle_operator, FermionOperator):  # Fermionic
-                control_qubits.append(system.fermionic_register[particle_operator.mode])
+                qubit = system.fermionic_register[particle_operator.mode]
             else:
-                control_qubits.append(
-                    system.antifermionic_register[particle_operator.mode]
-                )
-        elif isinstance(particle_operator, OccupationOperator) and (
-            particle_operator.particle_type in ["b", "d"]
-        ):
-            control_values.append(1)
-            if particle_operator.particle_type == "b":  # Fermionic
-                control_qubits.append(system.fermionic_register[particle_operator.mode])
-            elif particle_operator.particle_type == "d":
-                control_qubits.append(
-                    system.antifermionic_register[particle_operator.mode]
-                )
+                qubit = system.antifermionic_register[particle_operator.mode]
+
+            if qubit in control_qubits:
+                # mode is already being acted upon. We assume this means that we're
+                #   looking at a number operator in the term so we just want to control
+                #   on the mode being occupied
+                control_values = control_values[:-1]
+                control_values[control_qubits.index(qubit)] = 1
             else:
+                control_qubits.append(qubit)
+        else:
+            if type(particle_operator) != BosonOperator:
                 raise RuntimeError(
                     "unknown particle type: {}".format(particle_operator.particle_type)
                 )
@@ -357,139 +333,87 @@ def _get_system_ctrls(
 
 
 def _add_bosonic_rotations(
-    system,
-    rotation_qubits,
-    term,
-    creation_ops=False,
-    annihilation_ops=False,
+    rotation_qubit,
+    bosonic_mode_register,
+    creation_exponent=0,
+    annihilation_exponent=0,
     ctrls=([], []),
 ):
-    """Add rotations to pickup bosonic annihilation coefficients.
+    """Add rotations to pickup bosonic coefficients corresponding to a series of ladder operators (assumed
+        to be normal ordered) acting on one bosonic mode within a term.
 
     Args:
-        system (System): The qubit registers representing the system
-        rotation_qubits (List[cirq.LineQubit]): A list of qubits that can be rotated to pickup the
-            amplitudes corresponding to the coefficients that appear when a bosonic annihilation op
-            hits a quantum state
-        term (ParticleOperator/ParticleOperatorSum): The term in question
-        creation_ops (bool): Dictates whether or not to perform rotations of creation op
-        annihilation_ops (bool): Dictates whether or not to perform rotations of annihilation op
+        rotation_qubit (cirq.LineQubit): The qubit that is rotated to pickup the amplitude corresponding
+            to the coefficients that appear when a bosonic op hits a quantum state
+        bosonic_mode_register (List[cirq.LineQubit]): The qubits that store the occupation of the bosonic
+            mode being acted upon.
+        creation_exponent (int): The number of subsequent creation operators in the term
+        annihilation_exponent (int): The number of subsequent annihilation operators in the term
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
         - The gates to perform the unitary operation
-        - The number of bosonic operators that were accounted for
     """
     gates = []
-    number_of_bosonic_ops = 0
-    for particle_operator in term.parse():
-        rotate_for_this_op = False
-        if isinstance(particle_operator, BosonOperator):
-            if particle_operator.creation and creation_ops:
-                rotate_for_this_op = True
-            if (not particle_operator.creation) and annihilation_ops:
-                rotate_for_this_op = True
 
-        if rotate_for_this_op:
+    maximum_occupation_number = (1 << len(bosonic_mode_register)) - 1
 
-            # Multiplexing over computational basis states of mode register
-            for particle_number in range(0, system.maximum_occupation_number + 1):
-                occupation_qubits = system.bosonic_system[particle_operator.mode]
-                occupation_control_values = [
-                    int(i)
-                    for i in format(particle_number, f"#0{2+len(occupation_qubits)}b")[
-                        2:
-                    ]
-                ]
+    # Flip the rotation qubit outside the encoded subspace
+    gates.append(
+        cirq.Moment(
+            cirq.X.on(rotation_qubit).controlled_by(*ctrls[0], control_values=ctrls[1])
+        )
+    )
 
-                # Rotate ancilla by sqrt(particle_number)
-                intended_coefficient = np.sqrt(
-                    particle_number / (system.maximum_occupation_number + 1)
-                )
-                gates.append(
-                    cirq.Moment(
-                        cirq.ry(2 * np.arccos(intended_coefficient))
-                        .on(rotation_qubits[number_of_bosonic_ops])
-                        .controlled_by(
-                            *occupation_qubits,
-                            *ctrls[0],
-                            control_values=occupation_control_values + ctrls[1],
-                        )
-                    )
-                )
+    # Multiplexing over computational basis states of mode register that will not be zeroed-out
+    for particle_number in range(
+        annihilation_exponent,
+        min(
+            maximum_occupation_number + 1,
+            maximum_occupation_number + annihilation_exponent - creation_exponent + 1,
+        ),
+    ):
+        # Get naive controls
+        occupation_control_values = [
+            int(i)
+            for i in format(particle_number, f"#0{2+len(bosonic_mode_register)}b")[2:]
+        ]
 
-            number_of_bosonic_ops += 1
-
-    return gates, number_of_bosonic_ops
-
-
-def _add_bosonic_occupation_operator_rotations(
-    system,
-    rotation_qubits,
-    term,
-    ctrls=([], []),
-):
-    """Add rotations to pickup bosonic coefficients for occupation operators
-
-    Args:
-        system (System): The qubit registers representing the system
-        rotation_qubits (List[cirq.LineQubit]): A list of qubits that can be rotated to pickup the
-            amplitudes corresponding to the coefficients that appear when a bosonic annihilation op
-            hits a quantum state
-        term (ParticleOperator/ParticleOperatorSum): The term in question
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
-            the control qubits and values.
-
-    Returns:
-        - The gates to perform the unitary operation
-        - The number of bosonic operators that were accounted for
-    """
-    gates = []
-    number_of_bosonic_ops = 0
-    for particle_operator in term.parse():
-        assert isinstance(particle_operator, OccupationOperator)
-        assert particle_operator.particle_type == "a"
-
-        # Multiplexing over computational basis states of mode register
-        for particle_number in range(0, system.maximum_occupation_number + 1):
-            occupation_qubits = system.bosonic_system[particle_operator.mode]
-            occupation_control_values = [
-                int(i)
-                for i in format(particle_number, f"#0{2+len(occupation_qubits)}b")[2:]
-            ]
-
-            intended_coefficient = 1
-            for power in range(particle_operator.power):
-                intended_coefficient *= (particle_number - power) / (
-                    system.maximum_occupation_number + 1
-                )
-
-            gates.append(
-                cirq.Moment(
-                    cirq.ry(2 * np.arccos(intended_coefficient))
-                    .on(rotation_qubits[number_of_bosonic_ops])
-                    .controlled_by(
-                        *occupation_qubits,
-                        *ctrls[0],
-                        control_values=occupation_control_values + ctrls[1],
-                    )
-                )
+        # Classically compute coefficient that should appear
+        intended_coefficient = 1
+        for power in range(annihilation_exponent):
+            intended_coefficient *= np.sqrt(
+                (particle_number - power) / (maximum_occupation_number + 1)
+            )
+        for power in range(creation_exponent):
+            intended_coefficient *= np.sqrt(
+                (particle_number - annihilation_exponent + power + 1)
+                / (maximum_occupation_number + 1)
             )
 
-        number_of_bosonic_ops += 1
+        # Rotate ancilla by theta to pickup desired coefficient in the encoded subspace (|0>)
+        gates.append(
+            cirq.Moment(
+                cirq.ry(2 * np.arcsin(-1 * intended_coefficient))
+                .on(rotation_qubit)
+                .controlled_by(
+                    *bosonic_mode_register,
+                    *ctrls[0],
+                    control_values=occupation_control_values + ctrls[1],
+                )
+            )
+        )
 
-    return gates, number_of_bosonic_ops
+    return gates
 
 
-def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
-    """Add rotations to pickup bosonic annihilation coefficients.
+def _update_fermionic_and_antifermionic_system(term, system, ctrls=([], [])):
+    """Update the fermionic and antifermionic system corresponding to the operators in the term.
 
     Args:
         term (ParticleOperator/ParticleOperatorSum): The term in question
         system (System): The qubit registers representing the system
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-            They are to be used as ancillae to store quantum booleans.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
@@ -498,7 +422,7 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
     """
     gates = []
 
-    for particle_operator in term.parse()[::-1]:
+    for particle_operator in term.split()[::-1]:
         mode = particle_operator.mode
         if isinstance(particle_operator, FermionOperator) or isinstance(
             particle_operator, AntifermionOperator
@@ -526,25 +450,6 @@ def _update_system(term, system, clean_ancillae=[], ctrls=([], [])):
                         *ctrls[0], control_values=ctrls[1]
                     )
                 )
-            )
-        elif isinstance(particle_operator, BosonOperator):
-            gates += add_incrementer(
-                [],
-                system.bosonic_system[mode],
-                clean_ancillae[: len(system.bosonic_system[mode]) - 2],
-                not (particle_operator.creation),
-                ctrls[0],
-                ctrls[1],
-            )
-        elif isinstance(particle_operator, OccupationOperator) and (
-            particle_operator.particle_type in ["b", "d"]
-        ):
-            pass
-        else:
-            raise RuntimeError(
-                "Unknown action on state of operator: ",
-                particle_operator,
-                type(particle_operator),
             )
 
     return gates
