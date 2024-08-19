@@ -129,7 +129,7 @@ Then, a state preparation routine is applied that performs the following operati
 \begin{equation}
     \ket{0^{\otimes \lceil \log_2{L} \rceil}} \rightarrow_{\textit{Prepare}} \sum_{l = 0}^{L-1} \sqrt{|\alpha_l| / \lambda_{asp}} \ket{l}
 \end{equation}
-This results in a weighted superposition over the computational basis states where the squared amplitudes of the basis states are equal to the magnitude of the associated coefficients.
+This results in a weighted superposition over the computational basis states where the squared amplitudes of the basis states are equal to the magnitude of the associated coefficients \gus{from the Hamiltonian}.
 
 For Hamiltonians that have structure among the coefficients of the terms, implementations of the $\textit{Prepare}$ oracle can be constructed that leverage this structure.
 In certain cases, this can drastically reduce the cost of $\textit{Prepare}$ such as is done for the Fermi-Hubbard model in \cite{babbush2018encoding}.
@@ -159,7 +159,7 @@ with $\lambda$ being either $\lambda_{usp}$ or $\lambda_{asp}$.
 \begin{figure}
     \centering
     \includegraphics[width=16cm]{figures/select-broad.pdf}
-    \caption{\textbf{Ladder Operator Select \gus{Do you mean Coefficient?} Oracle.}
+    \caption{\textbf{Ladder Operator Select Oracle.}
     }
     \label{fig:select-broad}
 \end{figure}
