@@ -27,7 +27,9 @@ def _test_helper(terms, maximum_occupation_number, decompose):
 
     number_of_ancillae = 100
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
-    number_of_rotation_qubits = max(get_number_of_active_bosonic_modes(terms)) + 1
+    number_of_rotation_qubits = (
+        max(get_numbers_of_bosonic_operators_in_terms(terms)) + 1
+    )
 
     block_encoding_scaling_factor = (1 << number_of_index_qubits) * scaling_factor
 
@@ -247,7 +249,6 @@ def test_lobe_block_encoding_random(trial, decompose):
     operator.remove_identity()
     maximum_occupation_number = np.random.choice([1, 3, 7])
     _test_helper(operator.to_list(), maximum_occupation_number, decompose)
-    _test_helper(terms, maximum_occupation_number, decompose=False)
 
 
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
