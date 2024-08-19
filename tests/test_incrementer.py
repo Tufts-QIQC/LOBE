@@ -1,7 +1,7 @@
 import pytest
 import cirq
 import numpy as np
-from src.lobe.incrementer import add_incrementer
+from src.lobe.incrementer import add_incrementer, add_classical_value
 
 
 @pytest.mark.parametrize(
@@ -150,5 +150,63 @@ def test_binary_incrementer_is_properly_controlled(
         expected_integer = ((integer + 1) % (1 << number_of_qubits)) + (
             1 << (len(circuit.all_qubits()) - 1)
         )
+
+    assert final_state[expected_integer] == 1
+
+
+@pytest.mark.parametrize(
+    "number_of_qubits", [1, 2] + np.random.randint(3, 10 + 1, size=3).tolist()
+)
+@pytest.mark.parametrize("integer", np.random.randint(1, (1 << 10) + 1, size=3))
+@pytest.mark.parametrize("classical_value", np.random.randint(1, (1 << 10) + 1, size=3))
+@pytest.mark.parametrize("decrement", [True, False])
+@pytest.mark.parametrize("is_controlled", [True, False])
+def test_add_classical_value_on_basis_state(
+    number_of_qubits, integer, classical_value, decrement, is_controlled
+):
+    integer = integer % (1 << number_of_qubits)
+    if decrement:
+        classical_value *= -1
+
+    if not is_controlled:
+        expected_integer = (integer + classical_value) % (1 << number_of_qubits)
+    else:
+        expected_integer = integer
+
+    # Create a quantum circuit
+    circuit = cirq.Circuit()
+
+    # Create qubits
+    ctrls = ([], [])
+    indexor = 0
+    if is_controlled:
+        ctrls = ([cirq.LineQubit(0)], [1])
+        indexor += 1
+    ancilla = []
+    if number_of_qubits > 2:
+        ancilla = [cirq.LineQubit(i + indexor) for i in range(number_of_qubits - 2)]
+        indexor += number_of_qubits - 2
+    qubits = [cirq.LineQubit(i + indexor) for i in range(number_of_qubits)]
+    circuit.append(cirq.I.on_each(*ctrls[0]))
+    circuit.append(cirq.I.on_each(*qubits))
+    circuit.append(cirq.I.on_each(*ancilla))
+    circuit += add_classical_value(qubits, classical_value, ancilla, ctrls=ctrls)
+
+    initial_state = np.zeros(1 << number_of_qubits)
+    initial_state[integer] = 1
+    if number_of_qubits > 2:
+        initial_ancilla_state = np.zeros(1 << (number_of_qubits - 2))
+        initial_ancilla_state[0] = 1
+        initial_state = np.kron(initial_ancilla_state, initial_state)
+    if is_controlled:
+        initial_control_state = np.zeros(2)
+        initial_control_state[0] = 1
+        initial_state = np.kron(initial_control_state, initial_state)
+
+    simulator = cirq.Simulator()
+
+    final_state = simulator.simulate(
+        circuit, initial_state=initial_state
+    ).final_state_vector
 
     assert final_state[expected_integer] == 1
