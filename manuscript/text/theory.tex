@@ -90,7 +90,7 @@ In classical field theory, the Hamiltonian is derived from the field operators v
 This will necessarily lead to Hamiltonians written in terms of creation and annihilation operators, similarly to quantum chemistry. The main difference is that 
 Hamiltonians in quantum field theory will contain products of \emph{different types} of particles. The block encoding presented in this paper takes this into account and allows any general quantum field theory Hamiltonian to be block encoded. 
 
-\subsection{Commutation Rules and Normal Ordering}
+\subsection{Commutation Rules, Normal and Canonical Ordering}
 \label{subsec:commutation}
 It is important to mention the commutation relations between the different types of ladder operators. They are given as:
 
@@ -102,6 +102,12 @@ It is important to mention the commutation relations between the different types
     & \{b_i, d_j\} = \{b_i^\dagger, d_j\} = \{b_i, d_j^\dagger\} = \{b_i^\dagger, d_j^\dagger\} = 0\\
     & [f(a_i), f(b_i, d_j)] = 0
 \end{align*}
+
+LOBE requires each product of ladder operators to be \emph{canonically ordered}. Canonical ordering in quantum field theory is an adaptation of normal ordering. Given a product of ladder operators, the normal ordered version of the operator is that in which all creation operators are to the left of annihilation operators.
+For example, the normal-ordered version of the operator $a_3 b_4^\dagger$ is $b_4^\dagger a_3$. We define a canonically ordered operator as an operator which is normal ordered among the individual particle types, but not necessarily overall. An example of this is $a_1^\dagger b_2 b_1^\dagger$ which canonically-ordered is $b_1^\dagger b_2 a_1^\dagger$.
+
+When canonically (or normal) ordering a product of ladder operators, one cannot just push all creation operators to the left and annihilation operators to the right, as this will change the nature of the operator in general. When ordering a product, the commutation rules must be taken into account to ensure the operator after normal ordering is the same operator.
+For example, given $b_2 b_1 b_1^\dagger$, the normal ordered version of this operator is $b_2 \left(\mathds{1} - b_1^\dagger b_1 \right) = b_2 + b_1^\dagger b_1 b_2$.
 
 \subsection{Encoding}
 \label{subsec:encoding}
@@ -138,7 +144,7 @@ We define a \textit{term} ($T$) as a product of ladder operators that can act on
 where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^\dagger, d_i, d_i^\dagger, a_i, a_i^\dagger\}$.
 
 The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules described in \ref{subsec:commutation}.
-In this work, we will have a preference for \textit{normal ordering} of the operators to obey the following structure:
+In this work, we will have a preference for \textit{normal ordering} \gus{\textit{canonically ordering}} the operators to obey the following structure:
 \begin{equation}
     T = \Big( \prod_i ((a_i^\dagger)^S)(A_i)^R((a_i)^P) \Big) \Big( \prod_i \big( (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (D_i)^{\delta_{D_i}} (d_i)^{\delta_{d_i}} \big) \Big) \Big( \prod_i \big( (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (B_i)^{\delta_{B_i}} (b_i)^{\delta_{b_i}} \big) \Big) 
 \end{equation}
