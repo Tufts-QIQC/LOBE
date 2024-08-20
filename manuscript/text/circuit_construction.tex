@@ -11,8 +11,17 @@ In this section of the text, we'll do the following:
 \subsubsection{Linear Combination of Unitaries}
 
 \subsubsection{Sparse Block-Encoding of Pairing Hamiltonians}
-stuff from Liu et al
-\ws{Might ask you to fill this out @Gus}
+%stuff from Liu et al
+%\ws{Might ask you to fill this out @Gus}
+LOBE builds off of the work of Liu et. al \cite{liu2024efficient}, which describes a sparse block-encoding structure for pairing Hamiltonians. This block-encoding has three main parts: state preparation (and state un-preparation), the select oracle, and the coefficient oracle. The general idea of these unitaries is that the \textit{select} oracle tells where the non-zero matrix elements are, while the \textit{coefficient} oracle tells what the values are of the corresponding matrix element. 
+In practice, however, it is done slightly differently. The \textit{select} oracle acts on some state $\ket{\psi}$ to output a new state $\ket{\phi}$ in a way in which a term in the Hamiltonian acts, while the coefficient oracle picks up the corresponding coefficient of this term. 
+
+The general layout of these circuits is as follows: 
+
+\begin{figure}[h]
+    \includegraphics[width = \linewidth]{figures/SBE.png}
+    \caption{Circuit for sparse block-encoding Pairing Hamiltonians}
+\end{figure}
 
 \subsection{Rescaling of Coefficients Due to Bosonic Terms}
 \label{subsec:rescaling}
