@@ -254,15 +254,20 @@ If the \textit{arbitrary state preparation} protocol is used, then this rotation
 \subsection{Analytical Cost Analysis}
 \label{subsec:analytics}
 
+
+\subsubsection{Space Complexity}
+\label{subsubsec:space}
+
 The minimum number of qubits required for the index register is given by:
 \begin{equation}
     Q_{\textit{index}} = \lceil \log_2{L} \rceil
 \end{equation}
 
-If we let $K$ denote the maximum number of bosonic operators within a single term, then the minimum number of qubits in the coefficient register is given by:
+If we let $M$ denote the maximum number of bosonic modes with operators acting on them within a single term, then the minimum number of qubits in the coefficient register is given by:
 \begin{equation}
-    Q_{\textit{coeff}} = K + 1
+    Q_{\textit{coeff}} = M 
 \end{equation} 
+If $USP$ is used for preparation of the index register, then an additional qubit is required.
 
 Using the qubit-efficient encoding described in Subsection \ref{subsec:encoding}, the minimum number of qubits required for the system registers is given by:
 \begin{equation}
@@ -282,11 +287,74 @@ With this choice, the number of clean ancillae required is given by:
 where $\lceil \log_2{L} \rceil$ qubits are used for multiplexing over the index register, $ \lceil \log_2{(\Omega + 1)} \rceil$ qubits are used for multiplexing over the bosonic occupation registers, and $B$ denotes the maximum number of fermionic and antifermionic ladder operators within a single term.
 And we assume that any left-elbow with $N$ controls and one ancilla qubit storing the quantum boolean can be decomposed into $N-1$ left-elbows, each using $2$ controls at the expense of $N-1$ total ancillae.
 
-Therefore, the total qubit requirement under these compilation choices - disregarding the control qubit - is given by:
+Therefore, the total qubit requirement under these compilation choices - disregarding the control qubit and the optional qubit required when $USP$ is used - is given by:
 \begin{equation}
     \begin{split}
         N &= Q_{\textit{index}} + 1 + Q_{\textit{coeff}} + Q_{\psi_b} + Q_{\psi_d} + Q_{\psi_a} + \alpha \\
-        &= 2 \lceil \log_2{L} \rceil + 2 \Lambda + (\Lambda + 1) \lceil \log_2{(\Omega + 1)} \rceil + B + K + 3
+        &= 2 \lceil \log_2{L} \rceil + 2 \Lambda + (\Lambda + 1) \lceil \log_2{(\Omega + 1)} \rceil + B + M + 2
+    \end{split}
+\end{equation}
+
+
+\subsubsection{Time Complexity}
+
+In this section, we will determine the analytical gate-counts for implementing LOBE.
+Since the most costly operations to perform are those that will require preparation of magic states, we compute the analytical gate counts in terms of the following non-Clifford operations: arbitrary rotations, Toffolis, and left (and right) elbows.
+For ease, we will express these gate counts as an ordered tuple:
+\begin{equation}
+    C = (N_{\textit{rot}}, N_{\textit{toff}}, N_{\textit{left}}, N_{\textit{right}})
+\end{equation}
+
+Beginning from Figure \ref{fig:lobe}, we can compute the overall gate cost of the block-encoding as $2*C_{\textit{Prepare}} + C_{\textit{Select}}$.
+
+Since the $\textit{Prepare}$ oracle for $USP$ is simply a string of Hadamard gates, this oracle contributes no non-Cliffords and $C_{\textit{USP}} = (0, 0, 0, 0)$.
+In Appendix \ref{sec:grover-rudolph}, we discuss the gate cost for the implementation of Grover-Rudolph used in this work. \ws{Fill this out once gate cost is better understood.}
+
+For the cost of the $\textit{Select}$ oracle, we will focus on the form when using $USP$ for $\textit{Prepare}$.
+When Grover-Rudolph is used instead, the only change to the $\textit{Select}$ oracle is that the controlled rotation is not included and therefore the rotation count is reduced accordingly.  
+
+The cost of the controlled-multiplexor over the index register is given by $L - 1$ left (and right) elbows \cite{babbush2018encoding} where $L$ is the number of terms in the Hamiltonian or the number of computational basis states we are interested in.
+This accounts for the cost of generating the quantum boolean second from the bottom in Figure \ref{fig:select-normal-ordering}.
+No rotations or additional Toffolis are required, therefore the cost is given by: 
+\begin{equation}
+    C_{\textit{index}} = (0, 0, L-1, L-1)
+\end{equation}
+
+The rest of the gate cost of the $\textit{Select}$ oracle can be computed as the sum of the cost of implementing the individual terms:
+\begin{equation}
+    C_{\textit{Select}} = C_{\textit{index}} + \sum_{l} C_{T_l}
+\end{equation}
+
+The first operation performed for each term is the computation of the bottom qubit in Figure \ref{fig:select-normal-ordering}.
+This quantum boolean is computed via a left-elbow with $B_l + D_l + 2$ controls where $B_l$ and $D_l$ represent the number of fermionic and antifermionic modes being acted upon within the term $T_l$.
+As was mentioned in Subsubsection \ref{subsubsec:space}, this multi-controlled operation can be decomposed into $B_l + D_l + 1$ left elbows and $B_l + D_l$ right elbows.
+
+Flipping the validation qubit and performing the fermionic and antifermionic operators only require Cliffords and therefore do not contribute to the gate counts we are interested in.
+
+Next, we have the cost of implementing the bosonic operators.
+For each of the $M_l$ bosonic modes being acted upon within the term $T_l$, we must perform a controlled-multiplexor over the $\Omega - 2S_{l, m} + R_{l, m}$ non-trivial occupation states of the mode being acted upon.
+Where $l$ indexes the term in the Hamiltonian and $m$ indexes the bosonic mode being acted upon within the $l^{th}$ term.
+This will require $\Omega - 2S_{l, m} + R_{l, m} - 1$ left (and right) elbows and for each nontrivial occuptation state, a controlled rotation will be performed.
+Therefore, we can sum up the cost of implementing all of the $M_l$ bosonic operators as: 
+\begin{equation}
+    C_{M_l} = \Big(\Sigma_l, 0, \Sigma_l - M_l, \Sigma_l - M_l \Big)
+\end{equation}
+where $\Sigma_{l} \equiv \Omega - 2S_{l, m} + R_{l, m}$.
+
+\ws{Add cost of adding classical values to bosonic registers here. Will cost a decent number of Toffolis.}
+
+Uncomputing the bottom ancilla qubit requires one Toffoli. \ws{still not sure if this can be replaced by a right-elbow.}
+Lastly, when $USP$ is used for $\textit{Prepare}$, a controlled rotation is performed.
+Therefore, the overall cost of implementing a single term \ws{temporarily neglecting the cost of incrementing/decrementing} is given by:
+\begin{equation}
+    C_{T_l} = \Big(1 + \Sigma_l, 1, B_l + D_l + 1 + \Sigma_l - M_l, B_l + D_l + \Sigma_l - M_l \Big)
+\end{equation}
+
+Therefore, the overall cost of implementing the $\textit{Select}$ oracle is given by:
+\begin{equation}
+    \begin{split}
+    C_{\textit{Select}} &= C_{\textit{index}} + \sum_{l} C_{T_l} \\
+    &= \Big(L + \sum_l \Sigma_l, L, 2L - 1 + \sum_l \big( B_l + D_l + \Sigma_l - M_l \big), L-1 + \sum_l \big( B_l + D_l + \Sigma_l - M_l \big)\Big)
     \end{split}
 \end{equation}
 
