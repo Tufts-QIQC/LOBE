@@ -11,6 +11,7 @@ from typing import Union, List
 def lobe_circuit(
     operator: Union[ParticleOperator, List],
     max_bose_occ: int = 1,
+    decompose: bool = False,
     return_unitary: bool = True,
     return_matrix: bool = False,
 ):
@@ -75,7 +76,7 @@ def lobe_circuit(
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=True,
-        decompose=False,
+        decompose=decompose,
     )
     circuit += add_naive_usp(index_register)
 
