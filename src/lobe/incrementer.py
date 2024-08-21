@@ -2,34 +2,60 @@ import cirq
 import numpy as np
 
 
-def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], [])):
+def add_classical_value(
+    register, classical_value, clean_ancillae, ctrls=([], []), compute_cost=False
+):
+    if compute_cost:
+        assert len(ctrls[0]) == 1
     classical_value = classical_value % (1 << len(register))
 
     if classical_value == 0:
+        if compute_cost:
+            return [], 0
         return []
 
-    gates = []
-    num_levels = int(np.ceil(np.log2(np.abs(classical_value)))) + 1
-    decrement = False
-    if classical_value < 0:
-        decrement = True
-    classical_value = np.abs(classical_value)
-    for level in range(num_levels - 1, -1, -1):
-        qubits_involved = register
-        if level > 0:
-            qubits_involved = register[:-level]
+    options = [(classical_value, False), ((1 << len(register)) - classical_value, True)]
 
-        if (1 << level) <= classical_value:
-            gates += add_incrementer(
-                [],
-                qubits_involved,
-                clean_ancillae[: len(qubits_involved) - 2],
-                decrement=decrement,
-                control_register=ctrls[0],
-                control_values=ctrls[1],
-            )
-            classical_value -= 1 << level
-    return gates
+    outcomes = []
+    costs = []
+    for value, flip_decr in options:
+        decrement = False
+        if value < 0:
+            decrement = True
+        if flip_decr:
+            decrement = not decrement
+
+        num_levels = int(np.ceil(np.log2(np.abs(value)))) + 1
+        gates = []
+        value = np.abs(value)
+        num_toffs = 0
+        for level in range(num_levels - 1, -1, -1):
+
+            qubits_involved = register
+            if level > 0:
+                qubits_involved = register[:-level]
+
+            if (1 << level) <= value:
+                num_toffs += len(qubits_involved) - 1
+                gates += add_incrementer(
+                    [],
+                    qubits_involved,
+                    clean_ancillae[: len(qubits_involved) - 2],
+                    decrement=decrement,
+                    control_register=ctrls[0],
+                    control_values=ctrls[1],
+                )
+                value -= 1 << level
+        outcomes.append(gates)
+        costs.append(num_toffs)
+
+    if compute_cost:
+        if costs[1] < costs[0]:
+            return outcomes[1], costs[1]
+        return outcomes[0], costs[0]
+    if len(outcomes[1]) < len(outcomes[0]):
+        return outcomes[1]
+    return outcomes[0]
 
 
 def add_incrementer(
