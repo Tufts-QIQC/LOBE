@@ -74,6 +74,7 @@ where the coefficients $\alpha_l^*$ are the rescaled coefficients of the terms.
 This preprocessing means that after the block-encoding is applied, all output states will be rescaled by a coefficient of $(\Omega + 1)^{(K)/2}$.
 Therefore, the rescaled Hamiltonian that we block-encode is given by:
 \begin{equation}
+    \label{bose coeff rescale}
     H^* = \frac{H}{(\Omega + 1)^{K/2}}
 \end{equation}
 where $H^*$ is the rescaled Hamiltonian.
@@ -126,10 +127,12 @@ Let the largest coefficient magnitude be given by $\alpha^* = \max{|\alpha_l|}$.
 Then, this rescaling imposes a constant rescaling factor of $\alpha^*$ and we refer to these rescaled coeffifients as $\Tilde{\alpha_l}$.
 An additional rescaling factor of $2^{\lceil \log_2{L} \rceil}$ from the uniform superposition results in an overall rescaling of the Hamiltonian by a constant factor of:
 \begin{equation}
+    \label{usp scale}
     \lambda_{usp} = 2^{\lceil \log_2{L} \rceil} \alpha^*
 \end{equation}
 such that the rescaled Hamiltonian is given by:
 \begin{equation}
+    \label{Hbar scale}
     \bar{H} = \frac{H^*}{\lambda_{usp}}
 \end{equation}
 
@@ -327,6 +330,7 @@ In this section, we will determine the analytical gate-counts for implementing L
 Since the most costly operations to perform are those that will require preparation of magic states, we compute the analytical gate counts in terms of the following non-Clifford operations: arbitrary rotations, Toffolis, and left (and right) elbows.
 For ease, we will express these gate counts as an ordered tuple:
 \begin{equation}
+    \label{count gates not.}
     C = (N_{\textit{rot}}, N_{\textit{toff}}, N_{\textit{left}}, N_{\textit{right}})
 \end{equation}
 
@@ -382,7 +386,3 @@ Therefore, the overall cost of implementing the $\textit{Select}$ oracle is give
     &= \Big(L + \sum_l \Sigma_l, L, 2L - 1 + \sum_l \big( B_l + D_l + \Sigma_l - M_l \big), L-1 + \sum_l \big( B_l + D_l + \Sigma_l - M_l \big)\Big)
     \end{split}
 \end{equation}
-
-\subsection{Example}
-\label{subsec:example}
-Step-by-step example (intention is to move this to an appendix)
