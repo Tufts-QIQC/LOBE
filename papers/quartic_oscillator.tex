@@ -62,7 +62,7 @@ nofootinbib,
 
 \preprint{APS/123-QED}
 
-\title{Working Title: Block Encoding the Renormalized Quartic Oscillator Hamiltonian}% Force line breaks with \\
+\title{A Block-Encoding of the Renormalized Quartic Oscillator Hamiltonian}% Force line breaks with \\
 
 \author{Gustin, Serafin, Simon, Goldstein, Love}%
  %\email{carter.gustin@tufts.edu}
@@ -95,10 +95,11 @@ In second quantized form, the Hamiltonian can be expressed in terms of creation 
 annihilation operators as
 
 \begin{equation}
+  \label{Hamiltonian}
   H = a^\dagger a + g(a + a^\dagger)^4
 \end{equation}
 where $m = 1$, and $g$ is an arbitrary coupling constant. The normalized eigenstates of
-the free part of the Hamiltonian, $H_0$ are $\ket{k} = (k!)^{-1/2}a^k\ket{0}$. The goal
+the free part of the Hamiltonian, $H_0$ are $\ket{k} = (k!)^{-1/2}(a^\dagger)^k\ket{0}$. The goal
 is thus, given this basis, finding the ground state eigenvalue of the problem when the 
 quartic potential is turned on ($g \neq 0$). 
 
@@ -117,6 +118,7 @@ what we mean by expensive?} Alternatively, we can ``renormalize'' the model, all
 simulation to be performed. This is done with Gaussian elimination.
 
 \section{Renormalization}
+\subsection{Gaussian Elimination}
 The quartic oscillator is a model that is not studied here within the context
 of quantum field theories; however, we can utilize techniques from these 
 theories to reduce the resources needed to simulate this model. 
@@ -160,13 +162,21 @@ Now, a recurrsion relation can be defined on each matrix element $H_{kl}$ where 
 after one Gaussian elimination step is one row and column smaller:
 
 \begin{equation}
-  H_{kl}^{(j)} = H_{kl}^{(j - 1)} - g\frac{H_{k,N-j}^{(j - 1)}H_{N-j,l}^{(j - 1)}}{H_{N-j,N-j}^{{j - 1}}}
+  \label{recurrsion}
+  H_{kl}^{(j)} = H_{kl}^{(j - 1)} - g\frac{H_{k,N-j}^{(j - 1)}H_{N-j,l}^{(j - 1)}}{H_{N-j,N-j}^{(j - 1)}}
 \end{equation}
 
 \subsection{Renormalized Hamiltonian}
+In order to block-encode this Hamiltonian with the Ladder Operator Block Encoding (LOBE) algorithm, it is necessary to get an explicit expression for the renormalized Hamiltonian in terms of creation and annihilation operators. 
+This will be done by utilizing the recurssion relation in equation \ref{recurrsion}. For one Gaussian elimination step, going from a $N \times N \rightarrow (N - 1)\times (N - 1)$ dimension Hamiltonian, the matrix elements are updated via equation \ref{recurrsion}. Due to the band-structure of the Hamiltonian, one can see that the only matrix elements that will be updated in one Gaussian elimination step are $H_{N-4, N-4}, H_{N-2, N-2}, H_{N-4, N-2}, H_{N-2, N-4}$. 
+
+Certain combinations of ladder operators can be used to modify the 4 matrix elements in each Gaussian elimination step. To modify the matrix element $H_{N-4, N-4}$, one needs to add an operator of the form $C_{N-4, N-4}(a^\dagger)^{N-4}a^{N-4}$, while for $H_{N-2, N-2}$, one needs to add an operator of the form $C_{N-2, N-2}(a^\dagger)^{N-2}a^{N-2}$, and similarly for $H_{N-4, N-2}, H_{N-2, N-4}$, add $C_{N-4, N-2}(a^\dagger)^{N-4}a^{N-2}, C_{N-2, N-4}(a^\dagger)^{N-2}a^{N-4}$.
+
+In adding these terms, other matrix elements will be affected. This necessitates counterterms to be added to undo unwanted affects. 
 
 \section{Simulation of Renormalized Hamiltonian via LOBE}
 \subsection{Overview of LOBE}
+\textcolor{Green}{Will}
 
 \subsection{Resource Estimates}
 \textcolor{red}{What are LOBE estimates for the ``infinite'' Hamiltonian matrix vs. the 
@@ -174,4 +184,29 @@ renormalized matrix. How do we quantify if this trade-off is useful?}
 
 \section{Conclusion}
 
+
+
+\appendix
+\section{Renormalized Hamiltonian in terms of Ladder Operators}
+The following terms must be added to the Hamiltonian in equation \ref{Hamiltonian}, in order to produce a renormalized Hamiltonian in terms of ladder operators. Note that $n$ is the size of the renormalized matrix such that $n = N - k$, with $k$ Gaussian elimination steps.
+What follows is the expression for the renormalized Hamiltonian, where each term (product of ladder operators) has a coefficient of the form $\Delta H(i,j)$ which picks up the information about the recurssion relation \ref{recurrsion}:
+
+\begin{widetext}
+\begin{align}
+  \label{renH}
+  H_{eff} = H &+ \frac{\Delta H(n-3, n-3)}{(n-3)!}(a^\dagger)^{n-3}a^{n-3} - \frac{\Delta H(n-3, n-3)}{(n-3)!}(a^\dagger)^{n-2}a^{n-2} + \frac{\Delta H(n-3, n-3)}{2(n-3)!}(a^\dagger)^{n-1}a^{n-1}\\ \nonumber
+             &- \frac{\Delta H(n-3, n-3)}{6(n-3)!}(a^\dagger)^{n}a^{n} +  \frac{\Delta H(n-1, n-1)}{(n-1)!}(a^\dagger)^{n - 1}a^{n - 1} - \frac{\Delta H(n-1, n-1)}{(n-1)!}(a^\dagger)^{n}a^{n}\\ \nonumber
+             &+ \frac{\Delta H(n-3, n-1)}{(n-3)!(n-1)!}\left[(a^\dagger)^{n-3}a^{n-1} - (a^\dagger)^{n-2}a^{n} \right]+ \frac{\Delta H(n-1, n-3)}{(n-1)!(n-3)!}\left[(a^\dagger)^{n-1}a^{n-3} - (a^\dagger)^{n}a^{n-2} \right] \\ \nonumber
+             &+ \frac{\Delta H(n-2, n-2)}{(n-2)!}(a^\dagger)^{n-2}a^{n-2} - \frac{\Delta H(n-2, n-2)}{(n-2)!}(a^\dagger)^{n-1}a^{n-1} + \frac{\Delta H(n-2, n-2)}{2(n-2)!}(a^\dagger)^{n}a^{n} \\ \nonumber
+             &-\frac{\Delta H(n-2, n-2)}{6(n-2)!}(a^\dagger)^{n+1}a^{n+1} + \frac{\Delta H(n, n)}{n!}(a^\dagger)^n a^n -\frac{\Delta H(n, n)}{n!}(a^\dagger)^{n + 1} a^{n + 1} \\ \nonumber
+             &+ \frac{\Delta H(n-2, n)}{(n)!(n-2)!}\left[(a^\dagger)^{n-2}a^{n} - (a^\dagger)^{n-1}a^{n+1} \right]+ \frac{\Delta H(n, n-2)}{(n)!(n-2)!}\left[(a^\dagger)^{n}a^{n-2} - (a^\dagger)^{n+1}a^{n-1} \right]
+\end{align}
+\end{widetext}
+
+To obtain the proper coefficients, $\Delta H(i,j)$, one must first generate a matrix from the relation \ref{recurrsion} of size $n \times n$. From here, it is possible to obtain the proper coefficients for equation \ref{renH}
+
+\begin{equation}
+  \Delta H(i, j) = \tilde{H}(i,j) - H(i,j)
+\end{equation}
+where $\tilde{H}(i,j)$ is the matrix element from the recurrsion relation.
 \end{document}
