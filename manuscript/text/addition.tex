@@ -87,5 +87,5 @@ The CNOTs present are determine from the binary decomposition of $m$.
 Then an uncontrolled addition between the registers $\ket{m}$ and $\ket{n}$ can be performed using the decomposition in \cite{gidney2018halving}.
 Finally, the controlled loading of $m$ is then performed again to uncompute the ancillae qubits and return them to a useable state.
 A diagram of this ciruit is shown in Figure \ref{fig:addition-gate-efficient}.
-Overall, this requires $N - p - 1$ left (and right) elbows and $M - p - 1$ ancillae.
+Overall, this requires $N - p - 1$ left (and right) elbows and $N + M - p - 1$ ancillae.
 Since this option requires the fewest non-Clifford operations while only using a moderate amount of ancillae, this option will be used to determine the resource estimates used in this work.

@@ -49,9 +49,10 @@ From these definitions, it is clear that if we were to apply a block-encoding th
 To remedy this, we can rescale the coefficients that are picked up by the operators such that the states are always normalized.
 In the case of bosonic ladder operators, we can rescale Eqs. \ref{eq:bosonic-creation} and \ref{eq:bosonic-annihilation} by dividing by the square-root of the maximum allowable occupation number plus one such that any coefficient acquired is $< 1$:
 \begin{equation}
+    \label{eq:bosonic-ops-altered}
     \begin{split}
-        a_i^\dagger \ket{n_{a_i}} &= \sqrt{\frac{n_{a_i} + 1}{\Omega + 1}} \ket{n_{a_i} + 1} \hspace{1em} when \ket{n_{a_i}} \neq \ket{\Omega} \\
-        a_i  \ket{n_{a_i}} &= \sqrt{\frac{n_{a_i}}{\Omega + 1}} \ket{n_{a_i} - 1} \hspace{1.7em} when \ket{n_{a_i}} \neq \ket{0}
+        \Tilde{a}_i^\dagger \ket{n_{a_i}} &= \sqrt{\frac{n_{a_i} + 1}{\Omega + 1}} \ket{n_{a_i} + 1} \hspace{1em} when \ket{n_{a_i}} \neq \ket{\Omega} \\
+        \Tilde{a}_i  \ket{n_{a_i}} &= \sqrt{\frac{n_{a_i}}{\Omega + 1}} \ket{n_{a_i} - 1} \hspace{1.7em} when \ket{n_{a_i}} \neq \ket{0}
     \end{split}
 \end{equation}
 We do not redefine these equations for the cases where the state is annihilated since they will be the same as in Eqs.  \ref{eq:bosonic-creation} and \ref{eq:bosonic-annihilation}
@@ -71,13 +72,13 @@ If we define $K \equiv \max_l{k_l}$, then we can define the preprocessed coeffie
 \end{equation}
 where the coefficients $\alpha_l^*$ are the rescaled coefficients of the terms.
 
-This preprocessing means that after the block-encoding is applied, all output states will be rescaled by a coefficient of $(\Omega + 1)^{(K)/2}$.
-Therefore, the rescaled Hamiltonian that we block-encode is given by:
+% This preprocessing means that after the block-encoding is applied, all output states will be rescaled by a coefficient of $(\Omega + 1)^{(K)/2}$.
+Therefore, the Hamiltonian with rescaled coefficients is given by:
 \begin{equation}
     \label{bose coeff rescale}
-    H^* = \frac{H}{(\Omega + 1)^{K/2}}
+    H^* = \sum_{l=0}^{L-1} \alpha_l^* \Tilde{T}_l
 \end{equation}
-where $H^*$ is the rescaled Hamiltonian.
+where $H^*$ is the rescaled Hamiltonian and the bosonic operators are replaced with $\Tilde{a}_i^\dagger$ and $\Tilde{a}_i$ the action defined by Equations \ref{eq:bosonic-ops-altered}.
 
 \subsection{Circuit Construction}
 \label{subsec:circuit}
