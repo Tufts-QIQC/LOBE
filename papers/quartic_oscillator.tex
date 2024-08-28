@@ -156,7 +156,11 @@ A problem now becomes evident: the eigenvalue equation for $\psi_{N - 2}$ now de
 This is where an approximation comes in that allows us to ``approximately'' Gaussian eliminate the
 Hamiltonian matrix, leading to a recurrsion relation that shrinks the size of the matrix. We assume
 that the ground state eigenvalue is small compared to the bottom-right-most matrix element (which 
-is the large-energy corner). Thus, we can let $E_0 - H_{N, N} \approx -H_{N, N}$.
+is the large-energy corner). Thus, we can let
+\begin{equation}
+  E_0 - H_{N, N} \approx -H_{N, N}
+  \label{approx}
+\end{equation}
 
 Now, a recurrsion relation can be defined on each matrix element $H_{kl}$ where the ``new'' matrix
 after one Gaussian elimination step is one row and column smaller:
@@ -165,6 +169,17 @@ after one Gaussian elimination step is one row and column smaller:
   \label{recurrsion}
   H_{kl}^{(j)} = H_{kl}^{(j - 1)} - g\frac{H_{k,N-j}^{(j - 1)}H_{N-j,l}^{(j - 1)}}{H_{N-j,N-j}^{(j - 1)}}
 \end{equation}
+
+There comes a point when using this recurssion relation where this approximation in \ref{approx} starts to break down. This becomes obvious when examining the spectrum of the matrix with a large cutoff $N \gg 0$ vs. the matrix after $k = N - n$ renormalization steps in figure \ref{qosc_renorm_eigvals}.
+The grey line serves as both an error threshold and a linear threshold in which values below are not $\log(\tilde{E}_i - E_i)$, but rather just $\tilde{E}_i - E_i$. As an error threshold it says that for an eigenvalue of the renormalized Hamiltonian to be accurate within some $\varepsilon$, this is how small $n$ can be using Gaussian elimination.
+
+For the purposes of this work, figure \ref{qosc_renorm_eigvals} shows that renormalizing the quartic oscillator Hamiltonian down to a $4 \times 4$ Hamiltonian, the ground state eigenvalue will be accurate up to $1\%$ error. 
+
+\begin{figure}
+  \label{qosc_renorm_eigvals}
+  \includegraphics[width = \linewidth]{figures/qosc_renorm_eigvals.png}
+  \caption{Difference between the renormalized Hamiltonian spectrum with the continuum limit Hamiltonian spectrum}
+\end{figure}
 
 \subsection{Renormalized Hamiltonian}
 In order to block-encode this Hamiltonian with the Ladder Operator Block Encoding (LOBE) algorithm, it is necessary to get an explicit expression for the renormalized Hamiltonian in terms of creation and annihilation operators. 
