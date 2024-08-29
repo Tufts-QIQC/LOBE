@@ -3,7 +3,11 @@ import numpy as np
 
 
 def add_classical_value(
-    register, classical_value, clean_ancillae, ctrls=([], []), compute_cost=False
+    register,
+    classical_value,
+    clean_ancillae,
+    ctrls=([], []),
+    compute_cost=False,
 ):
     if compute_cost:
         assert len(ctrls[0]) == 1
