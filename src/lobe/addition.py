@@ -2,20 +2,12 @@ import cirq
 import numpy as np
 
 
-def add_classical_value(
-    register,
-    classical_value,
-    clean_ancillae,
-    ctrls=([], []),
-    compute_cost=False,
+def add_classical_value_incrementers(
+    register, classical_value, clean_ancillae, ctrls=([], [])
 ):
-    if compute_cost:
-        assert len(ctrls[0]) == 1
     classical_value = classical_value % (1 << len(register))
 
     if classical_value == 0:
-        if compute_cost:
-            return [], 0
         return []
 
     options = [(classical_value, False), ((1 << len(register)) - classical_value, True)]
@@ -53,10 +45,6 @@ def add_classical_value(
         outcomes.append(gates)
         costs.append(num_toffs)
 
-    if compute_cost:
-        if costs[1] < costs[0]:
-            return outcomes[1], costs[1]
-        return outcomes[0], costs[0]
     if len(outcomes[1]) < len(outcomes[0]):
         return outcomes[1]
     return outcomes[0]
@@ -139,7 +127,7 @@ def add_incrementer(
             cirq.X.on(flipped_register[-1]).controlled_by(
                 clean_ancilla[-1],
                 *control_register,
-                control_values=[1] + control_values
+                control_values=[1] + control_values,
             )
         )
     )
@@ -161,7 +149,7 @@ def add_incrementer(
                 cirq.X.on(second_control).controlled_by(
                     first_control,
                     *control_register,
-                    control_values=[1] + control_values
+                    control_values=[1] + control_values,
                 )
             )
         )
@@ -181,7 +169,7 @@ def add_incrementer(
             cirq.X.on(flipped_register[1]).controlled_by(
                 flipped_register[0],
                 *control_register,
-                control_values=[1] + control_values
+                control_values=[1] + control_values,
             )
         )
     )
@@ -197,3 +185,127 @@ def add_incrementer(
         circuit.append(cirq.Moment(cirq.X.on_each(*register)))
 
     return circuit
+
+
+def _load_m(m_val, m_reg, ctrls=([], [])):
+    gates = []
+    bit_string = format(m_val, f"0{2+len(m_reg)}b")[2:]
+    for i, bit in enumerate(bit_string):
+        if i < len(m_reg):
+            if bit == "1":
+                gates.append(
+                    cirq.Moment(
+                        cirq.X.on(m_reg[i]).controlled_by(
+                            *ctrls[0], control_values=ctrls[1]
+                        )
+                    )
+                )
+    return gates
+
+
+def _qadd_helper_left(n_bit, m_bit, carry_in, carry_out):
+    gates = []
+    gates.append(cirq.Moment(cirq.X.on(m_bit).controlled_by(carry_in)))
+    gates.append(cirq.Moment(cirq.X.on(n_bit).controlled_by(carry_in)))
+    gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(n_bit, m_bit)))
+    gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(carry_in)))
+    return gates
+
+
+def _qadd_helper_right(n_bit, m_bit, carry_in, carry_out):
+    gates = []
+    gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(carry_in)))
+    gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(n_bit, m_bit)))
+    gates.append(cirq.Moment(cirq.X.on(m_bit).controlled_by(carry_in)))
+    gates.append(cirq.Moment(cirq.X.on(n_bit).controlled_by(m_bit)))
+    return gates
+
+
+def _quantum_addtion(n_register, m_register, clean_ancillae, recursion_level=0):
+    gates = []
+    if len(n_register) == 0:
+        return gates
+    elif len(n_register) == 1:
+        return [
+            cirq.Moment(cirq.X.on(n_register[0]).controlled_by(clean_ancillae[0])),
+            cirq.Moment(cirq.X.on(n_register[0]).controlled_by(m_register[0])),
+        ]
+
+    if recursion_level == 0:
+        gates.append(
+            cirq.Moment(
+                cirq.X.on(clean_ancillae[0]).controlled_by(n_register[0], m_register[0])
+            )
+        )
+        gates += _quantum_addtion(
+            n_register[1:],
+            m_register[1:],
+            clean_ancillae,
+            recursion_level=recursion_level + 1,
+        )
+    else:
+        gates += _qadd_helper_left(
+            n_register[0], m_register[0], clean_ancillae[0], clean_ancillae[1]
+        )
+        gates += _quantum_addtion(
+            n_register[1:],
+            m_register[1:],
+            clean_ancillae[1:],
+            recursion_level=recursion_level + 1,
+        )
+
+    if recursion_level == 0:
+        gates.append(
+            cirq.Moment(
+                cirq.X.on(clean_ancillae[0]).controlled_by(n_register[0], m_register[0])
+            )
+        )
+        gates.append(cirq.Moment(cirq.X.on(n_register[0]).controlled_by(m_register[0])))
+    else:
+        gates += _qadd_helper_right(
+            n_register[0], m_register[0], clean_ancillae[0], clean_ancillae[1]
+        )
+
+    return gates
+
+
+def add_classical_value_gate_efficient(
+    register, classical_value, clean_ancillae, ctrls=([], [])
+):
+    gates = []
+
+    modded_value = classical_value % (1 << len(register))
+    if modded_value == 0:
+        return gates
+
+    # if classical_value < 0:
+    #     gates.append(cirq.Moment(cirq.X.on_each(*register)))
+
+    bitstring = format(modded_value, f"0{2+len(register)}b")[2:][::-1]
+    p_val = 0
+    while (bitstring[p_val] != "1") and (p_val != len(bitstring)):
+        p_val += 1
+
+    if p_val == len(register):
+        return gates
+
+    p_val = min(p_val, len(register) - 1)
+
+    reduced_classical_value = int(bitstring[p_val:][::-1], 2)
+    reduced_register = register[::-1][p_val:][::-1]
+
+    classical_value_register = clean_ancillae[: len(reduced_register)]
+
+    gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
+    gates += _quantum_addtion(
+        reduced_register[::-1],
+        classical_value_register[::-1],
+        clean_ancillae[len(classical_value_register) :],
+        recursion_level=0,
+    )
+    gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
+
+    # if classical_value < 0:
+    #     gates.append(cirq.Moment(cirq.X.on_each(*register)))
+
+    return gates
