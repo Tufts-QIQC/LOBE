@@ -269,6 +269,16 @@ def _quantum_addtion(n_register, m_register, clean_ancillae, recursion_level=0):
     return gates
 
 
+def _get_p_val(classical_value, number_of_bits):
+    bitstring = format(classical_value, f"0{2+number_of_bits}b")[2:][::-1]
+    p_val = 0
+    while bitstring[p_val] != "1":
+        p_val += 1
+        if p_val == len(bitstring):
+            break
+    return p_val
+
+
 def add_classical_value_gate_efficient(
     register, classical_value, clean_ancillae, ctrls=([], [])
 ):
@@ -278,13 +288,8 @@ def add_classical_value_gate_efficient(
     if modded_value == 0:
         return gates
 
-    # if classical_value < 0:
-    #     gates.append(cirq.Moment(cirq.X.on_each(*register)))
-
     bitstring = format(modded_value, f"0{2+len(register)}b")[2:][::-1]
-    p_val = 0
-    while (bitstring[p_val] != "1") and (p_val != len(bitstring)):
-        p_val += 1
+    p_val = _get_p_val(modded_value, len(register))
 
     if p_val == len(register):
         return gates
@@ -304,8 +309,5 @@ def add_classical_value_gate_efficient(
         recursion_level=0,
     )
     gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
-
-    # if classical_value < 0:
-    #     gates.append(cirq.Moment(cirq.X.on_each(*register)))
 
     return gates

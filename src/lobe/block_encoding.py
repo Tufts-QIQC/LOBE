@@ -1,6 +1,6 @@
 import cirq
 import numpy as np
-from .addition import add_classical_value_incrementers
+from .addition import add_classical_value_incrementers, _get_p_val
 from openparticle import (
     BosonOperator,
     FermionOperator,
@@ -15,10 +15,10 @@ def add_lobe_oracle(
     index_register,
     system,
     rotation_register,
-    numerics,
     clean_ancillae=[],
     perform_coefficient_oracle=True,
     decompose=True,
+    numerics=None,
 ):
     """This function should add the Ladder Operator Block Encoding oracle.
 
@@ -43,6 +43,14 @@ def add_lobe_oracle(
     Returns:
         - The gates to perform the LOBE oracle
     """
+    if numerics is None:
+        numerics = {}
+        numerics["left_elbows"] = 0
+        numerics["right_elbows"] = 0
+        numerics["ancillae_tracker"] = []
+        numerics["toffolis"] = 0
+        numerics["controlled_rotations"] = 0
+
     all_gates = []
     clean_ancillae_counter = 0
 
@@ -70,6 +78,8 @@ def add_lobe_oracle(
             decompose=decompose,
         )
         gates_for_term += circuit_ops
+        if decompose:
+            clean_ancillae_counter += 1
 
         system_ctrls = _get_system_ctrls(system, term)
 
@@ -181,6 +191,8 @@ def add_lobe_oracle(
             decompose=decompose,
         )
         gates_for_term += circuit_ops
+        if decompose:
+            clean_ancillae_counter -= 1
 
         all_gates += gates_for_term
 
@@ -241,7 +253,20 @@ def _apply_term(
                 clean_ancillae,
                 ctrls=ctrls,
             )
-            # TODO
+            p_val = _get_p_val(
+                creation_exponent - annihilation_exponent,
+                len(system.bosonic_system[mode]),
+            )
+
+            numerics["left_elbows"] += len(system.bosonic_system[mode]) - p_val - 1
+            numerics["right_elbows"] += len(system.bosonic_system[mode]) - p_val - 1
+            numerics["ancillae_tracker"].append(
+                numerics["ancillae_tracker"][-1]
+                + 2 * len(system.bosonic_system[mode])
+                - 2 * p_val
+                - 1
+            )
+            numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-2])
 
     return gates
 
@@ -282,7 +307,7 @@ def _get_index_register_ctrls(index_register, ancillae, index, decompose=True):
                 )
             )
         )
-        return gates, ([ancillae[0]], [1]), 1
+        return gates, ([ancillae[0]], [1])
 
     return gates, (index_register, index_register_control_values)
 
