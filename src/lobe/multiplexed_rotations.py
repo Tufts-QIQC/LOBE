@@ -2,7 +2,7 @@ import numpy as np
 import cirq
 
 
-def get_decomposed_multiplexed_rotation_circuit(register, angles):
+def get_decomposed_multiplexed_rotation_circuit(register, angles, ctrls=([], [])):
     """Get the operations to add multiplexed rotations based on arXiv:0407010.
 
     Args:
@@ -17,7 +17,9 @@ def get_decomposed_multiplexed_rotation_circuit(register, angles):
     angles = np.concatenate([angles, np.zeros((1 << len(register) - 1) - len(angles))])
     processed_angles = _process_rotation_angles(angles)
 
-    gates = _recursive_helper(register, processed_angles, 0, len(register) - 1)
+    gates = _recursive_helper(
+        register, processed_angles, 0, len(register) - 1, ctrls=ctrls
+    )
     gates.append(cirq.X.on(register[-1]).controlled_by(register[0]))
     return gates
 
@@ -63,19 +65,33 @@ def _process_rotation_angles(angles):
     return transformation @ angles
 
 
-def _recursive_helper(register, angles, rotation_index, level):
+def _recursive_helper(register, angles, rotation_index, level, ctrls=([], [])):
     gates = []
 
     if level == 1:
-        gates.append(cirq.ry(np.pi * angles[rotation_index]).on(register[-1]))
+        gates.append(
+            cirq.ry(np.pi * angles[rotation_index])
+            .on(register[-1])
+            .controlled_by(*ctrls[0], control_values=ctrls[1])
+        )
         gates.append(cirq.X.on(register[-1]).controlled_by(register[-2]))
-        gates.append(cirq.ry(np.pi * angles[rotation_index + 1]).on(register[-1]))
+        gates.append(
+            cirq.ry(np.pi * angles[rotation_index + 1])
+            .on(register[-1])
+            .controlled_by(*ctrls[0], control_values=ctrls[1])
+        )
 
     else:
-        gates += _recursive_helper(register, angles, rotation_index, level - 1)
+        gates += _recursive_helper(
+            register, angles, rotation_index, level - 1, ctrls=ctrls
+        )
         gates.append(cirq.X.on(register[-1]).controlled_by(register[-level - 1]))
         gates += _recursive_helper(
-            register, angles, rotation_index + (1 << (level - 1)), level - 1
+            register,
+            angles,
+            rotation_index + (1 << (level - 1)),
+            level - 1,
+            ctrls=ctrls,
         )
 
     return gates
