@@ -8,16 +8,14 @@ Here, a contrived Hamiltonian is used to show the step-by-step procedure of LOBE
 \end{equation}
 
 \textbf{Step 1: Rescale Hamiltonian from bosonic terms:}
-Via equation \ref{bose coeff rescale}, $\frac{1}{(\Omega + 1)^{K/2}} = \frac{1}{4}$ because $K = 2$ (there are at most 2 bosonic creation/annihilation terms, which in this case come from the first term). Now the Hamiltonian becomes 
+To rescale the coefficients of the Hamiltonian due to the presence of bosonic operators, equation \ref{bose coeff rescale}, is used. If we let $\alpha_0 = 1, \alpha_1 = 2, \alpha_2 = 3$, we obtain  $\alpha_0^* = 1,\alpha_1^* = 2, \alpha_2^* = 0.75$ since $K = 2$. Thus,
 \begin{equation}
-    H^* = \frac{1}{4}H
+    H^* = b_0^\dagger d_0(a_0^\dagger)^2 + 2 d_0^\dagger a_0^\dagger a_0+0.75 b_0^\dagger d_0^\dagger d_0
 \end{equation}
 
-\textbf{Step 2: Rescale coefficients of Hamiltonian (assuming USP):} In order to load the Hamiltonian coefficients into the circuit via the $R_y$ gates in the \textit{coefficient} oracle, we need to ensure the coefficients are $\leq 1$. This is done via equation \ref{usp scale}. 
-In this case, $L = 3$ since there are three terms, and $\alpha^* = 3$, the largest term coefficient. Thus, $\lambda_{usp} = 12$. Now, via \ref{Hbar scale}, the fully rescaled Hamiltonian is:
-\begin{equation}
-    \bar{H} = \frac{1}{48}b_0^\dagger d_0(a_0^\dagger)^2 + \frac{1}{24} d_0^\dagger a_0^\dagger a_0+\frac{1}{16} b_0^\dagger d_0^\dagger d_0
-\end{equation}
+\textbf{Step 2: Rescale coefficients of Hamiltonian (assuming USP):} In order to load the Hamiltonian coefficients into the circuit via the $R_y$ gates in the \textit{coefficient} oracle, we need to ensure the coefficients are $\leq 1$. This is done by dividing each coefficient of $\tilde{H}$ by the maximum coefficient, $\max{|\tilde{\alpha}_l|}$. Thus, the $R_y$-\textit{gate} coefficients are $\frac{1}{2}, 1, \frac{3}{8}$ respectively.
+
+To get the total rescaling factory of the Hamiltonian, equation \ref{usp scale} is used. In this case, $L = 3$ since there are three terms, and $\alpha^* = 2$, the largest term coefficient of $\tilde{H}$. Thus, $\lambda_{usp} = 2^{\lceil \log_2{3} \rceil}\alpha^* = 8$. 
 
 \textbf{Step 3: Obtain the corresponding LOBE circuit:} In the style of figure \ref{fig:select-normal-ordering}, for this particular Hamiltonian, the three \textit{select} oracle unitaries: $U_{T_0}, U_{T_1}, U_{T_2}$ appear as:
 \begin{figure}[h]
@@ -42,8 +40,8 @@ In this case, $L = 3$ since there are three terms, and $\alpha^* = 3$, the large
 \end{align}
 Thus, the total cost of the \textit{select} oracle is $C_{\textit{select}} = (8, 3, 13, 13)$. 
 
-\textbf{Step 5: Post-process the eigenvalues:} After obtaining the full block-encoding of the Hamiltonian, the eigenvalues (which can be obtained via phase estimation) must be post-processed. This is because the eigenvalues of the block encoded Hamiltonian will correspond to $\bar{H}$, \textit{not} $H$ (the original problem Hamiltonian).
-For this example, $\bar{H} = \frac{1}{48}H$, so if eigenvalues of the block Hamiltonian are obtained as $\bar{E}_i$, then $\bar{E_i} = \frac{1}{48}E_i$. Thus,
+\textbf{Step 5: Post-process the eigenvalues:} After obtaining the full block-encoding of the Hamiltonian, the eigenvalues (which can be obtained via phase estimation) must be post-processed. This is because the eigenvalues of the block encoded Hamiltonian will correspond to $H^*$, \textit{not} $H$ (the original problem Hamiltonian).
+For this example, the matrix read off in the upper-left block of the overall circuit unitary is $H/32$, since the final rescaling factor will be $2^{\lceil \log_2{L} \rceil}$, so if eigenvalues of the block Hamiltonian are obtained as $\bar{E}_i$, then $\bar{E_i} = \frac{1}{32}E_i$. Thus,
 \begin{equation}
-    E_i = 48\bar{E}_i
+    E_i = 32\bar{E}_i
 \end{equation}

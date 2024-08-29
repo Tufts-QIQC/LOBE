@@ -68,17 +68,17 @@ Different terms within the Hamiltonian may have different numbers of bosonic ope
 In order to guarantee that this rescaling is consistent across the different terms, we can classically preprocess the coefficients in the Hamiltonian such that after the block-encoding is applied, all output states have the same bosonic rescaling factor.
 If we define $K \equiv \max_l{k_l}$, then we can define the preprocessed coeffieints as:
 \begin{equation}
-    \alpha_l \rightarrow \frac{\alpha_l}{(\Omega + 1)^{(K - k_l)/2}} \equiv \alpha_l^*
+    \label{bose coeff rescale}
+    \alpha_l \rightarrow \frac{\alpha_l}{(\Omega + 1)^{(K - k_l)/2}} \equiv \tilde{\alpha_l}
 \end{equation}
-where the coefficients $\alpha_l^*$ are the rescaled coefficients of the terms.
+where the coefficients $\tilde{\alpha_l}$ are the rescaled coefficients of the terms.
 
 % This preprocessing means that after the block-encoding is applied, all output states will be rescaled by a coefficient of $(\Omega + 1)^{(K)/2}$.
 Therefore, the Hamiltonian with rescaled coefficients is given by:
 \begin{equation}
-    \label{bose coeff rescale}
-    H^* = \sum_{l=0}^{L-1} \alpha_l^* \Tilde{T}_l
+    \tilde{H} = \sum_{l=0}^{L-1} \tilde{\alpha_l} \Tilde{T}_l
 \end{equation}
-where $H^*$ is the rescaled Hamiltonian and the bosonic operators are replaced with $\Tilde{a}_i^\dagger$ and $\Tilde{a}_i$ the action defined by Equations \ref{eq:bosonic-ops-altered}.
+where $\tilde{H}$ is the rescaled Hamiltonian and the bosonic operators are replaced with $\Tilde{a}_i^\dagger$ and $\Tilde{a}_i$ the action defined by Equations \ref{eq:bosonic-ops-altered}, such that $\tilde{T} \equiv T(b_i, b_i^\dagger, d_i, d_i^\dagger, \tilde{a}_i, \tilde{a}_i^\dagger)$.
 
 \subsection{Circuit Construction}
 \label{subsec:circuit}
@@ -124,7 +124,7 @@ The $\textit{Prepare}$ oracle is applied to the index register to prepare a supe
 
 The simplest implementation of the $\textit{Prepare}$ oracle is to prepare a uniform superposition over the computational basis states using a series of Hadamard gates on each qubit in the register.
 The rescaling condition for this implementation is that the coefficients must be rescaled such that they all have magnitude $\leq 1$.
-Let the largest coefficient magnitude be given by $\alpha^* = \max{|\alpha_l|}$.
+Let the largest coefficient magnitude be given by $\alpha^* = \max{|\tilde{\alpha_l}|}$.
 Then, this rescaling imposes a constant rescaling factor of $\alpha^*$ and we refer to these rescaled coeffifients as $\Tilde{\alpha_l}$.
 An additional rescaling factor of $2^{\lceil \log_2{L} \rceil}$ from the uniform superposition results in an overall rescaling of the Hamiltonian by a constant factor of:
 \begin{equation}
@@ -134,7 +134,7 @@ An additional rescaling factor of $2^{\lceil \log_2{L} \rceil}$ from the uniform
 such that the rescaled Hamiltonian is given by:
 \begin{equation}
     \label{Hbar scale}
-    \bar{H} = \frac{H^*}{\lambda_{usp}}
+    H^* = \frac{\tilde{H}}{\lambda_{usp}}
 \end{equation}
 
 The quantum resource requirements of this implementation of $\textit{Prepare}$ are negligible as no ancillae are required and only Clifford operations (Hadamards) are performed.
@@ -149,7 +149,7 @@ The coefficients are first rescaled by their $L1-norm$:
 \end{equation}
 and the rescaled Hamiltonian is given by:
 \begin{equation}
-    \bar{H} = \frac{H^*}{\lambda_{asp}}
+    H^* = \frac{\tilde{H}}{\lambda_{asp}}
 \end{equation}
 
 It should be noted that $\lambda_{asp} \leq \lambda_{usp}$ \ws{with equality when the coefficients of the terms all have equal magnitude (confirm this)} \ws{and give some analytical proof for this bound}.
@@ -178,7 +178,7 @@ It should be noted that these ancillae, which will be returned to $\ket{0}$ afte
 
 Overall, after the bosonic coefficient rescaling is applied and one of these $Prepare$ oracle compilations is chosen and the coefficients rescaled again, the overall rescaling of the Hamiltonian that is block-encoded is given by:
 \begin{equation}
-    \bar{H} = \frac{H}{(\Omega + 1)^{K/2} \lambda}
+    H^* = \frac{H}{(\Omega + 1)^{K/2} \lambda}
 \end{equation}
 with $\lambda$ being either $\lambda_{usp}$ or $\lambda_{asp}$.
 
