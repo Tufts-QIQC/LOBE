@@ -104,26 +104,6 @@ Likewise, bosonic annihilation operators lower the occupancy of the mode being a
 \end{equation}
 Similarly, if the occupancy of the state is zero before the operator is applied, then the amplitude is zeroed-out.
 
-\subsection{Commutation Rules, Normal and Canonical Ordering}
-\label{subsec:commutation}
-It is important to mention the commutation relations between the different types of ladder operators. They are given as:
-
-\begin{align*}
-    &\{b_i, b_j^\dagger\} = \{d_i, d_j^\dagger\} = [a_i, a_j^\dagger] = \delta_{ij}\\
-    & [b_i, b_j] = [b_i^\dagger, b_j^\dagger] = 0 \\
-    & [d_i, d_j] = [d_i^\dagger, d_j^\dagger] = 0 \\
-    & [a_i, a_j] = [a_i^\dagger, a_j^\dagger] = 0 \\
-    & \{b_i, d_j\} = \{b_i^\dagger, d_j\} = \{b_i, d_j^\dagger\} = \{b_i^\dagger, d_j^\dagger\} = 0\\
-    & [f(a_i), f(b_i, d_j)] = 0
-\end{align*}
-
-LOBE requires each product of ladder operators to be \emph{canonically ordered}. Canonical ordering in quantum field theory is an adaptation of normal ordering. Given a product of ladder operators, the normal ordered version of the operator is that in which all creation operators are to the left of annihilation operators.
-For example, the normal-ordered version of the operator $a_3 b_4^\dagger$ is $b_4^\dagger a_3$. We define a canonically ordered operator as an operator which is normal ordered among the individual particle types, but not necessarily overall. An example of this is $a_1^\dagger b_2 b_1^\dagger$ which canonically-ordered is $b_1^\dagger b_2 a_1^\dagger$.
-
-When canonically (or normal) ordering a product of ladder operators, one cannot just push all creation operators to the left and annihilation operators to the right, as this will change the nature of the operator in general. When ordering a product, the commutation rules must be taken into account to ensure the operator after normal ordering is the same operator.
-For example, given $b_2 b_1 b_1^\dagger$, the normal ordered version of this operator is $b_2 \left(\mathds{1} - b_1^\dagger b_1 \right) = b_2 + b_1^\dagger b_1 b_2$.
-
-
 \subsection{Observables}
 \label{subsec:observables}
 
@@ -135,44 +115,72 @@ We define a \textit{term} ($T$) as a product of ladder operators that can act on
 \end{equation}
 where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^\dagger, d_i, d_i^\dagger, a_i, a_i^\dagger\}$.
 
-The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules described in \ref{subsec:commutation}.
-In this work, we will have a preference for \textit{normal ordering} \gus{\textit{canonically ordering}} the operators to obey the following structure:
+The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules.
+The commutation rules are given as:
+
 \begin{equation}
-    T = \Big( \prod_i (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (B_i)^{\delta_{B_i}} (b_i)^{\delta_{b_i}} \Big) \Big( \prod_i (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (D_i)^{\delta_{D_i}} (d_i)^{\delta_{d_i}} \Big)   \Big( \prod_i (a_i^\dagger)^R(a_i)^S \Big) 
+    \label{eq:commutation}
+    \begin{split}
+        &\{b_i, b_j^\dagger\} = \{d_i, d_j^\dagger\} = [a_i, a_j^\dagger] = \delta_{ij}\\
+        & [b_i, b_j] = [b_i^\dagger, b_j^\dagger] = 0 \\
+        & [d_i, d_j] = [d_i^\dagger, d_j^\dagger] = 0 \\
+        & [a_i, a_j] = [a_i^\dagger, a_j^\dagger] = 0 \\
+        & \{b_i, d_j\} = \{b_i^\dagger, d_j\} = \{b_i, d_j^\dagger\} = \{b_i^\dagger, d_j^\dagger\} = 0\\
+        & [f(a_i), f(b_i, d_j)] = 0
+    \end{split}
 \end{equation}
-\gus{Can we order this as fermions, antifermions, bosons, rather than the other way around? That is the style we have been using (they commute so it's technically the same).}
-where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $P$, $R$, and $S$ are integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on that particular bosonic mode.
-The operators $A_i$, $D_i$, and $B_i$ denote occupation operators acting on the $i^{th}$ bosonic, antifermionic, and fermionic modes respectively.
 
-\ws{Describe number/occupation operators acting on fermions/antifermions and bosons and rewrite previous equation for $T$ including these operators.}
+Given a term, the normal ordered form is that in which all creation operators are to the left of annihilation operators.
+For example, the normal-ordered form of the term $a_3 b_4^\dagger$ is $b_4^\dagger a_3$.
 
-\subsubsection{Linear Combinations of Terms}
+In this work, we will express terms in their \emph{canonically ordered} form.
+Canonical ordering in quantum field theory is an adaptation of normal ordering.
+We say a term is \textit{canonically ordered} when all fermionic ladder operators appear in their normal ordered form on the left, followed by all normal ordered antifermionic operators, and then finally all normal ordered bosonic operators:
+\begin{equation}
+    T = \Big( \prod_i (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (b_i)^{\delta_{b_i}} \Big) \Big( \prod_i (d_i^\dagger)^{\delta_{d_i}^{\dagger}} (d_i)^{\delta_{d_i}} \Big)   \Big( \prod_i (a_i^\dagger)^{R_i}(a_i)^{S_i} \Big) 
+\end{equation}
+where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $R$ and $S$ are integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on the $i^{th}$ bosonic mode.
 
-We can write Hamiltonians (or observables) in the form of linear combinations of terms:
+When ordering a term, the commutation rules (Eq. \ref{eq:commutation}) must be taken into account.
+These commutation relations may introduce more terms when a term is reordered, however, we often find that the canoncial ordering reduces the number of terms.
+
+
+Hamiltonians (or observables) can be written in the form of linear combinations of terms:
 \begin{equation}
     \label{eq:lclo}
     H = \sum_{l=0}^{L-1} \alpha_l T_l
 \end{equation}
-where $L$ is the total number of terms and $\alpha_l$ is a real-valued coefficient associated with the term $T_l$.
+where $L$ is the total number of terms and $\alpha_l$ are real-valued coefficients associated with the terms $T_l$.
 
 
 \subsection{Encoding}
 \label{subsec:encoding}
-In order to map information about the multiparticle system to Fock states (and thus qubit states), an encoding must be decided. Due to the different statistics obeyed by fermions and bosons, these encodings will be different for these different types of particles. 
+In order to map information about the multiparticle system to Fock states (and thus qubit states), an encoding of quantum states must be chosen.
 
-The fermionic encoding used is the Jordan-Wigner encoding \cite{jordan-wigner}. The map between a Fock state to a qubit state is given as 
+In this work, the encoding that is used for the occupation of the fermionic modes is identical to the Jordan-Wigner encoding \cite{jordan-wigner}.
+The map between a Fock state to a qubit state is given as 
 \begin{equation}
-    \ket{n_I, \dots, n_1, n_0} \rightarrow \ket{q_I, \dots, q_1, q_0}
+    \ket{n_{I_b}, \dots, n_{1_b}, n_{0_b}} \rightarrow \ket{q_{I_b}, \dots, q_{1_b}, q_{0_b}}
 \end{equation}
-where $n_i = q_i \in [0, 1]$ depending on if mode $i$ is occupied or not. Thus, mapping a state to a qubit register corresponds to intializing qubits in the $\ket{0}$ or $\ket{1}$ state for each wire in the register. 
+where $n_{i_b} = q_{i_b} \in [0, 1]$ depending on if mode $i$ is occupied or not.
+The encoding scheme is the same for antifermions.
+In total, the number of qubits required for the fermionic and antifermionic susbsystems is: $Q_{\psi_b} = I_b$ and $Q_{\psi_d} = I_d$.
 
-Alternatively, for bosons, the encoding is slightly more complicated due to the absence of the Pauli exclusion principle. For bosons, we map a Fock state to a qubit register with $n_{\text{qubits}} = I \lceil \log_2{\Omega}\rceil$.
-This is because for each mode $\lambda_i \in [0, I]$, we must encode the corresponding occupancy of bosons in this mode in binary. 
+The encoding scheme for bosons must allow for occupancies in the range $[0, \Omega]$ due to the absence of the Pauli exclusion principle.
+For bosons, a Fock state of a single mode stores the occupancy in binary notation: 
+\begin{equation}
+    \ket{n_{i_a}} \rightarrow \ket{b_j, b_{j-1}, ..., b_0}
+\end{equation}
+where $j$ runs from $0$ to $\lceil \log_2{\Omega} \rceil - 1$ and the values of $b_j$ are given by the binary representation of $n_{i_a}$.
+Each bosonic mode requires $\lceil \log_2{\Omega} \rceil$ qubits.
+For each mode ($i_a \in [0, I_a)$), we must encode the corresponding occupancy of this mode in binary. 
+Therefore, the number of qubits required for the bosonic subsystem is: $Q_{\psi_a} = I_a \lceil \log_2{\Omega} \rceil$.
 
-Thus, for a general Fock state with fermions, antifermions, and bosons, the total number of qubits needed to map this state to a qubit register is $I_{\text{fermi}} + I_{\text{antifermi}} + I_{\text{bose}} \lceil \log_2{\Omega}\rceil$.
-Throughout this work, we assume that the mode cutoffs are the same for each type of particle $I_{\text{fermi}} + I_{\text{antifermi}} + I_{\text{bose}} \equiv I$.
-
-%Here we'll discuss how we encode the physical states we are interested in terms of qubits/registers.
+Thus, for a general Fock state with fermions, antifermions, and bosons, the total number of qubits needed to encode this state in a qubit register is:
+\begin{equation}
+    Q_{sys} = I_b + I_d + I_a \lceil \log_2{\Omega} \rceil
+\end{equation}
+Throughout this work, for simplicity we assume that the number of modes is the same for each type of particle ($I_b = I_d = I_a \equiv I)$, though this limitation is not required.
 
 \ws{Question: do we want to also cost-out the unary encoding or just the "compact" encoding that we've been primarily working with?}
 
