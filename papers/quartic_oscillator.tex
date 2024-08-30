@@ -171,14 +171,15 @@ after one Gaussian elimination step is one row and column smaller:
 \end{equation}
 
 There comes a point when using this recurssion relation where this approximation in \ref{approx} starts to break down. This becomes obvious when examining the spectrum of the matrix with a large cutoff $N \gg 0$ vs. the matrix after $k = N - n$ renormalization steps in figure \ref{qosc_renorm_eigvals}.
-The grey line serves as both an error threshold and a linear threshold in which values below are not $\log(\tilde{E}_i - E_i)$, but rather just $\tilde{E}_i - E_i$. As an error threshold it says that for an eigenvalue of the renormalized Hamiltonian to be accurate within some $\varepsilon$, this is how small $n$ can be using Gaussian elimination.
+Note that there is a linear threshold on this figure at $10^{-9}$ to remove noise for very small energy differences at larger $n$. 
+Another take
 
-For the purposes of this work, figure \ref{qosc_renorm_eigvals} shows that renormalizing the quartic oscillator Hamiltonian down to a $4 \times 4$ Hamiltonian, the ground state eigenvalue will be accurate up to $1\%$ error. 
+For the purposes of this work, figure \ref{qosc_renorm_eigvals} shows that in renormalizing the quartic oscillator Hamiltonian down to a $4 \times 4$ Hamiltonian, the ground state eigenvalue will be accurate up to $1\%$ error. 
 
 \begin{figure}
   \label{qosc_renorm_eigvals}
   \includegraphics[width = \linewidth]{figures/qosc_renorm_eigvals.png}
-  \caption{Difference between the renormalized Hamiltonian spectrum with the continuum limit Hamiltonian spectrum}
+  \caption{Difference between the renormalized Hamiltonian spectrum and the continuum limit Hamiltonian spectrum}
 \end{figure}
 
 \subsection{Renormalized Hamiltonian}
