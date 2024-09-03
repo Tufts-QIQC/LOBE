@@ -1,6 +1,6 @@
 import cirq
 import numpy as np
-from .incrementer import add_classical_value
+from .addition import add_classical_value_incrementers
 from openparticle import (
     BosonOperator,
     FermionOperator,
@@ -217,7 +217,7 @@ def _apply_term(
                 ctrls=ctrls,
             )
             bosonic_counter += 1
-            gates += add_classical_value(
+            gates += add_classical_value_incrementers(
                 system.bosonic_system[mode],
                 creation_exponent - annihilation_exponent,
                 clean_ancillae,
