@@ -49,7 +49,7 @@ def add_lobe_oracle(
         numerics["right_elbows"] = 0
         numerics["ancillae_tracker"] = []
         numerics["toffolis"] = 0
-        numerics["controlled_rotations"] = 0
+        numerics["rotations"] = 0
 
     all_gates = []
     clean_ancillae_counter = 0
@@ -181,7 +181,7 @@ def add_lobe_oracle(
                     .controlled_by(*index_ctrls[0], control_values=index_ctrls[1])
                 )
             )
-            numerics["controlled_rotations"] += 1
+            numerics["rotations"] += 2
 
         # Right-elbow to uncompute index of term
         circuit_ops, _ = _get_index_register_ctrls(
@@ -246,7 +246,7 @@ def _apply_term(
             )
             bosonic_counter += 1
             # Using decomposed multiplexing
-            numerics["controlled_rotations"] += 1 << len(system.bosonic_system[mode])
+            numerics["rotations"] += (1 << len(system.bosonic_system[mode])) + 2
             gates += add_classical_value_incrementers(
                 system.bosonic_system[mode],
                 creation_exponent - annihilation_exponent,
