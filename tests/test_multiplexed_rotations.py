@@ -8,10 +8,12 @@ from copy import copy
 def _get_explicit_multiplexed_rotation_circuit(angles, is_controlled):
     circuit = cirq.Circuit()
     number_of_index = int(np.ceil(np.log2(len(angles))))
-    index_register = [cirq.LineQubit(i) for i in range(number_of_index)]
-    rotation_qubit = cirq.LineQubit(number_of_index)
+    counter = 0
     if is_controlled:
-        ctrl = cirq.LineQubit(number_of_index + 1)
+        ctrl = cirq.LineQubit(0)
+        counter = 1
+    index_register = [cirq.LineQubit(counter + i) for i in range(number_of_index)]
+    rotation_qubit = cirq.LineQubit(counter + number_of_index)
 
     for index in range(len(angles)):
         index_register_control_values = [
@@ -32,29 +34,51 @@ def _get_explicit_multiplexed_rotation_circuit(angles, is_controlled):
     return circuit
 
 
-def _get_decomposed_multiplexed_rotation_circuit(angles, is_controlled):
+def _get_decomposed_multiplexed_rotation_circuit(
+    angles, is_controlled, with_ancilla=False
+):
     number_of_index = int(np.ceil(np.log2(len(angles))))
     circuit = cirq.Circuit()
-    register = [cirq.LineQubit(i) for i in range(number_of_index + 1)]
     ctrls = ([], [])
+    clean_ancillae = []
+    counter = 0
     if is_controlled:
-        ctrls = ([cirq.LineQubit(number_of_index + 1)], [1])
+        ctrls = ([cirq.LineQubit(0)], [1])
+        counter = 1
+        if with_ancilla:
+            clean_ancillae = [cirq.LineQubit(0)]
+            ctrls = ([cirq.LineQubit(1)], [1])
+            counter = 2
+    register = [cirq.LineQubit(i + counter) for i in range(number_of_index + 1)]
 
     circuit.append(
-        get_decomposed_multiplexed_rotation_circuit(register, angles, ctrls=ctrls)
+        get_decomposed_multiplexed_rotation_circuit(
+            register, angles, clean_ancillae=clean_ancillae, ctrls=ctrls
+        )
     )
 
     return circuit
 
 
+@pytest.mark.parametrize("with_ancilla", [False, True])
 @pytest.mark.parametrize("is_controlled", [False, True])
 @pytest.mark.parametrize("number_of_angles", np.random.randint(1, 1 << 8, size=20))
-def test_multiplexed_rotation_circuit(number_of_angles, is_controlled):
+def test_multiplexed_rotation_circuit(number_of_angles, is_controlled, with_ancilla):
     angles = np.random.uniform(-1, 1, size=number_of_angles)
     undecomposed_circuit = _get_explicit_multiplexed_rotation_circuit(
         angles, is_controlled
     )
     decomposed_circuit = _get_decomposed_multiplexed_rotation_circuit(
-        angles, is_controlled
+        angles, is_controlled, with_ancilla=with_ancilla
     )
-    assert np.allclose(undecomposed_circuit.unitary(), decomposed_circuit.unitary())
+
+    if with_ancilla and is_controlled:
+        num_non_ancilla_qubits = len(decomposed_circuit.all_qubits()) - 1
+        assert np.allclose(
+            undecomposed_circuit.unitary(),
+            decomposed_circuit.unitary()[
+                : 1 << num_non_ancilla_qubits, : 1 << num_non_ancilla_qubits
+            ],
+        )
+    else:
+        assert np.allclose(undecomposed_circuit.unitary(), decomposed_circuit.unitary())
