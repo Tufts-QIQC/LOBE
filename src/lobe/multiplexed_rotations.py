@@ -2,14 +2,17 @@ import numpy as np
 import cirq
 
 
-def get_decomposed_multiplexed_rotation_circuit(register, angles, ctrls=([], [])):
+def get_decomposed_multiplexed_rotation_circuit(
+    register, angles, clean_ancillae=[], ctrls=([], [])
+):
     """Get the operations to add multiplexed rotations based on arXiv:0407010.
 
     Args:
         register (cirq.LineQubit): The qubit register on which the multiplexed rotations occur on.
             The qubit at index -1 is assumed to be the qubit that the rotations are applied upon.
         angles (np.array): A list of the rotation angles (alpha_i in arXiv:0407010)
-
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
     Returns:
         - List[cirq.Moment]: A list of the circuit operations required for implementing multiplexed
             rotations
@@ -18,9 +21,39 @@ def get_decomposed_multiplexed_rotation_circuit(register, angles, ctrls=([], [])
     processed_angles = _process_rotation_angles(angles)
 
     gates = _recursive_helper(
-        register, processed_angles, 0, len(register) - 1, ctrls=ctrls
+        register,
+        processed_angles,
+        0,
+        len(register) - 1,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
     )
-    gates.append(cirq.X.on(register[-1]).controlled_by(register[0]))
+
+    if (len(ctrls[0]) > 0) and (len(clean_ancillae) > 0):
+        gates.append(
+            cirq.X.on(clean_ancillae[0]).controlled_by(
+                register[0], *ctrls[0], control_values=[1] + ctrls[1]
+            )
+        )
+        gates.append(cirq.X.on(register[-1]).controlled_by(clean_ancillae[0]))
+        gates.append(
+            cirq.X.on(clean_ancillae[0]).controlled_by(
+                register[0], *ctrls[0], control_values=[1] + ctrls[1]
+            )
+        )
+    else:
+        gates.append(
+            cirq.X.on(register[-1]).controlled_by(
+                register[0], *ctrls[0], control_values=[1] + ctrls[1]
+            )
+        )
+
+    if len(ctrls[0]) > 0:
+        gates.append(
+            cirq.ry(-np.pi * sum(processed_angles))
+            .on(register[-1])
+            .controlled_by(*ctrls[0], control_values=[not val for val in ctrls[1]])
+        )
     return gates
 
 
@@ -65,32 +98,68 @@ def _process_rotation_angles(angles):
     return transformation @ angles
 
 
-def _recursive_helper(register, angles, rotation_index, level, ctrls=([], [])):
+def _recursive_helper(
+    register, angles, rotation_index, level, clean_ancillae=[], ctrls=([], [])
+):
     gates = []
 
     if level == 1:
-        gates.append(
-            cirq.ry(np.pi * angles[rotation_index])
-            .on(register[-1])
-            .controlled_by(*ctrls[0], control_values=ctrls[1])
-        )
-        gates.append(cirq.X.on(register[-1]).controlled_by(register[-2]))
-        gates.append(
-            cirq.ry(np.pi * angles[rotation_index + 1])
-            .on(register[-1])
-            .controlled_by(*ctrls[0], control_values=ctrls[1])
-        )
+        gates.append(cirq.ry(np.pi * angles[rotation_index]).on(register[-1]))
+
+        if (len(ctrls[0]) > 0) and (len(clean_ancillae) > 0):
+            gates.append(
+                cirq.X.on(clean_ancillae[0]).controlled_by(
+                    register[-2], *ctrls[0], control_values=[1] + ctrls[1]
+                )
+            )
+            gates.append(cirq.X.on(register[-1]).controlled_by(clean_ancillae[0]))
+            gates.append(
+                cirq.X.on(clean_ancillae[0]).controlled_by(
+                    register[-2], *ctrls[0], control_values=[1] + ctrls[1]
+                )
+            )
+        else:
+            gates.append(
+                cirq.X.on(register[-1])
+                .controlled_by(register[-2])
+                .controlled_by(*ctrls[0], control_values=ctrls[1])
+            )
+        gates.append(cirq.ry(np.pi * angles[rotation_index + 1]).on(register[-1]))
 
     else:
         gates += _recursive_helper(
-            register, angles, rotation_index, level - 1, ctrls=ctrls
+            register,
+            angles,
+            rotation_index,
+            level - 1,
+            clean_ancillae=clean_ancillae,
+            ctrls=ctrls,
         )
-        gates.append(cirq.X.on(register[-1]).controlled_by(register[-level - 1]))
+
+        if (len(ctrls[0]) > 0) and (len(clean_ancillae) > 0):
+            gates.append(
+                cirq.X.on(clean_ancillae[0]).controlled_by(
+                    register[-level - 1], *ctrls[0], control_values=[1] + ctrls[1]
+                )
+            )
+            gates.append(cirq.X.on(register[-1]).controlled_by(clean_ancillae[0]))
+            gates.append(
+                cirq.X.on(clean_ancillae[0]).controlled_by(
+                    register[-level - 1], *ctrls[0], control_values=[1] + ctrls[1]
+                )
+            )
+        else:
+            gates.append(
+                cirq.X.on(register[-1])
+                .controlled_by(register[-level - 1])
+                .controlled_by(*ctrls[0], control_values=ctrls[1])
+            )
         gates += _recursive_helper(
             register,
             angles,
             rotation_index + (1 << (level - 1)),
             level - 1,
+            clean_ancillae=clean_ancillae,
             ctrls=ctrls,
         )
 

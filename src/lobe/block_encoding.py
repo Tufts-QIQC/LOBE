@@ -7,6 +7,7 @@ from openparticle import (
     AntifermionOperator,
 )
 from ._utils import get_parsed_dictionary
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 
 
 def add_lobe_oracle(
@@ -242,6 +243,7 @@ def _apply_term(
                 system.bosonic_system[mode],
                 creation_exponent,
                 annihilation_exponent,
+                clean_ancillae=clean_ancillae,
                 ctrls=ctrls,
             )
             bosonic_counter += 1
@@ -372,6 +374,7 @@ def _add_bosonic_rotations(
     bosonic_mode_register,
     creation_exponent=0,
     annihilation_exponent=0,
+    clean_ancillae=[],
     ctrls=([], []),
 ):
     """Add rotations to pickup bosonic coefficients corresponding to a series of ladder operators (assumed
@@ -402,44 +405,36 @@ def _add_bosonic_rotations(
     )
 
     # Multiplexing over computational basis states of mode register that will not be zeroed-out
+    angles = []
     for particle_number in range(
-        annihilation_exponent,
+        0,
         min(
             maximum_occupation_number + 1,
             maximum_occupation_number + annihilation_exponent - creation_exponent + 1,
         ),
     ):
-        # Get naive controls
-        occupation_control_values = [
-            int(i)
-            for i in format(particle_number, f"#0{2+len(bosonic_mode_register)}b")[2:]
-        ]
-
-        # Classically compute coefficient that should appear
-        intended_coefficient = 1
-        for power in range(annihilation_exponent):
-            intended_coefficient *= np.sqrt(
-                (particle_number - power) / (maximum_occupation_number + 1)
-            )
-        for power in range(creation_exponent):
-            intended_coefficient *= np.sqrt(
-                (particle_number - annihilation_exponent + power + 1)
-                / (maximum_occupation_number + 1)
-            )
-
-        # Rotate ancilla by theta to pickup desired coefficient in the encoded subspace (|0>)
-        gates.append(
-            cirq.Moment(
-                cirq.ry(2 * np.arcsin(-1 * intended_coefficient))
-                .on(rotation_qubit)
-                .controlled_by(
-                    *bosonic_mode_register,
-                    *ctrls[0],
-                    control_values=occupation_control_values + ctrls[1],
+        if particle_number < annihilation_exponent:
+            angles.append(0)
+        else:
+            # Classically compute coefficient that should appear
+            intended_coefficient = 1
+            for power in range(annihilation_exponent):
+                intended_coefficient *= np.sqrt(
+                    (particle_number - power) / (maximum_occupation_number + 1)
                 )
-            )
-        )
+            for power in range(creation_exponent):
+                intended_coefficient *= np.sqrt(
+                    (particle_number - annihilation_exponent + power + 1)
+                    / (maximum_occupation_number + 1)
+                )
+            angles.append(2 * np.arcsin(-1 * intended_coefficient) / np.pi)
 
+    gates += get_decomposed_multiplexed_rotation_circuit(
+        bosonic_mode_register + [rotation_qubit],
+        angles,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
     return gates
 
 
