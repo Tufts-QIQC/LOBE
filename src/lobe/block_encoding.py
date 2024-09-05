@@ -50,6 +50,7 @@ def add_lobe_oracle(
         numerics["right_elbows"] = 0
         numerics["ancillae_tracker"] = []
         numerics["rotations"] = 0
+        numerics["angles"] = []
 
     all_gates = []
     clean_ancillae_counter = 0
@@ -188,6 +189,8 @@ def add_lobe_oracle(
                 )
             )
             numerics["rotations"] += 2
+            numerics["angles"].append(-np.arccos(np.abs(term.coeff)))
+            numerics["angles"].append(np.arccos(np.abs(term.coeff)))
 
         # Right-elbow to uncompute index of term
         circuit_ops, _ = _get_index_register_ctrls(

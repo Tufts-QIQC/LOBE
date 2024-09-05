@@ -318,6 +318,7 @@ def add_prepare_circuit(
     gates.append(cirq.ry(np.pi * multiplexing_angles[0][0]).on(qubits[0]))
     if numerics is not None:
         numerics["rotations"] += 1
+        numerics["angles"].append(np.pi * multiplexing_angles[0][0])
 
     for qubit_index, angles in enumerate(multiplexing_angles[1:]):
         gates += get_decomposed_multiplexed_rotation_circuit(

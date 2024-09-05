@@ -60,8 +60,9 @@ def get_decomposed_multiplexed_rotation_circuit(
     if numerics is not None:
         # Using decomposed ctrld-multiplexed rotations
         numerics["rotations"] += (len(processed_angles)) + 2
-        if np.isclose(sum(processed_angles), 0):
-            numerics["rotations"] -= 2
+        numerics["angles"] += processed_angles.tolist()
+        numerics["angles"].append(np.pi * sum(processed_angles) / 2)
+        numerics["angles"].append(-np.pi * sum(processed_angles) / 2)
         numerics["left_elbows"] += len(processed_angles)
         numerics["right_elbows"] += len(processed_angles)
         numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] + 1)
