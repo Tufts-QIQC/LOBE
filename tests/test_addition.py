@@ -1,7 +1,11 @@
 import pytest
 import cirq
 import numpy as np
-from src.lobe.incrementer import add_incrementer, add_classical_value
+from src.lobe.addition import (
+    add_incrementer,
+    add_classical_value_incrementers,
+    add_classical_value_gate_efficient,
+)
 
 
 @pytest.mark.parametrize(
@@ -155,14 +159,23 @@ def test_binary_incrementer_is_properly_controlled(
 
 
 @pytest.mark.parametrize(
-    "number_of_qubits", [1, 2] + np.random.randint(3, 10 + 1, size=3).tolist()
+    "add_classical_value",
+    [add_classical_value_incrementers, add_classical_value_gate_efficient],
+)
+@pytest.mark.parametrize(
+    "number_of_qubits", [1, 2] + np.random.randint(3, 9, size=3).tolist()
 )
 @pytest.mark.parametrize("integer", np.random.randint(1, (1 << 10) + 1, size=3))
 @pytest.mark.parametrize("classical_value", np.random.randint(1, (1 << 10) + 1, size=3))
 @pytest.mark.parametrize("decrement", [True, False])
 @pytest.mark.parametrize("is_controlled", [True, False])
 def test_add_classical_value_on_basis_state(
-    number_of_qubits, integer, classical_value, decrement, is_controlled
+    add_classical_value,
+    number_of_qubits,
+    integer,
+    classical_value,
+    decrement,
+    is_controlled,
 ):
     integer = integer % (1 << number_of_qubits)
     if decrement:
@@ -182,22 +195,21 @@ def test_add_classical_value_on_basis_state(
     if is_controlled:
         ctrls = ([cirq.LineQubit(0)], [1])
         indexor += 1
-    ancilla = []
-    if number_of_qubits > 2:
-        ancilla = [cirq.LineQubit(i + indexor) for i in range(number_of_qubits - 2)]
-        indexor += number_of_qubits - 2
+    ancilla = [cirq.LineQubit(i + indexor) for i in range(100)]
+    indexor += 100
     qubits = [cirq.LineQubit(i + indexor) for i in range(number_of_qubits)]
     circuit.append(cirq.I.on_each(*ctrls[0]))
     circuit.append(cirq.I.on_each(*qubits))
-    circuit.append(cirq.I.on_each(*ancilla))
+    # circuit.append(cirq.I.on_each(*ancilla))
     circuit += add_classical_value(qubits, classical_value, ancilla, ctrls=ctrls)
 
     initial_state = np.zeros(1 << number_of_qubits)
     initial_state[integer] = 1
-    if number_of_qubits > 2:
-        initial_ancilla_state = np.zeros(1 << (number_of_qubits - 2))
-        initial_ancilla_state[0] = 1
-        initial_state = np.kron(initial_ancilla_state, initial_state)
+    initial_ancilla_state = np.zeros(
+        1 << len(circuit.all_qubits()) - len(ctrls[0]) - len(qubits)
+    )
+    initial_ancilla_state[0] = 1
+    initial_state = np.kron(initial_ancilla_state, initial_state)
     if is_controlled:
         initial_control_state = np.zeros(2)
         initial_control_state[0] = 1
