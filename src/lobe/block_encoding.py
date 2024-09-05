@@ -49,12 +49,12 @@ def add_lobe_oracle(
         numerics["left_elbows"] = 0
         numerics["right_elbows"] = 0
         numerics["ancillae_tracker"] = []
-        numerics["toffolis"] = 0
         numerics["rotations"] = 0
 
     all_gates = []
     clean_ancillae_counter = 0
 
+    # cost of ctrld-multiplexing over the index register
     numerics["left_elbows"] += len(operators)
     numerics["right_elbows"] += len(operators)
     numerics["ancillae_tracker"].append(len(index_register))
@@ -71,7 +71,7 @@ def add_lobe_oracle(
         control_qubit = clean_ancillae[clean_ancillae_counter]
         clean_ancillae_counter += 1
 
-        # Left-elbow based on index of term
+        # Left-elbow based on index of term, gate costs have already been accounted for
         circuit_ops, index_ctrls = _get_index_register_ctrls(
             index_register,
             clean_ancillae[clean_ancillae_counter:],
@@ -95,6 +95,8 @@ def add_lobe_oracle(
                 )
             )
         )
+        # Decomposing N controls into one left-elbow requires N - 1 left-elbows, N - 2 right-elbows,
+        # and N - 2 temporary ancilla (one additional ancilla stores the output quantum boolean)
         numerics["left_elbows"] += len(system_ctrls[1] + index_ctrls[1] + [1]) - 1
         numerics["right_elbows"] += len(system_ctrls[1] + index_ctrls[1] + [1]) - 2
         numerics["ancillae_tracker"].append(
@@ -132,7 +134,10 @@ def add_lobe_oracle(
             )
         )
         clean_ancillae_counter -= 1
-        numerics["toffolis"] += 1
+        numerics["left_elbows"] += 1
+        numerics["right_elbows"] += 1
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] + 1)
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
         numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
 
         if term.coeff < 0:
@@ -245,10 +250,9 @@ def _apply_term(
                 annihilation_exponent,
                 clean_ancillae=clean_ancillae,
                 ctrls=ctrls,
+                numerics=numerics,
             )
             bosonic_counter += 1
-            # Using decomposed multiplexing
-            numerics["rotations"] += (1 << len(system.bosonic_system[mode])) + 2
             gates += add_classical_value_incrementers(
                 system.bosonic_system[mode],
                 creation_exponent - annihilation_exponent,
@@ -260,9 +264,11 @@ def _apply_term(
                 len(system.bosonic_system[mode]),
             )
 
-            numerics["left_elbows"] += len(system.bosonic_system[mode]) - p_val - 1
+            numerics["left_elbows"] += (
+                len(system.bosonic_system[mode]) - p_val - 1
+            )  # N - p - 1 elbows
             numerics["right_elbows"] += len(system.bosonic_system[mode]) - p_val - 1
-            numerics["ancillae_tracker"].append(
+            numerics["ancillae_tracker"].append(  # 2 (N - p) - 1 temporary ancillae
                 numerics["ancillae_tracker"][-1]
                 + 2 * len(system.bosonic_system[mode])
                 - 2 * p_val
@@ -376,6 +382,7 @@ def _add_bosonic_rotations(
     annihilation_exponent=0,
     clean_ancillae=[],
     ctrls=([], []),
+    numerics=None,
 ):
     """Add rotations to pickup bosonic coefficients corresponding to a series of ladder operators (assumed
         to be normal ordered) acting on one bosonic mode within a term.
@@ -434,6 +441,7 @@ def _add_bosonic_rotations(
         angles,
         clean_ancillae=clean_ancillae,
         ctrls=ctrls,
+        numerics=numerics,
     )
     return gates
 
