@@ -116,7 +116,7 @@ def get_multiplexed_grover_rudolph_circuit(
 
             if not np.isclose(rz_angle, 0):
                 gate_numerics["num_rotations"] += 1
-                gates = (
+                gate = (
                     cirq.ZPowGate(exponent=rz_angle / np.pi, global_shift=0)
                     .on(qubits[qubit_index])
                     .controlled_by(*ctrls[0], control_values=ctrls[1])
@@ -136,6 +136,7 @@ def get_multiplexed_grover_rudolph_circuit(
             previous_control_values=previous_control_values + [0],
             ctrls=([clean_ancillae[0]], [1]),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
         if count_numerics:
             gates_to_add = return_vals[0]
@@ -170,6 +171,7 @@ def get_multiplexed_grover_rudolph_circuit(
             previous_control_values=previous_control_values + [1],
             ctrls=([clean_ancillae[0]], [1]),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
         if count_numerics:
             gates_to_add = return_vals[0]
@@ -207,12 +209,15 @@ def get_multiplexed_grover_rudolph_circuit(
                 previous_control_values + [0],
             ),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
+
         if count_numerics:
             gates_to_add = return_vals[0]
             gate_numerics_to_add = return_vals[1]
         else:
             gates_to_add = return_vals
+
         if dagger:
             gates = [gates_to_add] + gates
         else:
@@ -235,6 +240,7 @@ def get_multiplexed_grover_rudolph_circuit(
                 previous_control_values + [1],
             ),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
         if count_numerics:
             gates_to_add = return_vals[0]
@@ -272,7 +278,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False):
     Returns:
         cirq.Circuit: The quantum circuit including the prepare oracle
     """
-    reordered_target_state = np.zeros(1 << len(qubits))
+    reordered_target_state = np.zeros(1 << len(qubits), dtype=complex)
     for i, coeff in enumerate(target_state):
         bitstring = format(i, f"0{2+len(qubits)}b")[2:]
         reordered_target_state[int(bitstring[::-1], 2)] = coeff
