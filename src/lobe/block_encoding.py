@@ -1,6 +1,6 @@
 import cirq
 import numpy as np
-from .addition import add_classical_value_incrementers
+from .addition import add_classical_value_incrementers, _get_p_val
 from openparticle import (
     BosonOperator,
     FermionOperator,
@@ -19,6 +19,7 @@ def add_lobe_oracle(
     clean_ancillae=[],
     perform_coefficient_oracle=True,
     decompose=True,
+    numerics=None,
 ):
     """This function should add the Ladder Operator Block Encoding oracle.
 
@@ -43,8 +44,21 @@ def add_lobe_oracle(
     Returns:
         - The gates to perform the LOBE oracle
     """
+    if numerics is None:
+        numerics = {}
+        numerics["left_elbows"] = 0
+        numerics["right_elbows"] = 0
+        numerics["ancillae_tracker"] = []
+        numerics["rotations"] = 0
+        numerics["angles"] = []
+
     all_gates = []
     clean_ancillae_counter = 0
+
+    # cost of ctrld-multiplexing over the index register
+    numerics["left_elbows"] += len(operators)
+    numerics["right_elbows"] += len(operators)
+    numerics["ancillae_tracker"].append(len(index_register))
 
     for index, term in enumerate(operators):
         # assert term.is_normal_ordered(term.split())
@@ -58,23 +72,18 @@ def add_lobe_oracle(
         control_qubit = clean_ancillae[clean_ancillae_counter]
         clean_ancillae_counter += 1
 
-        # Left-elbow based on index of term
-        circuit_ops, index_ctrls, number_of_used_ancillae = _get_index_register_ctrls(
+        # Left-elbow based on index of term, gate costs have already been accounted for
+        circuit_ops, index_ctrls = _get_index_register_ctrls(
             index_register,
             clean_ancillae[clean_ancillae_counter:],
             index,
             decompose=decompose,
         )
         gates_for_term += circuit_ops
-        clean_ancillae_counter += number_of_used_ancillae
+        if decompose:
+            clean_ancillae_counter += 1
 
-        # Left-elbow based on system state
-        circuit_ops, system_ctrls, number_of_bosonic_ancillae = _get_system_ctrls(
-            system,
-            term,
-        )
-        gates_for_term += circuit_ops
-        clean_ancillae_counter += number_of_bosonic_ancillae
+        system_ctrls = _get_system_ctrls(system, term)
 
         # Left-elbow onto qubit to mark if term should fire
         gates_for_term.append(
@@ -86,6 +95,20 @@ def add_lobe_oracle(
                     control_values=system_ctrls[1] + index_ctrls[1] + [1],
                 )
             )
+        )
+        # Decomposing N controls into one left-elbow requires N - 1 left-elbows, N - 2 right-elbows,
+        # and N - 2 temporary ancilla (one additional ancilla stores the output quantum boolean)
+        numerics["left_elbows"] += len(system_ctrls[1] + index_ctrls[1] + [1]) - 1
+        numerics["right_elbows"] += len(system_ctrls[1] + index_ctrls[1] + [1]) - 2
+        numerics["ancillae_tracker"].append(
+            numerics["ancillae_tracker"][-1]
+            + len(system_ctrls[1] + index_ctrls[1] + [1])
+            - 1
+        )
+        numerics["ancillae_tracker"].append(
+            numerics["ancillae_tracker"][-1]
+            - len(system_ctrls[1] + index_ctrls[1] + [1])
+            + 2
         )
 
         # Flip validation qubit if term fires
@@ -100,6 +123,7 @@ def add_lobe_oracle(
             clean_ancillae[clean_ancillae_counter:],
             bosonic_rotation_register,
             ctrls=([control_qubit], [1]),
+            numerics=numerics,
         )
 
         # Uncompute control qubit
@@ -111,6 +135,11 @@ def add_lobe_oracle(
             )
         )
         clean_ancillae_counter -= 1
+        numerics["left_elbows"] += 1
+        numerics["right_elbows"] += 1
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] + 1)
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
 
         if term.coeff < 0:
             if len(index_ctrls[0]) == 1:
@@ -159,16 +188,20 @@ def add_lobe_oracle(
                     .controlled_by(*index_ctrls[0], control_values=index_ctrls[1])
                 )
             )
+            numerics["rotations"] += 2
+            numerics["angles"].append(-np.arccos(np.abs(term.coeff)))
+            numerics["angles"].append(np.arccos(np.abs(term.coeff)))
 
         # Right-elbow to uncompute index of term
-        circuit_ops, _, number_of_used_ancillae = _get_index_register_ctrls(
+        circuit_ops, _ = _get_index_register_ctrls(
             index_register,
             clean_ancillae[clean_ancillae_counter:],
             index,
             decompose=decompose,
         )
-        clean_ancillae_counter -= number_of_used_ancillae
         gates_for_term += circuit_ops
+        if decompose:
+            clean_ancillae_counter -= 1
 
         all_gates += gates_for_term
 
@@ -178,7 +211,12 @@ def add_lobe_oracle(
 
 
 def _apply_term(
-    term, system, clean_ancillae, bosonic_rotation_register, ctrls=([], [])
+    term,
+    system,
+    clean_ancillae,
+    bosonic_rotation_register,
+    ctrls=([], []),
+    numerics=None,
 ):
     """Apply a single term to the state of the system and apply bosonic coefficient rotations.
 
@@ -199,11 +237,7 @@ def _apply_term(
     # assert term.is_normal_ordered(term.split())
     operator_dictionary = get_parsed_dictionary(term, system.number_of_modes)
 
-    gates += _update_fermionic_and_antifermionic_system(
-        term,
-        system,
-        ctrls=ctrls,
-    )
+    gates += _update_fermionic_and_antifermionic_system(term, system, ctrls=ctrls)
 
     bosonic_counter = 0
     # Bosonic Ladder Operators
@@ -219,6 +253,7 @@ def _apply_term(
                 annihilation_exponent,
                 clean_ancillae=clean_ancillae,
                 ctrls=ctrls,
+                numerics=numerics,
             )
             bosonic_counter += 1
             gates += add_classical_value_incrementers(
@@ -227,6 +262,22 @@ def _apply_term(
                 clean_ancillae,
                 ctrls=ctrls,
             )
+            p_val = _get_p_val(
+                creation_exponent - annihilation_exponent,
+                len(system.bosonic_system[mode]),
+            )
+
+            numerics["left_elbows"] += (
+                len(system.bosonic_system[mode]) - p_val - 1
+            )  # N - p - 1 elbows
+            numerics["right_elbows"] += len(system.bosonic_system[mode]) - p_val - 1
+            numerics["ancillae_tracker"].append(  # 2 (N - p) - 1 temporary ancillae
+                numerics["ancillae_tracker"][-1]
+                + 2 * len(system.bosonic_system[mode])
+                - 2 * p_val
+                - 1
+            )
+            numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-2])
 
     return gates
 
@@ -267,16 +318,12 @@ def _get_index_register_ctrls(index_register, ancillae, index, decompose=True):
                 )
             )
         )
-        return gates, ([ancillae[0]], [1]), 1
+        return gates, ([ancillae[0]], [1])
 
-    return gates, (index_register, index_register_control_values), 0
+    return gates, (index_register, index_register_control_values)
 
 
-def _get_system_ctrls(
-    system,
-    term,
-    uncompute=False,
-):
+def _get_system_ctrls(system, term, uncompute=False):
     """Create a quantum Boolean that stores if the system will be acted on nontrivially by the term.
 
     This function operates as an N-Qubit left-elbow gate (Toffoli) controlled on the state of
@@ -292,13 +339,9 @@ def _get_system_ctrls(
             the control qubits and values.
 
     Returns:
-        - The gates to perform the unitary operation
         - The qubit representing the quantum boolean
         - The number of clean ancillae used
     """
-    gates = []
-    ancillae_counter = 0
-
     control_qubits = []
     control_values = []
 
@@ -332,10 +375,7 @@ def _get_system_ctrls(
                     "unknown particle type: {}".format(particle_operator.particle_type)
                 )
 
-    if uncompute:
-        gates = gates[::-1]
-
-    return gates, (control_qubits, control_values), ancillae_counter
+    return (control_qubits, control_values)
 
 
 def _add_bosonic_rotations(
@@ -345,6 +385,7 @@ def _add_bosonic_rotations(
     annihilation_exponent=0,
     clean_ancillae=[],
     ctrls=([], []),
+    numerics=None,
 ):
     """Add rotations to pickup bosonic coefficients corresponding to a series of ladder operators (assumed
         to be normal ordered) acting on one bosonic mode within a term.
@@ -403,6 +444,7 @@ def _add_bosonic_rotations(
         angles,
         clean_ancillae=clean_ancillae,
         ctrls=ctrls,
+        numerics=numerics,
     )
     return gates
 
