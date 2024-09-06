@@ -1,0 +1,91 @@
+\section{Cost of Quantum Addition}
+\label{sec:addition}
+
+Updating the occupancy of a bosonic mode when applying bosonic ladder operators requires adding a classical number ($+ R - S$) to the register storing the occupation of the bosonic mode.
+Controlled (modular) addition of a two quantum registers (storing the numbers in binary) can be performed using $2N - 3$ left (and right) elbows and $M - 1$ ancillae using the construction for addition introduced in \cite{gidney2018halving} (Figure 4):
+\begin{equation}
+    (\alpha \ket{0} + \beta \ket{1})\ket{m}\ket{n} \rightarrow \alpha \ket{0}\ket{m}\ket{n} + \beta \ket{1}\ket{m}\ket{n \oplus m}
+\end{equation}
+where $m$ is the value being added to $n$ and $M$ and $N$ are the lengths of the registers respectively.
+
+When performing a bosonic occupancy update, the value of $m$ is a known, \textit{classical} value ($+ R - S$).
+Naively, this could be performed by loading the value of $m$ into a clean register and then performing controlled addition of the two registers as described above.
+However, since the value of $m$ is classial and known, there are a few other options.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=16cm]{figures/addition-via-incrementers.pdf}
+    \caption{
+        \textbf{Addition via Controlled Incrementers.} 
+    }
+    \label{fig:addition-via-incrementers}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=8cm]{figures/incrementer.pdf}
+    \caption{
+        \textbf{Controlled Incrementer.} 
+    }
+    \label{fig:incrementer}
+\end{figure}
+
+
+One option is to use controlled incrementer ($+1$) circuits acting on different subsets of the register in order to construct the overall addition.
+An incrementer circuit can be used to perform addition by a power of $2$ by shifting the qubits that the incrementer acts on.
+For example, a circuit for adding the value $8$ to a register in binary can be performing using an incrementer circuit that treats the $4^{th}$ least significant qubit as the least significant qubit in the incrementer circuit and disregards the $3$ lesser qubits.
+A circuit adding any classical value can then be constructed based on the binary representation of the classical number.
+In Figure \ref{fig:addition-via-incrementers}, we show a quantum circuit diagram for adding the value $11$ to a quantum register using $3$ incrementer circuits adding the values $8$, $2$, and $1$. 
+In Figure \ref{fig:incrementer} b, we decompose the incrementer circuit acting on a 5 qubit register using the construction detailed in \cite{Gidney_2015} which uses $N - 1$ left (and right) elbows and $N - 1$ ancillae.
+
+Naively, the cost of this construction would require $N$ incrementer circuits which would each constribute a cost of $N - i - 1$ for $i \in [0, N-1)$ left (and right) elbows.
+However, since we are performing modular addition, we an also achieve the same result by subtracting the value $2^N - m$.
+The cost of these two methods can be classically determined and the more favorable option can be chosen during compilation.
+If the number of left (and right) elbows is minimized, the upper bound for the number of left (and right) elbows, regardless of the classical value being added, is given by:
+\begin{equation}
+    \lfloor \frac{1}{4} N (N + 1) \rfloor = \lfloor \frac{1}{4} N^2 + \frac{1}{4} N \rfloor
+\end{equation} 
+\ws{this scaling was determined numerically, but i think it shouldn't be hard to derive.}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=12cm]{figures/ctrl-add-11-qubit-efficient.pdf}
+    \caption{
+        \textbf{Qubit Efficient Controlled Addition of 11.} 
+    }
+    \label{fig:addition-qubit-efficient-11}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=8cm]{figures/ctrl-add-12-qubit-efficient.pdf}
+    \caption{
+        \textbf{Qubit Efficient Controlled Addition of 12.} 
+    }
+    \label{fig:addition-qubit-efficient-12}
+\end{figure}
+
+Another option is to use the same construction for the controlled quantum adder presented in \cite{gidney2018halving}, but to propagate the controls on the state of $\ket{m}$ into the circuit.
+This method removes the register $\ket{m}$ from the quantum circuit, reducing the number of ancillae by $M$.
+In Figure \ref{fig:addition-qubit-efficient-11}, we show a decomposition for this circuit when the number being added is $11$ ($01011$ in binary).
+Additionally, since the lower bits of $m$ are known, the addition can be performed only beginning on the first non-zero bit of $m$.
+An example of performing controlled addition of $12$ ($01100$ in binary) is shown in Figure \ref{fig:addition-qubit-efficient-12} where the $2$ least significant qubits are disregarded.
+If the $p$ least significant bits of $m$ are zero, this reduces the cost to $2(N - p) - 3$ left (and right) elbows and $N - p - 1$ ancillae.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=12cm]{figures/ctrl-add-11-gate-efficient.pdf}
+    \caption{
+        \textbf{Gate Efficient Controlled Quantum Addition.} 
+    }
+    \label{fig:addition-gate-efficient}
+\end{figure}
+
+Lastly, a similar trick using the classical information about $m$ to modify the circuit for controlled addition shown in \cite{gidney2018halving} can reduce the number of left (and right) elbows.
+In this construction, the value of $m$ is first loaded into a clean register using a series of CNOTs that are controlled on the control qubit.
+The CNOTs present are determine from the binary decomposition of $m$.
+Then an uncontrolled addition between the registers $\ket{m}$ and $\ket{n}$ can be performed using the decomposition in \cite{gidney2018halving}.
+Finally, the controlled loading of $m$ is then performed again to uncompute the ancillae qubits and return them to a useable state.
+A diagram of this ciruit is shown in Figure \ref{fig:addition-gate-efficient}.
+Overall, this requires $N - p - 1$ left (and right) elbows and $N + M - p - 1$ ancillae.
+Since this option requires the fewest non-Clifford operations while only using a moderate amount of ancillae, this option will be used to determine the resource estimates used in this work.

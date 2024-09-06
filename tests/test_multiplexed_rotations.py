@@ -7,7 +7,7 @@ from copy import copy
 
 def _get_explicit_multiplexed_rotation_circuit(angles, is_controlled):
     circuit = cirq.Circuit()
-    number_of_index = int(np.ceil(np.log2(len(angles))))
+    number_of_index = max(int(np.ceil(np.log2(len(angles)))), 1)
     counter = 0
     if is_controlled:
         ctrl = cirq.LineQubit(0)
@@ -37,7 +37,7 @@ def _get_explicit_multiplexed_rotation_circuit(angles, is_controlled):
 def _get_decomposed_multiplexed_rotation_circuit(
     angles, is_controlled, with_ancilla=False
 ):
-    number_of_index = int(np.ceil(np.log2(len(angles))))
+    number_of_index = max(int(np.ceil(np.log2(len(angles)))), 1)
     circuit = cirq.Circuit()
     ctrls = ([], [])
     clean_ancillae = []
@@ -62,7 +62,9 @@ def _get_decomposed_multiplexed_rotation_circuit(
 
 @pytest.mark.parametrize("with_ancilla", [False, True])
 @pytest.mark.parametrize("is_controlled", [False, True])
-@pytest.mark.parametrize("number_of_angles", np.random.randint(1, 1 << 8, size=20))
+@pytest.mark.parametrize(
+    "number_of_angles", [1] + np.random.randint(1, 1 << 8, size=20).tolist()
+)
 def test_multiplexed_rotation_circuit(number_of_angles, is_controlled, with_ancilla):
     angles = np.random.uniform(-1, 1, size=number_of_angles)
     undecomposed_circuit = _get_explicit_multiplexed_rotation_circuit(

@@ -3,7 +3,7 @@ import cirq
 
 
 def get_decomposed_multiplexed_rotation_circuit(
-    register, angles, clean_ancillae=[], ctrls=([], [])
+    register, angles, clean_ancillae=[], ctrls=([], []), numerics=None, dagger=False
 ):
     """Get the operations to add multiplexed rotations based on arXiv:0407010.
 
@@ -19,6 +19,8 @@ def get_decomposed_multiplexed_rotation_circuit(
     """
     angles = np.concatenate([angles, np.zeros((1 << len(register) - 1) - len(angles))])
     processed_angles = _process_rotation_angles(angles)
+    if dagger:
+        processed_angles *= -1
 
     gates = _recursive_helper(
         register,
@@ -54,6 +56,17 @@ def get_decomposed_multiplexed_rotation_circuit(
             .on(register[-1])
             .controlled_by(*ctrls[0], control_values=[not val for val in ctrls[1]])
         )
+
+    if numerics is not None:
+        # Using decomposed ctrld-multiplexed rotations
+        numerics["rotations"] += (len(processed_angles)) + 2
+        numerics["angles"] += processed_angles.tolist()
+        numerics["angles"].append(np.pi * sum(processed_angles) / 2)
+        numerics["angles"].append(-np.pi * sum(processed_angles) / 2)
+        numerics["left_elbows"] += len(processed_angles)
+        numerics["right_elbows"] += len(processed_angles)
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] + 1)
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
     return gates
 
 

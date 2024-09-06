@@ -10,28 +10,44 @@ def add_classical_value_incrementers(
     if classical_value == 0:
         return []
 
-    gates = []
-    num_levels = int(np.ceil(np.log2(np.abs(classical_value)))) + 1
-    decrement = False
-    if classical_value < 0:
-        decrement = True
-    classical_value = np.abs(classical_value)
-    for level in range(num_levels - 1, -1, -1):
-        qubits_involved = register
-        if level > 0:
-            qubits_involved = register[:-level]
+    options = [(classical_value, False), ((1 << len(register)) - classical_value, True)]
 
-        if (1 << level) <= classical_value:
-            gates += add_incrementer(
-                [],
-                qubits_involved,
-                clean_ancillae[: len(qubits_involved) - 2],
-                decrement=decrement,
-                control_register=ctrls[0],
-                control_values=ctrls[1],
-            )
-            classical_value -= 1 << level
-    return gates
+    outcomes = []
+    costs = []
+    for value, flip_decr in options:
+        decrement = False
+        if value < 0:
+            decrement = True
+        if flip_decr:
+            decrement = not decrement
+
+        num_levels = int(np.ceil(np.log2(np.abs(value)))) + 1
+        gates = []
+        value = np.abs(value)
+        num_toffs = 0
+        for level in range(num_levels - 1, -1, -1):
+
+            qubits_involved = register
+            if level > 0:
+                qubits_involved = register[:-level]
+
+            if (1 << level) <= value:
+                num_toffs += len(qubits_involved) - 1
+                gates += add_incrementer(
+                    [],
+                    qubits_involved,
+                    clean_ancillae[: len(qubits_involved) - 2],
+                    decrement=decrement,
+                    control_register=ctrls[0],
+                    control_values=ctrls[1],
+                )
+                value -= 1 << level
+        outcomes.append(gates)
+        costs.append(num_toffs)
+
+    if len(outcomes[1]) < len(outcomes[0]):
+        return outcomes[1]
+    return outcomes[0]
 
 
 def add_incrementer(
@@ -253,6 +269,16 @@ def _quantum_addtion(n_register, m_register, clean_ancillae, recursion_level=0):
     return gates
 
 
+def _get_p_val(classical_value, number_of_bits):
+    bitstring = format(classical_value, f"0{2+number_of_bits}b")[2:][::-1]
+    p_val = 0
+    while bitstring[p_val] != "1":
+        p_val += 1
+        if p_val == len(bitstring):
+            break
+    return p_val
+
+
 def add_classical_value_gate_efficient(
     register, classical_value, clean_ancillae, ctrls=([], [])
 ):
@@ -262,13 +288,8 @@ def add_classical_value_gate_efficient(
     if modded_value == 0:
         return gates
 
-    # if classical_value < 0:
-    #     gates.append(cirq.Moment(cirq.X.on_each(*register)))
-
     bitstring = format(modded_value, f"0{2+len(register)}b")[2:][::-1]
-    p_val = 0
-    while (bitstring[p_val] != "1") and (p_val != len(bitstring)):
-        p_val += 1
+    p_val = _get_p_val(modded_value, len(register))
 
     if p_val == len(register):
         return gates
@@ -288,8 +309,5 @@ def add_classical_value_gate_efficient(
         recursion_level=0,
     )
     gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
-
-    # if classical_value < 0:
-    #     gates.append(cirq.Moment(cirq.X.on_each(*register)))
 
     return gates

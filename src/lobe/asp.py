@@ -1,6 +1,7 @@
 import cirq
 import numpy as np
 from ._grover_rudolph import _grover_rudolph
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 
 
 def get_target_state(coefficients):
@@ -116,7 +117,7 @@ def get_multiplexed_grover_rudolph_circuit(
 
             if not np.isclose(rz_angle, 0):
                 gate_numerics["num_rotations"] += 1
-                gates = (
+                gate = (
                     cirq.ZPowGate(exponent=rz_angle / np.pi, global_shift=0)
                     .on(qubits[qubit_index])
                     .controlled_by(*ctrls[0], control_values=ctrls[1])
@@ -136,6 +137,7 @@ def get_multiplexed_grover_rudolph_circuit(
             previous_control_values=previous_control_values + [0],
             ctrls=([clean_ancillae[0]], [1]),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
         if count_numerics:
             gates_to_add = return_vals[0]
@@ -170,6 +172,7 @@ def get_multiplexed_grover_rudolph_circuit(
             previous_control_values=previous_control_values + [1],
             ctrls=([clean_ancillae[0]], [1]),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
         if count_numerics:
             gates_to_add = return_vals[0]
@@ -207,12 +210,15 @@ def get_multiplexed_grover_rudolph_circuit(
                 previous_control_values + [0],
             ),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
+
         if count_numerics:
             gates_to_add = return_vals[0]
             gate_numerics_to_add = return_vals[1]
         else:
             gates_to_add = return_vals
+
         if dagger:
             gates = [gates_to_add] + gates
         else:
@@ -235,6 +241,7 @@ def get_multiplexed_grover_rudolph_circuit(
                 previous_control_values + [1],
             ),
             dagger=dagger,
+            count_numerics=count_numerics,
         )
         if count_numerics:
             gates_to_add = return_vals[0]
@@ -259,7 +266,9 @@ def get_multiplexed_grover_rudolph_circuit(
         return gates
 
 
-def add_prepare_circuit(qubits, target_state, dagger=False):
+def add_prepare_circuit(
+    qubits, target_state, dagger=False, numerics=None, clean_ancillae=[]
+):
     """Add a quantum circuit that prepares the target state (arbitrary quantum state) when acting on the all-zero state.
 
     Implementation based on: https://arxiv.org/abs/quant-ph/0208112
@@ -272,7 +281,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False):
     Returns:
         cirq.Circuit: The quantum circuit including the prepare oracle
     """
-    reordered_target_state = np.zeros(1 << len(qubits))
+    reordered_target_state = np.zeros(1 << len(qubits), dtype=complex)
     for i, coeff in enumerate(target_state):
         bitstring = format(i, f"0{2+len(qubits)}b")[2:]
         reordered_target_state[int(bitstring[::-1], 2)] = coeff
@@ -283,51 +292,44 @@ def add_prepare_circuit(qubits, target_state, dagger=False):
     if dagger:
         gate_list = gate_list[::-1]
 
+    multiplexing_angles = []
+    for _ in range((len(qubits))):
+        multiplexing_angles.append([])
+
     # index of list is qubits that gates act on; item in list is a dictionary with gate instructions
     for qubit_index, instructions in enumerate(gate_list):
 
-        if dagger:
-            qubit_index = len(gate_list) - qubit_index - 1
-
-        # keys of instructions are the computational basis states to control the previous qubits on;
-        #   value is a Tuple with the angle of ry gate followed by the angle of the phase gate in radians
         instructions = list(instructions.items())
-        if dagger:
-            instructions = instructions[::-1]
         for controls, (ry_angle, rz_angle) in instructions:
 
-            if dagger:
-                ry_angle *= -1
-                rz_angle *= -1
-
-            # map string controls to integers
-            control_values = [int(ctrl) for ctrl in controls]
-
-            # create phase gate with appropriate angle
-            phase_gate = cirq.ZPowGate(exponent=rz_angle / np.pi, global_shift=0)
-
-            if not dagger:
-                # Controlled-Ry
-                gates.append(
-                    cirq.ry(ry_angle)
-                    .on(qubits[qubit_index])
-                    .controlled_by(*qubits[:qubit_index], control_values=control_values)
-                )
-
             if not np.isclose(rz_angle, 0):
-                # Controlled-Phase
-                gates.append(
-                    phase_gate.on(qubits[qubit_index]).controlled_by(
-                        *qubits[:qubit_index], control_values=control_values
-                    )
+                raise RuntimeError(
+                    "Our implementation assumes amplitudes are real-valued, therefore angle of rz gates should always be 0."
                 )
+            control_values = [int(ctrl) for ctrl in controls]
+            multiplexing_angles[len(control_values)].append(ry_angle / np.pi)
 
-            if dagger:
-                # Controlled-Ry
-                gates.append(
-                    cirq.ry(ry_angle)
-                    .on(qubits[qubit_index])
-                    .controlled_by(*qubits[:qubit_index], control_values=control_values)
-                )
+    if multiplexing_angles == [[]]:
+        return []
+
+    if dagger:
+        multiplexing_angles[0][0] *= -1
+
+    gates.append(cirq.ry(np.pi * multiplexing_angles[0][0]).on(qubits[0]))
+    if numerics is not None:
+        numerics["rotations"] += 1
+        numerics["angles"].append(np.pi * multiplexing_angles[0][0])
+
+    for qubit_index, angles in enumerate(multiplexing_angles[1:]):
+        gates += get_decomposed_multiplexed_rotation_circuit(
+            qubits[: qubit_index + 2],
+            angles,
+            clean_ancillae=clean_ancillae,
+            numerics=numerics,
+            dagger=dagger,
+        )
+
+    if dagger:
+        gates = gates[::-1]
 
     return gates
