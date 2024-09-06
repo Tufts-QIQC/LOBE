@@ -14,7 +14,15 @@ def lobe_circuit(
     decompose: bool = False,
     return_unitary: bool = True,
     return_matrix: bool = False,
+    return_numerics: bool = False,
 ):
+    NUMERICS = {
+        "left_elbows": 0,
+        "right_elbows": 0,
+        "rotations": 0,
+        "ancillae_tracker": [0],
+        "angles": [],
+    }
 
     if isinstance(operator, List):
         terms = operator
@@ -77,6 +85,7 @@ def lobe_circuit(
         clean_ancillae,
         perform_coefficient_oracle=True,
         decompose=decompose,
+        numerics=NUMERICS,
     )
     circuit += add_naive_usp(index_register)
 
@@ -97,4 +106,6 @@ def lobe_circuit(
         ]
         unitary = upper_left_block * block_encoding_scaling_factor
 
+    if return_numerics:
+        print(NUMERICS)
     return circuit, unitary, matrix
