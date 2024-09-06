@@ -63,10 +63,11 @@ def get_decomposed_multiplexed_rotation_circuit(
         numerics["angles"] += processed_angles.tolist()
         numerics["angles"].append(np.pi * sum(processed_angles) / 2)
         numerics["angles"].append(-np.pi * sum(processed_angles) / 2)
-        numerics["left_elbows"] += len(processed_angles)
-        numerics["right_elbows"] += len(processed_angles)
-        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] + 1)
-        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
+        if len(ctrls[0]) > 0:
+            numerics["left_elbows"] += len(processed_angles)
+            numerics["right_elbows"] += len(processed_angles)
+            numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] + 1)
+            numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-1] - 1)
     return gates
 
 
