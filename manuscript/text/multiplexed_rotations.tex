@@ -1,0 +1,50 @@
+\section{Multiplexed Rotations}
+\label{sec:multiplexed-rotations}
+
+Implementing a coherent for-loop over the computational basis states of a register is a common subroutine referred to as multiplexing.
+In this section, we discuss the cost and explicit circuit compilation for multiplexed rotations where, for each index of the loop, an arbitrary rotation around the same axis (but different angle) is applied on the same qubit:
+\begin{equation}
+    \sum_{l=0}^{L - 1} \ket{l} \ket{\phi} \rightarrow \sum_{l=0}^{L - 1} \ket{l} R_a (\alpha_l) \ket{\phi}
+\end{equation}
+
+One option for implementing multiplexed rotations is to use the multiplexing structure of Babbush et. al \cite{babbush2018encoding} (Figure 7) where the unitary applied at each index is the explicitly desired rotation.
+
+However, another option, proposed by Möttönen et. al \cite{mottonen2004transformation}, provides a construction specifically for implementing multiplexed rotations.
+This construction is only defined for when $L$ is explicitly $2^K$ where $K$ is the number of qubits in the register being multiplexed over.
+In this construction, the rotation angles are classically preprocessed based on the Gray code (Eq. 3 of \cite{mottonen2004transformation}):
+\begin{equation}
+    \begin{bmatrix}
+        \theta_{0} \\
+        \theta_{1} \\
+        \vdots \\
+        \theta_{2^K - 1}
+    \end{bmatrix} = M \begin{bmatrix}
+        \alpha_{0} \\
+        \alpha_{1} \\
+        \vdots \\
+        \alpha_{2^K - 1}
+    \end{bmatrix}
+\end{equation}
+where $M$ is a matrix transformation defined by:
+\begin{equation}
+    M_{i, j} = 2^{-K} (-1)^{b_{j} . g_{i}}
+\end{equation}
+where $b_j$ is the binary representation of the integer $j$, $g_i$ is the Gray code representation of the integer $i$, and $b_{j} . g_{i}$ is the bitwise inner product of $b_{j}$ and $g_{i}$.
+
+This construction leads to a cost of $2^K$ arbitrary rotations when implementing \textit{uncontrolled} multiplexed rotations.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=16cm]{figures/controlled-multiplexed-rotations.pdf}
+    \caption{
+        \textbf{Controlled Multiplexed Rotations.} 
+    }
+    \label{fig:controlled-multiplexed-rotations}
+\end{figure}
+
+Applying the bosonic coefficient rotations, however, requires \textit{controlled} multiplexed rotations.
+Naively, this would require $2^K$ \textit{controlled} arbitrary rotations or $2^{K+1}$ uncontrolled arbitrary rotations, doubling the cost.
+However, an alternative approach to implementing \textit{controlled} multiplexed rotations is to control each CNOT gate in the construction of \cite{mottonen2004transformation} (promoting each to a Toffoli gate), and leave each arbitrary rotation uncontrolled.
+Then, one controlled rotation can be applied, leading to a cost of $2^K + 2$ rotations and $2^K$ Toffolis (or left/right elbows).
+When the number of T gates required for each arbitrary rotation is much larger than $4$ (the number required for a pair of elbows), this roughly halves the cost of implementing controlled multiplexed rotations.
+An example circuit diagram for this construction is shown for $K = 2$ in Figure \ref{fig:controlled-multiplexed-rotations}.
