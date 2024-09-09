@@ -1,6 +1,11 @@
 \section{Ladder Operator Block-Encoding (LOBE)}
 \label{sec:lobe}
 
+The block-encodings presented in this work builds off of the construction of \cite{liu2024efficient} to provide a more general block-encoding of Hamiltonians described in the form of Eq. \ref{eq:lclo}.
+Explicity, the construction presented in this work allows for the terms in the Hamiltonian to be any arbitrary product of ladder operators acting on fermions, antifermions, and bosons.
+Additionally, we make use of the observations presented in Subsection \ref{subsec:unification} to provide block-encodings of the same structure as an LCU which have reduced rescaling factors.
+This also extends LCU block-encodings to the non-unitary operators used in this work and may provide a framework for constructing block-encodings of linear combinations of other non-unitary operators.
+
 \subsection{Rescaling of Coefficients Due to Bosonic Terms}
 \label{subsec:rescaling}
 
@@ -80,6 +85,8 @@ In addition to these oracles, a single $X$ gate is applied to the $\ket{\textit{
 This single $X$ gate is \textit{not} repeated on subsequent applications of the block-encoding.
 
 \subsubsection{Prepare Oracle}
+\label{subsec:prepare-oracle}
+
 The $\textit{Prepare}$ oracle is applied to the index register to prepare a superposition over the computational basis states of this register.
 
 \textbf{Uniform State Preparation}
