@@ -43,9 +43,9 @@ To rescale the coefficients of the Hamiltonian due to the presence of bosonic op
 \end{align}
 When we add in the cost of the controlled multiplexor over the index register, we add two more left and right elbows ($N_{elbows} = L - 1$, where $L$ is the number of terms). Thus, the total cost of the \textit{select} oracle is $C_{\textit{select}} = (21, 18, 18)$. 
 
-To get the total circuit cost, the \textit{prepare} oracle cost must be included. \textit{USP} doesn't have a cost since it is just Haddamards, thus $C^{\text{USP}}_{\text{prepare}} = (0, 0, 0)$; however, \textit{ASP} does incrue an additional arbitrary rotation cost: $C_{\text{prepare}}^{\text{ASP}} = (0, 0, 5)$. 
+To get the total circuit cost, the \textit{prepare} oracle cost must be included. \textit{USP} doesn't have a cost since it is just Haddamards, thus $C^{\text{USP}}_{\text{prepare}} = (0, 0, 0)$; however, \textit{ASP} does incrue an additional arbitrary rotation cost: $C_{\text{prepare}}^{\text{ASP}} = (0, 0, 3)$. 
 
-Thus, the total cost to block encode the Hamiltonian \ref{ex} is $C^{\text{USP}} = (21, 18, 18)$ or $C^{\text{ASP}} = (21, 18, 28)$.
+Thus, the total cost to block encode the Hamiltonian \ref{ex} is $C^{\text{USP}} = (21, 18, 18)$ or $C^{\text{ASP}} = (21, 18, 24)$.
 
 \textbf{Step 5: Post-process the eigenvalues:} After obtaining the full block-encoding of the Hamiltonian, the eigenvalues (which can be obtained via phase estimation) must be post-processed. This is because the eigenvalues of the block encoded Hamiltonian will correspond to $H^*$, \textit{not} $H$ (the original problem Hamiltonian).
 The final scaling of the Hamiltonian that needs to be post-processed is given in equation \ref{post-process}. $(\Omega + 1)^{K / 2}$ is the same for \textit{USP} and \textit{ASP}; however, the additional scaling factor $\lambda$ will change $H^*$, depending on the preparation protocol. It is easy to calculate $(\Omega + 1)^{K/2} = 4^{2/2}$, and we obtained $\lambda_{usp} = 8$ and $\lambda_{asp} = 3.75$ in step 3. 
