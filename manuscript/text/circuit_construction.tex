@@ -107,7 +107,7 @@ However, this implementation of $\textit{Prepare}$ requires that the rescaled co
 An alternative implementation of $\textit{Prepare}$ is to use the same implementation traditionally used in LCU circuits.
 The coefficients are first rescaled by their $L1-norm$:
 \begin{equation}
-    \label{asp scale}
+    \label{eq:asp-scale}
     \lambda_{asp} = \sum_{l=0}^{L-1} |\alpha_l|
 \end{equation}
 and the rescaled Hamiltonian is given by:
@@ -141,7 +141,7 @@ It should be noted that these ancillae, which will be returned to $\ket{0}$ afte
 
 Overall, after the bosonic coefficient rescaling is applied and one of these $Prepare$ oracle compilations is chosen and the coefficients rescaled again, the overall rescaling of the Hamiltonian that is block-encoded is given by:
 \begin{equation}
-    \label{post-process}
+    \label{eq:post-process}
     H^* = \frac{H}{(\Omega + 1)^{K/2} \lambda}
 \end{equation}
 with $\lambda$ being either $\lambda_{usp}$ or $\lambda_{asp}$.
