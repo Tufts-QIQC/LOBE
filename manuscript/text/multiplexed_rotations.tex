@@ -32,6 +32,13 @@ where $M$ is a matrix transformation defined by:
 where $b_j$ is the binary representation of the integer $j$, $g_i$ is the Gray code representation of the integer $i$, and $b_{j} . g_{i}$ is the bitwise inner product of $b_{j}$ and $g_{i}$.
 This construction leads to a cost of $2^K$ arbitrary rotations when implementing \textit{uncontrolled} multiplexed rotations.
 
+It should be noted that rotations by an angle of $\alpha_l = 0$ will likely become nonzero rotations after this classical preproceesing is applied.
+This has an impliciation in this work when the coefficients from bosonic ladder operators are applied.
+In the main text, we described that the range of the mulitplexor over the occupation of the bosonic mode can be shortened based on the exponents of the creation and annihilation operators since the rotation angle should be zero.
+However, these zero-angle rotations will become nonzero when using this construction and therefore will not decrease the cost of implementing the multiplexed rotations.
+There are some edge cases where this reduced multiplexing range can reduce the cost, such as when half of the range has zero-valued rotation angles.
+We do not include these optimizations in this work as they are highly dependent on the operators in the Hamiltonian being block-encoded.
+
 \begin{figure}
     \centering
     \includegraphics[width=16cm]{figures/controlled-multiplexed-rotations.pdf}
