@@ -30,7 +30,6 @@ where $M$ is a matrix transformation defined by:
     M_{i, j} = 2^{-K} (-1)^{b_{j} . g_{i}}
 \end{equation}
 where $b_j$ is the binary representation of the integer $j$, $g_i$ is the Gray code representation of the integer $i$, and $b_{j} . g_{i}$ is the bitwise inner product of $b_{j}$ and $g_{i}$.
-
 This construction leads to a cost of $2^K$ arbitrary rotations when implementing \textit{uncontrolled} multiplexed rotations.
 
 \begin{figure}
@@ -43,8 +42,13 @@ This construction leads to a cost of $2^K$ arbitrary rotations when implementing
 \end{figure}
 
 Applying the bosonic coefficient rotations, however, requires \textit{controlled} multiplexed rotations.
-Naively, this would require $2^K$ \textit{controlled} arbitrary rotations or $2^{K+1}$ uncontrolled arbitrary rotations, doubling the cost.
-However, an alternative approach to implementing \textit{controlled} multiplexed rotations is to control each CNOT gate in the construction of \cite{mottonen2004transformation} (promoting each to a Toffoli gate), and leave each arbitrary rotation uncontrolled.
-Then, one controlled rotation can be applied, leading to a cost of $2^K + 2$ rotations and $2^K$ Toffolis (or left/right elbows).
-When the number of T gates required for each arbitrary rotation is much larger than $4$ (the number required for a pair of elbows), this roughly halves the cost of implementing controlled multiplexed rotations.
-An example circuit diagram for this construction is shown for $K = 2$ in Figure \ref{fig:controlled-multiplexed-rotations}.
+Naively, this would require controlling each of the arbitrary rotations and allowing the CNOT gates to cancel out with one another when the control is off.
+This would then cost $2^K$ \textit{controlled} arbitrary rotations or $2^{K+1}$ uncontrolled arbitrary rotations, since a controlled rotation can be implemented via two uncontrolled rotations and two CNOTs.
+An example cirucit diagram for this construction is shown for $K = 2$ in Figure \ref{fig:controlled-multiplexed-rotations}a.
+
+An alternative approach is to control each CNOT gate (promoting each to a Toffoli gate) and leaving each arbitrary rotation uncontrolled.
+In this construction, when the control is off none of the Toffolis will fire and the result is an undesired rotation of angle $\sum_{i} (\theta_i)$ applied to the qubit being rotated.
+This unwanted rotation can then be undone using one controlled rotation of angle $- \sum_{i} (\theta_i)$ with the condition that the control is off (in the $\ket{0}$ state).
+This leads to a cost of $2^K + 2$ rotations and $2^K$ Toffolis (or left/right elbows and one ancilla qubit).
+When the number of T gates required for each arbitrary rotation is much larger than $4$ (the number of T gates required for a pair of elbows), this roughly halves the cost of implementing controlled multiplexed rotations as compared to the naive compilation.
+An example circuit diagram for this construction is shown for $K = 2$ in Figure \ref{fig:controlled-multiplexed-rotations}b.
