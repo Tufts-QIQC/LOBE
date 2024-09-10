@@ -6,6 +6,7 @@ Here we explicitly define the technical phrases and symbols used throughout this
 \begin{itemize}
     \item \textit{term} ($T$): An operator defined as a product of ladder operators.
     \item $L$: The number of terms in the Hamiltonian.
+    \item $\Omega$: The occupation cutoff for the bosonic modes. $\Omega$ gives the maximum number of bosons that can be present in a single mode. 
     \item $I$: The number of momentum modes. The subscripts $b$, $d$, and $a$ will be used to denote the number of modes for a particular particle type.
     \item $b_i$: Fermionic annihilation (creation - $b_i^\dagger$) operator acting on mode $i$.
     \item $d_i$: Antifermionic annihilation (creation - $d_i^\dagger$) operator acting on mode $i$.
@@ -14,11 +15,12 @@ Here we explicitly define the technical phrases and symbols used throughout this
     \item $B_l$: The number of fermionic modes with ladder operators acting on them within the term $T_l$.
     \item $D_l$: The number of antifermionic modes with ladder operators acting on them within the term $T_l$.
     \item $B$: The maximum number of fermionic \& antifermionic modes with ladder operators acting on them within a single term ($\max{b_l + d_l}$).
-    \item $\Omega$: The occupation cutoff for the bosonic modes. $\Omega$ gives the maximum number of bosons that can be present in a single mode. 
+    \item $A_l$: The number of bosonic ladder operators within the term $T_l$. Operators raised to an exponent ($p$) count as $p$ operators.
+    \item $A$: The maximum number of bosonic ladder operators acting within a single term ($\max_l A_l$). 
+    \item $M_l$: The number of bosonic modes with ladder operators acting on them within the term $T_l$.
+    \item $M$: The maximum number of bosonic modes with ladder operators acting on them within a single term ($\max_l M_l$).
     \item $S_{l, i}$: The exponent of bosonic annihilation operators acting on the $i^{th}$ bosonic mode within the $l^{th}$ term.
     \item $R_{l, i}$: The exponent of bosonic creation operators acting on the $i^{th}$ bosonic mode within the $l^{th}$ term.
-    \item $K$: The maximum number of bosonic ladder operators acting within a single term. Operators raised to an exponent ($p$) count as $p$ operators.
-    \item $M$: The maximum number of bosonic modes with ladder operators acting on them within a single term.
     \item \textit{"zeroed-out"}: When the coefficient of a state becomes zero.
     \item \textit{encoded subspace}: The chosen subspace of the ancilla qubits used in the block-encoding to denote where the non-unitary operator is stored. Typically, this is the subspace where all ancillae are in the $\ket{0}$ state.
 \end{itemize}
