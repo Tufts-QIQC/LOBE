@@ -208,7 +208,7 @@ One can construct a block-encoding for a Hermitian operator written as and LCU u
 The main difference here with the circuit construction as compared to LCU is that the \textit{Prepare} oracle is not used to load the coefficients of the terms.
 Instead, the coefficients of the terms are applied to a new ``coefficient'' register one-by-one immediately after the term $T_l$ is applied on the system.
 
-The role of the rotation on the ``coeff'' qubit is load the coefficient by rotating the shared quantum state of the system and the ancilla register into the encoded subspace such that the amplitude in the encoded subsapce is $\sqrt{| \alpha_l |}$.
+The role of the rotation on the ``coeff'' qubit is to load the coefficient by rotating the shared quantum state of the system and the ancilla register into the encoded subspace such that the amplitude in the encoded subsapce is $\sqrt{| \alpha_l |}$.
 As mentioned, this serves the same effective purpose as the \textit{Prepare} oracle in LCU.
 We can replace both the $O_A$ oracle and the Diffusion oracles with calls to \textit{Prepare} as is done in LCU.
 This results in a block-encoding of the form:
