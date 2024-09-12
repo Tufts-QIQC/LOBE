@@ -85,7 +85,7 @@ Using the qubit-efficient encoding described in Subsection \ref{subsec:encoding}
     \end{split}
 \end{equation} 
 
-Finally, the register denoted $\ket{0^{\otimes \alpha}}$ is referred to as the clean ancillae register.
+Finally, the register denoted $\ket{0^{\otimes Q_\alpha}}$ is referred to as the clean ancillae register where $Q_\alpha$ will be used to refer to the number of qubits in this register.
 This register includes ancillae qubits that are promised to begin in the $\ket{0}$ state and are returned to this state at the end of the block-encoding circuit.
 These temporary, clean ancillae are allocated and deallocated as the block-encoding circuit proceeds.
 The maximum number of clean ancillae required is dependent upon the exact compilation methods for both \textit{Prepare} and \textit{Select}.
