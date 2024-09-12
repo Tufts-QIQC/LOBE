@@ -4,7 +4,11 @@ import cirq
 from .system import System
 from .block_encoding import add_lobe_oracle
 from .usp import add_naive_usp
-from .rescale import rescale_terms, get_number_of_active_bosonic_modes
+from .rescale import (
+    bosonically_rescale_terms,
+    rescale_terms_usp,
+    get_number_of_active_bosonic_modes,
+)
 from typing import Union, List
 
 
@@ -25,7 +29,10 @@ def lobe_circuit(
 
     number_of_modes = max([term.max_mode() for term in terms]) + 1
 
-    rescaled_terms, scaling_factor = rescale_terms(terms, max_bose_occ)
+    rescaled_terms, bosonic_rescaling_factor = bosonically_rescale_terms(
+        terms, max_bose_occ
+    )
+    rescaled_terms, usp_rescaling_factor = rescale_terms_usp(rescaled_terms)
 
     number_of_ancillae = (
         1000  # Some arbitrary large number with most ancilla disregarded
@@ -33,7 +40,9 @@ def lobe_circuit(
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
     number_of_rotation_qubits = max(get_number_of_active_bosonic_modes(terms)) + 1
 
-    block_encoding_scaling_factor = (1 << number_of_index_qubits) * scaling_factor
+    rescaling_factor = (
+        (1 << number_of_index_qubits) * bosonic_rescaling_factor * usp_rescaling_factor
+    )
 
     # Declare Qubits
     circuit = cirq.Circuit()
@@ -90,6 +99,6 @@ def lobe_circuit(
         upper_left_block = circuit.unitary(dtype=complex)[
             : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
         ]
-        unitary = upper_left_block * block_encoding_scaling_factor
+        unitary = upper_left_block * rescaling_factor
 
     return circuit, unitary, matrix
