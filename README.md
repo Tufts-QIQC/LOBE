@@ -30,3 +30,7 @@ The registers in the circuit are as follows:
 
 
 ![image](LOBE-Single-Term-Circuit-Construction.png)
+
+### DISCLAIMER
+
+The license included under `src/lobe/_grover_rudolph/LICENSE` applies only with respect to the code under `src/lobe/_grover_rudolph/` and explicitly does not apply to the remaider of the code within this repository. This code comes directly from [this repository](https://github.com/qubrabench/grover-rudolph) courtesy of the QuBRA Benchmarking Project circa commit hash: `#454e4e52f1e97c0a63c7c3d04d722c8f953a6cde`. 
