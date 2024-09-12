@@ -257,7 +257,7 @@ and requires the following clean ancillae:
 \end{equation}
 
 Next, a left-elbow - controlled on the validation qubit being in the $\ket{1}$ state, the index register being in the $\ket{l}$ state (determined by the previous ancilla qubit), and the system being in a state that will not be annihilated - is applied to produce a new ancilla qubit.
-This ancilla qubit represents a quantum boolean that determines if the term $T_l$ should be applied onto the system in this branch of the wavefunction without `zeroing-out the state.
+This ancilla qubit represents a quantum boolean that determines if the term $T_l$ should be applied onto the system in this branch of the wavefunction without zeroing-out the state.
 To perform a check on if the state will be annihilated, controls are added based on the occupation of the fermionic and antifermionic modes corresponding to the operators that are present within the current term.
 For each fermionic (antifermionic) creation operator acting on mode $i$, a $0$-control is added on $i^{th}$ fermionic (antifermionic) mode within $\ket{\psi_b}$ ($\ket{\psi_d}$).
 Likewise, for each fermionic (antifermionic) annihilation operator acting on mode $i$, a $1$-control is added on $i^{th}$ fermionic (antifermionic) mode within $\ket{\psi_b}$ ($\ket{\psi_d}$).
