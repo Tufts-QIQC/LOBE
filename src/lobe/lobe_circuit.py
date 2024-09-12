@@ -4,15 +4,33 @@ import cirq
 from .system import System
 from .block_encoding import add_lobe_oracle
 from .usp import add_naive_usp
-from .rescale import rescale_terms, get_number_of_active_bosonic_modes
+from .asp import get_target_state, add_prepare_circuit
+from .rescale import (
+    rescale_terms,
+    get_number_of_active_bosonic_modes,
+    get_numbers_of_bosonic_operators_in_terms,
+)
 from typing import Union, List
 
 
 def lobe_circuit(
     operator: Union[ParticleOperator, List],
     max_bose_occ: int = 1,
-    return_unitary: bool = True,
+    state_prep_protocol: str = "usp",
+    decompose: bool = True,
+    return_unitary: bool = False,
 ):
+
+    assert state_prep_protocol == "usp" or "asp"
+
+    # prep gate counter:
+    NUMERICS = {
+        "left_elbows": 0,
+        "right_elbows": 0,
+        "rotations": 0,
+        "ancillae_tracker": [0],
+        "angles": [],
+    }
 
     if isinstance(operator, List):
         terms = operator
@@ -22,6 +40,12 @@ def lobe_circuit(
         operator = op_as_po
     elif isinstance(operator, ParticleOperator):
         terms = operator.to_list()
+
+    # Get target state for ASP
+    rescaled_terms, scaling_factor = rescale_terms(terms, max_bose_occ)
+    coefficients = [term.coeff for term in rescaled_terms]
+    norm = sum(np.abs(coefficients))
+    target_state = get_target_state(coefficients)
 
     number_of_modes = max([term.max_mode() for term in terms]) + 1
 
@@ -65,7 +89,14 @@ def lobe_circuit(
 
     # Generate full Block-Encoding circuit
     circuit.append(cirq.X.on(validation))
-    circuit += add_naive_usp(index_register)
+    if state_prep_protocol == "usp":
+        circuit += add_naive_usp(index_register)
+        perform_coefficient_oracle = True
+    elif state_prep_protocol == "asp":
+        circuit += add_prepare_circuit(
+            index_register, target_state=target_state, numerics=NUMERICS
+        )
+        perform_coefficient_oracle = False
     circuit += add_lobe_oracle(
         rescaled_terms,
         validation,
@@ -74,9 +105,15 @@ def lobe_circuit(
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=True,
-        decompose=False,
+        decompose=decompose,
+        numerics=NUMERICS,
     )
-    circuit += add_naive_usp(index_register)
+    if state_prep_protocol == "usp":
+        circuit += add_naive_usp(index_register)
+    elif state_prep_protocol == "asp":
+        circuit += add_prepare_circuit(
+            index_register, target_state=target_state, numerics=NUMERICS
+        )
 
     unitary = None
     matrix = None
@@ -92,4 +129,4 @@ def lobe_circuit(
         ]
         unitary = upper_left_block * block_encoding_scaling_factor
 
-    return circuit, unitary, matrix
+    return circuit, NUMERICS, unitary, matrix
