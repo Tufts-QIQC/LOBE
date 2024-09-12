@@ -55,8 +55,10 @@ The minimum number of qubits required for the index register is given by:
 \end{equation}
 
 The register denoted $\ket{\textit{valid}}$ consists of a single qubit and is referred to as the validation qubit.
-It serves the same purpose as in \cite{liu2024efficient} which is to denote whether or not the term at the current index ($T_l$) will annihilate the quantum state.
-If the term will annihilate the state, then the validation qubit remains in the $\ket{1}$ state such that that branch of the wavefunction stays outside the encoded subspace of the block-encoding.
+It serves the same purpose as in \cite{liu2024efficient} which is to denote whether or not the term at the current index ($T_l$) should be applied onto the system and if it will annihilate the quantum state.
+Suppose the term $T_l$ will annihilate the state based on the occupation of the fermionic and antifermionic modes. 
+In that case, the validation qubit remains in the $\ket{1}$ state such that that branch of the wavefunction remains outside the encoded subspace of the block-encoding.
+This action on the validation qubit will be described in more detail in Subsection \ref{subsec:select}.
 If the term will not annihilate the state, then the validation qubit gets flipped to the $\ket{0}$ state for the term $T_l$.
 The validation qubit is initialized in the $\ket{1}$ state which can either be assumed or implemented via a single $X$ gate applied to the $\ket{\textit{valid}}$ qubit once it is initialized.
 The single $X$ gate in Figure \ref{fig:lobe} depicts this initialization and is \textit{not} repeated on subsequent applications of the block-encoding.
