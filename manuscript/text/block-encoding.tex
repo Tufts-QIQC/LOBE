@@ -95,17 +95,23 @@ Liu et. al \cite{liu2024efficient} use this framework to construct a sparse bloc
 \end{equation}
 
 \begin{figure}[h]
-    \includegraphics[width = \linewidth]{figures/SBE.png}
-    \caption{Circuit for sparse block-encoding Pairing Hamiltonians}
-    \label{fig:sbe}
+    \includegraphics[width=12cm]{figures/liu-construction.pdf}
+    \caption{
+        \textbf{Sparse Block-Encoding Circuit for Pairing Hamiltonians}
+        A circuit diagram for the block-encoding described by Liu et. al \cite{liu2024efficient} is shown.
+        The \textit{Diffusion} operator is implemented via \textit{Uniform State Preparation} (USP).
+        The $O_A$ oracle is implemented by the series of $O_H^l$ operators (shaded in purple) which load the coefficients of the $l^{th}$ term.
+        The $O_C$ oracle is implemented by the series of $U_l$ operators (shaded in orange) which apply the $l^{th}$ term onto the state.
+    }
+    \label{fig:liu-construction}
 \end{figure}
 
-The layout of these circuits is given in Figure \ref{fig:sbe}.
-The \textit{USP} oracle in Figure \ref{fig:sbe} represents the \textit{Diffusion} operator of \cite{camps2024explicit} and \cite{liu2024efficient}.
+The layout of these circuits is given in Figure \ref{fig:liu-construction}.
+The \textit{USP} oracle in Figure \ref{fig:liu-construction} represents the \textit{Diffusion} operator of \cite{camps2024explicit} and \cite{liu2024efficient}.
 This oracle creates an equal superposition of basis states from $\ket{0}\dots \ket{2^{\lceil \log_2{L} \rceil} - 1}$ on the index register where $L$ is the number of terms in the Hamiltonian.
 We will elaborate on this operator in Subsection \ref{subsec:prepare}.
 
-The sequence of $O_\mathcal{H}$ operators implement the $O_A$ oracle.
+The sequence of $O_H^l$ operators implement the $O_A$ oracle.
 This oracle performs a controlled rotation on an ancilla qubit that, given the basis state from the index register, rotates the ancilla qubit proportionally to the coefficient of the term.
 Explicity, this is implemented via the following steps:
 \begin{algorithmic}[1]
@@ -169,8 +175,8 @@ This is because $b^\dagger_i b_j \ket{\psi}$ is nonzero when $\ket{\psi}_i = \ke
 
 Upon inspection of the two oracles constructed in \cite{liu2024efficient}, it can be seen that the sparse block-encoding they present can be constructed in the same framework as an LCU block-encoding, however, the terms in the linear combiation are not restricted to be unitary, but simply fermionic ladder operators.
 
-The unitary operators comprising $O_\mathcal{H}$ commute with both one another and the unitaries $U_l$. 
-A more efficient ordering of these unitaries is to place $O_\mathcal{H}^l$ directly before or after $U_l$.
+The unitary operators comprising $O_H^l$ commute with both one another and the unitaries $U_l$. 
+A more efficient ordering of these unitaries is to place $O_H^l$ directly before or after $U_l$.
 In this construction, the multiplexor over the index register is only performed once and the quantum boolean determining the index can be used for both oracles:
 \begin{algorithmic}[1]
     \For{$\ket{l} \in [0, L-1]$}
