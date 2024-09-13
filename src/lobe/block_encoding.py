@@ -48,7 +48,9 @@ def add_lobe_oracle(
         numerics = {}
         numerics["left_elbows"] = 0
         numerics["right_elbows"] = 0
-        numerics["ancillae_tracker"] = []
+        numerics["ancillae_tracker"] = [
+            1 + len(index_register) + len(rotation_register)
+        ]
         numerics["rotations"] = 0
         numerics["angles"] = []
 
@@ -58,7 +60,9 @@ def add_lobe_oracle(
     # cost of ctrld-multiplexing over the index register
     numerics["left_elbows"] += len(operators)
     numerics["right_elbows"] += len(operators)
-    numerics["ancillae_tracker"].append(len(index_register))
+    numerics["ancillae_tracker"].append(
+        numerics["ancillae_tracker"][-1] + len(index_register)
+    )
 
     for index, term in enumerate(operators):
         # assert term.is_normal_ordered(term.split())
@@ -98,18 +102,12 @@ def add_lobe_oracle(
         )
         # Decomposing N controls into one left-elbow requires N - 1 left-elbows, N - 2 right-elbows,
         # and N - 2 temporary ancilla (one additional ancilla stores the output quantum boolean)
-        numerics["left_elbows"] += len(system_ctrls[1] + index_ctrls[1] + [1]) - 1
-        numerics["right_elbows"] += len(system_ctrls[1] + index_ctrls[1] + [1]) - 2
+        numerics["left_elbows"] += len(system_ctrls[1] + [1] + [1]) - 1
+        numerics["right_elbows"] += len(system_ctrls[1] + [1] + [1]) - 2
         numerics["ancillae_tracker"].append(
-            numerics["ancillae_tracker"][-1]
-            + len(system_ctrls[1] + index_ctrls[1] + [1])
-            - 1
+            numerics["ancillae_tracker"][-1] + len(system_ctrls[1] + [1] + [1]) - 1
         )
-        numerics["ancillae_tracker"].append(
-            numerics["ancillae_tracker"][-1]
-            - len(system_ctrls[1] + index_ctrls[1] + [1])
-            + 2
-        )
+        numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-2] + 1)
 
         # Flip validation qubit if term fires
         gates_for_term.append(
