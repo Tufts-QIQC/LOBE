@@ -10,6 +10,7 @@ This leads to an infinitely large space, therefore we can impose an artificial o
 The cutoff on the occupancy can introduce error as some physically allowable states become inaccessible.
 However, $\Omega$ can often be chosen such that this error is either zero (if high-occupancy states are never accessed) or reasonable small and the contribution of the magnitude of the error is known. 
 \ws{@Kamil/@Gus, is this a fair statement? Is there something we can cite for either no-error or known-error cases?}
+\gus{I think it's fair, but could be written differently. How we solve these problems is by expanding in a Fock space of increasing particle number (e.g. $q\bar{q}$, then $q\bar{q}g$, etc.). The Fock states with many bosons ($g$ here), will have vanishingly small amplitude in the wavefunction, which is why we can set $\Omega$ to be small.}
 
 The space spanned by the second-quantized state vectors is called the \textit{Fock space} ($\mathcal{F}$) and the state vectors are referred to as \textit{Fock states}.
 In second quantization, the Hilbert space is promoted to the Fock space via \cite{Schwartz_2013}:
@@ -24,17 +25,28 @@ In second quantization, creation and annihilation operators - which will collect
 Creation operators increase the occupancy of the mode they act on, while annihilation operators decrease the occupancy.
 Many observables (such as Hamiltonians) can be efficiently expressed as products and/or sums of ladder operators.  
 
-Field operators \ws{@Gus, what is a field operator?} in quantum field theories are written in terms of ladder operators as
+In quantum field theories, the main object of the theories is the \textit{field operator}, rather than the wavefunction. Field operators are written in terms of creation and annihilation operators which, when acting on the vacuum, create and annihilate particles of a particular type. 
+These operators arise from classical field theory, where fields are described by $\phi(x)$, which, given an input $x$, tell you the value of the field $\phi(x)$  at this point. In quantum field theories, they are promoted to operators to obtain $\phi(x) \rightarrow \hat{\phi}(x)$.
+In this formalism, if we act on the vacuum with $\hat{\phi}(x)$, and take the inner product with either a position or momentum eigenstate to get:
+\begin{align}
+    \langle y|\hat{\phi}(x)|0\rangle &= \delta^{(3)}(\vec{x} - \vec{y}) \\ \nonumber
+    \langle q|\hat{\phi}(x)|0\rangle &= e^{iqx}, \\
+\end{align}
+which shows that $\hat{\phi}(x)$ creates a particle at a particular location with some spread of momentum (such that it obeys the Heisenberg uncertainty principle).
+
+Field operators are Fourier transforms of creation and annihilation operators acting on momentum modes: 
 \begin{equation}
     \phi(x) = \int \frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}\left(a_p e^{ipx} + a_p^\dagger e^{-ipx}\right).
 \end{equation}
-\ws{Make sure every variable in an equation is defined either before or after. So here we need to say what $\phi$, $p$, $E_p$, $a_p$, and $x$ are.}
+where $a_p$, and $a_p^\dagger$ are the creation and annihliation operators acting on momentum mode $p$, to be discussed in more detail in section \ref{subsec:operators}. $E_p$ is the energy of a particle with momentum $p$, which taken with $\frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}$ ensures Lorentz invariance. 
+%\ws{Make sure every variable in an equation is defined either before or after. So here we need to say what $\phi$, $p$, $E_p$, $a_p$, and $x$ are.}
+
 The Hamiltonian can then be derived from the field operators via 
 \begin{equation}
-    H = \int d^3x \left(\frac{\partial \mathcal{L}}{\partial \dot{\phi}}\dot{\phi} - \mathcal{L} \right)
+    \label{eq:H_from_phi}
+    H = \int d^3x \left(\frac{\partial \mathcal{L}}{\partial \dot{\phi}}\dot{\phi} - \mathcal{L} \right),
 \end{equation}
-
-Quantum field theory Hamiltonians derived in this way are constructed in terms of products of ladder operators acting on \emph{different types} of particles.
+which clearly leads to a Hamiltonian written in terms of ladder operators. Note that different types of particles with different types of spins have different types of field operators. Thus, the Hamiltonian in equation \ref{eq:H_from_phi} will look differently depending on different theories with different particle types and spins. 
 
 \subsection{Ladder Operators}
 \label{subsec:operators}
@@ -58,11 +70,11 @@ The fermionic creation operator is given by:
 where $b_i$ denotes a fermionic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, and $\ket{n_{i_b}}$ is the occupation of the $i^{th}$ fermionic mode.
 An antifermionic creation operator is defined as above with the symbol $d$ to denote that the operator acts on antifermions.
 
-For a fermionic creation operator, if the mode being acted upon is unoccupied, then the creation operator "creates" a fermion in that mode and applies a phase determined by the parity of the occupation of the previous modes.
+For a fermionic creation operator, if the mode being acted upon is unoccupied, then the creation operator ``creates" a fermion in that mode and applies a phase determined by the parity of the occupation of the previous modes.
 The value of $(-1)^{\sum_{j < i} n_{j_b}}$ introduces a sign flip if the parity of the $j$ modes indexed prior to $i$ is odd and does not change the sign if the parity is even. 
 Therefore the ordering of the modes in the encoding has an implication on the action of the operator which must be accounted for.
 If the mode is already occupied before a creation operator is applied, then the operator sets the amplitude of the quantum state to zero since a state with two particles in the same mode is not physical.
-This action "destroys" that portion of the quantum state and we refer to this as "zeroing-out" the quantum state. 
+This action "destroys" that portion of the quantum state and we refer to this as ``zeroing-out" the quantum state. 
 
 The fermionic annihilation operator is given by:
 \begin{equation}
@@ -75,8 +87,8 @@ The fermionic annihilation operator is given by:
 and the antifermionic annihilation operator is likewise defined for $d$ instead of $b$.
 
 The action of the annihilation operators is similar (and opposite) to the creation operators.
-If the mode is already occupied, then the annihilation operator "annihilates" the fermion at that mode by setting the occupation to zero and applies a phase based on the parity of the occupation of the preceeding modes.
-If the mode is unoccupied before the operator is applied, then the annihilation operator "zeroes-out" the amplitude.
+If the mode is already occupied, then the annihilation operator ``annihilates" the fermion at that mode by setting the occupation to zero and applies a phase based on the parity of the occupation of the preceeding modes.
+If the mode is unoccupied before the operator is applied, then the annihilation operator ``zeroes-out" the amplitude.
 
 \subsubsection{Bosos}
 
@@ -182,5 +194,5 @@ Thus, for a general Fock state with fermions, antifermions, and bosons, the tota
 \end{equation}
 Throughout this work, for simplicity we assume that the number of modes is the same for each type of particle ($I_b = I_d = I_a \equiv I)$, though this limitation is not required.
 
-\ws{Question: do we want to also cost-out the unary encoding or just the "compact" encoding that we've been primarily working with?}
+\ws{Question: do we want to also cost-out the unary encoding or just the ``compact" encoding that we've been primarily working with?}
 
