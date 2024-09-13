@@ -87,7 +87,7 @@ Using the qubit-efficient encoding described in Subsection \ref{subsec:encoding}
     \end{split}
 \end{equation} 
 
-Finally, the register denoted $\ket{0^{\otimes Q_\alpha}}$ is referred to as the clean ancillae register where $Q_\alpha$ will be used to refer to the number of qubits in this register.
+Finally, the register denoted $\ket{0^{\otimes Q_\alpha}}$ \gus{I believe we'll have to change fig. 2 now so that the ancillae register is $\ket{0^{\otimes \alpha}}$. Also, the first line of section "Qubit registers" needs this fix as well.} is referred to as the clean ancillae register where $Q_\alpha$ will be used to refer to the number of qubits in this register.
 This register includes ancillae qubits that are promised to begin in the $\ket{0}$ state and are returned to this state at the end of the block-encoding circuit.
 These temporary, clean ancillae are allocated and deallocated as the block-encoding circuit proceeds.
 The maximum number of clean ancillae required is dependent upon the exact compilation methods for both \textit{Prepare} and \textit{Select}.
@@ -206,7 +206,23 @@ and the rescaled Hamiltonian is given by:
 \begin{equation}
     H = (\lambda_A * \lambda_{ASP}) \bar{H}
 \end{equation}
-It should be noted that $\lambda_{ASP} \leq \lambda_{USP}$ \ws{with equality when the coefficients of the terms all have equal magnitude (confirm this)} \ws{and give some analytical proof for this bound}.
+%It should be noted that $\lambda_{ASP} \leq \lambda_{USP}$ \ws{with equality when the coefficients of the terms all have equal magnitude (confirm this)} \ws{and give some analytical proof for this bound}.
+
+\begin{theorem}
+    $\lambda_{ASP} \leq \lambda_{USP}$
+\end{theorem}
+\textit{Proof:} $\lambda_{USP} = L\max_{l}|\tilde{\alpha}_l|$ and $\lambda_{ASP} = \sum_l |\tilde{\alpha}_l|$. If $\tilde{\alpha}_i = \tilde{\alpha}_j \forall i,j$, then let $\tilde{\alpha}_i = \tilde{\alpha}$. Now, $L\max_l|\tilde{\alpha}_l| = L|\tilde{\alpha}|$ and $\sum_{l = 0}^{L - 1}|\tilde{\alpha}_l| = L|\tilde{\alpha}|$. Thus, in this case, $\lambda_{USP} = \lambda_{ASP}$.
+
+For $|\tilde{\alpha}_i| \neq |\tilde{\alpha}_j|$ for arbitrary $i,j$, $\lambda_{ASP} = max_l|\tilde{\alpha}_l| + \sum_{k \neq l}|\tilde{\alpha}_k|$. Then
+\begin{align}
+    \lambda_{ASP} - \lambda_{USP} &= max_l|\tilde{\alpha}_l| + \sum_{k \neq l}|\tilde{\alpha}_k| - Lmax_l|\tilde{\alpha}_l|\\ \nonumber
+                                &= -(L - 1)max_l|\tilde{\alpha}_l|+ \sum_{k \neq l}|\tilde{\alpha}_k| \\ \nonumber
+                                &\leq -(L - 1)max_l|\tilde{\alpha}_l| + \sum_{k \neq l}max_l|\tilde{\alpha}_l| \\ \nonumber
+                                &= -(L - 1)max_l|\tilde{\alpha}_l| + (L - 1) max_l|\tilde{\alpha}_l|\\ \nonumber
+                                &= 0 \\ \nonumber
+\end{align}
+
+Therefore, $\lambda_{ASP} \leq \lambda_{USP}$.$\blacksquare$
 
 The goal of \textit{ASP} is to perform the following operation:
 \begin{equation}
