@@ -130,6 +130,7 @@ where the coefficients $\tilde{\alpha_l}$ are the rescaled coefficients of the t
 % This preprocessing means that after the block-encoding is applied, all output states will be rescaled by a coefficient of $(\Omega + 1)^{(A)/2}$.
 The \textit{bosonic-rescaled} Hamiltonian is given by:
 \begin{equation}
+    \label{eq:bosonically-rescaled-hamiltonian}
     \tilde{H} = \sum_{l=0}^{L-1} \tilde{\alpha_l} \Tilde{T}_l
 \end{equation}
 where $\tilde{H}$ is the rescaled Hamiltonian and $\Tilde{T}_l$ refers to the term $T_l$ with the bosonic ladder operators replaced by the rescaled bosonic ladder operators in Eq. \ref{eq:bosonic-ops-altered}.
@@ -175,7 +176,11 @@ We will refer to this variant of the \textit{Prepare} oracle as \textit{Uniform 
 
 A condition for this implementation is that the coefficients must first be rescaled such that they all have magnitude $\leq 1$.
 Let the largest coefficient magnitude be given by $\alpha^* = \max{|\tilde{\alpha_l}|}$.
-This rescaling imposes a constant rescaling factor of $\alpha^*$ and we refer to these rescaled coeffifients as $\Tilde{\alpha_l}$.
+This rescaling imposes a constant rescaling factor of $\alpha^*$ and we refer to these rescaled coeffifients as $\alpha_l^*$:
+\begin{equation}
+    \label{eq:usp-coeff-rescaling}
+    \alpha_l \rightarrow \frac{\alpha_l}{\alpha^*} \equiv \alpha_l^*
+\end{equation}
 
 \textit{USP} imposes an additional rescaling factor of $2^{\lceil \log_2{L} \rceil}$.
 This results in an overall rescaling of the Hamiltonian by a constant factor of:
