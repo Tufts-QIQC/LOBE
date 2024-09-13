@@ -9,7 +9,14 @@ This also extends LCU block-encodings to the non-unitary operators used in this 
 \begin{figure}
     \centering
     \includegraphics[width=8cm]{figures/lobe.pdf}
-    \caption{\textbf{Ladder Operator Block-Encoding.}
+    \caption{
+        \textbf{Ladder Operator Block-Encoding (LOBE)}
+        A circuit diagram for a \textit{controlled} application of LOBE is shown. 
+        The Pauli-X gate on the validation qubit depicts that the validation qubit begins in the $\ket{1}$ state and this operation is not repeated on subsequent calls to the block-encoding.
+        The block-encoding is structured in the same way as an LCU block-encoding where a \textit{Prepare} oracle is applied on the index register, followed by an application of a \textit{Select} oracle (shaded in blue), and then finishes by uncomputing the index register using $\textit{Prepare}^\dagger$.
+        Throughout this work, hexagons in circuit diagrams will represent multiplexors over the register on which they are applied.
+        The multiplexor depicted with $\textit{In}_l$ in this diagram creates a coherent for-loop over the computational basis states of the index register and is constructed as shown in Figure 7 of \cite{babbush2018encoding}.
+        The bottom register denoted $\ket{0^{\otimes Q_\alpha}}$ depicts a clean ancillae register which is promised to have qubits beginning and ending in the $\ket{0}$ state.
     }
     \label{fig:lobe}
 \end{figure}
@@ -232,7 +239,19 @@ where $L$ is the number of terms in the Hamiltonian.
 \begin{figure}
     \centering
     \includegraphics[width=16cm]{figures/select.pdf}
-    \caption{\textbf{Ladder Operator Select Oracle (Decomposed).}
+    \caption{
+        \textbf{LOBE \textit{Select} Oracle (Decomposed)}
+        This figure gives a schematic for constructing the components of the \textit{Select} oracle wherein the term $\Tilde{T_l}$ is applied onto the system register when the index register is in the computational basis state $\ket{l}$.
+        The shaded red box with the dashed border show the update on the fermionic system when a fermionic ladder operator is applied.
+        A similar series of operations is repeated for each fermionic ladder operator acting on the $i^{th}$ fermionic mode within the $l^{th}$ term.
+        Similarly, the shaded orange box with the dashed border represent the application of antifermionic ladder operators and is also repeated for each antifermionic ladder operator within the $l^{th}$ term.
+        The shaded green box with the dashed border depicts the application of all ladder operators acting on the $i^{th}$ bosonic mode.
+        A similar series of operations is repeated for each bosonic mode with ladder operators acting upon it within the $l^{th}$ term.
+        The hexagons in this box along with the $R_y(\theta, k)$ rotations depict controlled, multiplexed rotations and are implemented as described in Appendix \ref{sec:multiplexed-rotations}.
+        The shaded blue box with the dotted border is applied when the coefficient of the $l^{th}$ term is negative.
+        The ancilla qubit that it is applied on is in the $\ket{1}$ state whenever the $l^{th}$ term is applied and the Pauli-Z gate gives a phase of $-1$ on the amplitude of the associated quantum state.
+        Finally, the shaded purple box with the dotted border is used to apply the magnitude of the coefficient associated with the $l^{th}$ term.
+        These operations are \textit{only} included when the \textit{USP} protocol is used for \textit{Prepare}.
     }
     \label{fig:select}
 \end{figure}

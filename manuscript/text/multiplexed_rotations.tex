@@ -43,7 +43,14 @@ We do not include these optimizations in this work as they are highly dependent 
     \centering
     \includegraphics[width=16cm]{figures/controlled-multiplexed-rotations.pdf}
     \caption{
-        \textbf{Controlled Multiplexed Rotations.} 
+        \textbf{Controlled Multiplexed Rotations}
+        Two implementations for controlled multiplexed rotations, building off of the construction presented in \cite{mottonen2004transformation} are shown.
+        In subfigure a (left), each arbitrary rotation is simply controlled.
+        If the control is off, the CNOT gates will cancel with one another, leaving the quantum state unchanged.
+        In subfigure b (right), the arbitrary rotations are left uncontrolled, but the CNOT gates are controlled, promoting them to Toffolis.
+        Without the final (controlled) rotation, in the case that the control is off, all rotation gates are applied causing an undesired rotation.
+        This undesired rotation can be undone by applying a controlled rotation (controlled on the control being off) of the sum of the angles in the reverse direction.
+        This implementation will likely lead to fewer T gates being required assuming that controlling each rotation is more expensive than a Toffoli.
     }
     \label{fig:controlled-multiplexed-rotations}
 \end{figure}

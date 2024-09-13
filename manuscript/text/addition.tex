@@ -16,7 +16,11 @@ However, since the value of $m$ is classial and known, there are a few other opt
     \centering
     \includegraphics[width=16cm]{figures/addition-via-incrementers.pdf}
     \caption{
-        \textbf{Addition via Controlled Incrementers.} 
+        \textbf{Addition via Incrementers} 
+        This figure depicts an implementation of addition (mod $32$)by a classical value using a series of incrementers.
+        An incrementer applied onto a register, excluding the least-significant qubit, implements a bit-shifted incrementer, leading to addition by $2$. 
+        Addition by the classical value $11$ can be constructed by bit-shifted incrementers of $+8$, $+2$, and $+1$.
+        Subtraction by the same value can be achieved by applying Pauli-X gates on each qubit before and after the operation.
     }
     \label{fig:addition-via-incrementers}
 \end{figure}
@@ -25,7 +29,10 @@ However, since the value of $m$ is classial and known, there are a few other opt
     \centering
     \includegraphics[width=8cm]{figures/incrementer.pdf}
     \caption{
-        \textbf{Controlled Incrementer.} 
+        \textbf{Controlled Incrementer} 
+        A circuit diagram for a controlled incrementer (mod $32$) as described in \cite{Gidney_2015} is shown.
+        The controlled incrementer performs the operation $\ket{x} \rightarrow \ket{x + 1}$ when the control qubit is in the $\ket{1}$ state.
+        Decrementing the register by $1$ can be achieved by applying Pauli-X gates on each qubit before and after the operation.
     }
     \label{fig:incrementer}
 \end{figure}
@@ -51,7 +58,14 @@ If the number of left (and right) elbows is minimized, the upper bound for the n
     \centering
     \includegraphics[width=12cm]{figures/ctrl-add-11-qubit-efficient.pdf}
     \caption{
-        \textbf{Qubit Efficient Controlled Addition of 11.} 
+        \textbf{Qubit-Efficient Controlled Addition of 11}
+        The construction for controlled quantum addition given in \cite{gidney2018halving} can be modified to reduce the number of ancillae in the case that one of the values is a classical number.
+        This diagram shows addition by the value $11$ which is given by $01011$ in binary with the left-most bit the most-significant.
+        The values of the classical bits, $m_i$ where the $m_0$ is the least-significant bit, can be propagated into the control structure of the circuit.
+        If the value of the bit $m_i$ is 0, the corresponding control in the circuit is controlled on the $\ket{1}$ state.
+        If the value of the bit $m_i$ is 1, the corresponding control in the circuit is controlled on the $\ket{0}$ state.
+        The value of the bit $m_0$ is assumed to be $1$ and is not depicted in the circuit.
+        If the value of $m_0$ is $0$, the circuit can be bit-shifted as shown in Figure \ref{fig:addition-qubit-efficient-12}.
     }
     \label{fig:addition-qubit-efficient-11}
 \end{figure}
@@ -60,7 +74,10 @@ If the number of left (and right) elbows is minimized, the upper bound for the n
     \centering
     \includegraphics[width=8cm]{figures/ctrl-add-12-qubit-efficient.pdf}
     \caption{
-        \textbf{Qubit Efficient Controlled Addition of 12.} 
+        \textbf{Qubit-Efficient Controlled Addition of 12} 
+        This circuit depicts the same protocol as in Figure \ref{fig:addition-qubit-efficient-11}, however, when the least-significant bit is $0$, the circuit can be bit-shifted to reduce the cost.
+        This figure depicts the controlled addition of the value $12$ ($01100$ in binary).
+        The two least-significant bits are $0$, so the circuit can be bit-shifted twice, significantly reducing the number of required operations.
     }
     \label{fig:addition-qubit-efficient-12}
 \end{figure}
@@ -76,7 +93,12 @@ If the $p$ least significant bits of $m$ are zero, this reduces the cost to $2(N
     \centering
     \includegraphics[width=12cm]{figures/ctrl-add-11-gate-efficient.pdf}
     \caption{
-        \textbf{Gate Efficient Controlled Quantum Addition.} 
+        \textbf{Gate-Efficient Controlled Addition of 11}
+        The construction for controlled quantum addition given in \cite{gidney2018halving} can be modified to reduce the number of gates in the case that one of the values is a classical number.
+        In this implementation, the classical value is loaded into an ancilla register which begins in the all-zero state (controlled on the control qubit) using a series of CNOT gates corresponding to the binary representation of the classical value.
+        Next, the circuit for uncontrolled quantum addition given in \cite{gidney2018halving} is applied to the two registers.
+        Lastly, the loading of the classical value is uncomputed.
+        In the case that the control is off, the classical value is \textit{not} loaded into the ancilla register and the addition circuit performs addition of $0$.
     }
     \label{fig:addition-gate-efficient}
 \end{figure}
