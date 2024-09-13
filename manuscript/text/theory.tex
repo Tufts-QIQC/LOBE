@@ -27,34 +27,33 @@ Many observables (such as Hamiltonians) can be efficiently expressed as products
 
 In quantum field theories, the main object of the theories is the \textit{field operator}, rather than the wavefunction. Field operators are written in terms of creation and annihilation operators which, when acting on the vacuum, create and annihilate particles of a particular type. 
 These operators arise from classical field theory, where fields are described by $\phi(x)$, which, given an input $x$, tell you the value of the field $\phi(x)$  at this point. In quantum field theories, they are promoted to operators to obtain $\phi(x) \rightarrow \hat{\phi}(x)$.
-In this formalism, if we act on the vacuum with $\hat{\phi}(x)$, and take the inner product with either a position or momentum eigenstate to get:
+In this formalism, if we act on the vacuum with $\hat{\phi}(x)$, and take the inner product with either a position or momentum eigenstate, we get:
 \begin{align}
     \langle y|\hat{\phi}(x)|0\rangle &= \delta^{(3)}(\vec{x} - \vec{y}) \\ \nonumber
     \langle q|\hat{\phi}(x)|0\rangle &= e^{iqx}, \\
 \end{align}
-which shows that $\hat{\phi}(x)$ creates a particle at a particular location with some spread of momentum (such that it obeys the Heisenberg uncertainty principle).
+which shows that $\hat{\phi}(x)$ creates a particle at a particular location with some spread of momentum such that it obeys the Heisenberg uncertainty principle.
 
 Field operators are Fourier transforms of creation and annihilation operators acting on momentum modes: 
 \begin{equation}
     \phi(x) = \int \frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}\left(a_p e^{ipx} + a_p^\dagger e^{-ipx}\right).
 \end{equation}
-where $a_p$, and $a_p^\dagger$ are the creation and annihliation operators acting on momentum mode $p$, to be discussed in more detail in section \ref{subsec:operators}. $E_p$ is the energy of a particle with momentum $p$, which taken with $\frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}$ ensures Lorentz invariance. 
-%\ws{Make sure every variable in an equation is defined either before or after. So here we need to say what $\phi$, $p$, $E_p$, $a_p$, and $x$ are.}
+where $a_p$, and $a_p^\dagger$ are the creation and annihliation operators acting on momentum mode $p$, to be discussed in more detail in section \ref{subsec:operators}.
+$E_p$ is the energy of a particle with momentum $p$, which taken with $\frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}$ ensures Lorentz invariance. 
 
 The Hamiltonian can then be derived from the field operators via 
 \begin{equation}
     \label{eq:H_from_phi}
     H = \int d^3x \left(\frac{\partial \mathcal{L}}{\partial \dot{\phi}}\dot{\phi} - \mathcal{L} \right),
 \end{equation}
-which clearly leads to a Hamiltonian written in terms of ladder operators. Note that different types of particles with different types of spins have different types of field operators. Thus, the Hamiltonian in equation \ref{eq:H_from_phi} will look differently depending on different theories with different particle types and spins. 
+which leads to a Hamiltonian written in terms of ladder operators.
+Note that different types of particles with different types of spins have different types of field operators.
+Thus, the Hamiltonians derived from equation \ref{eq:H_from_phi} will be comprised of different operators depending on the theories involved and the associated particle types and spins that are included in the model. 
 
 \subsection{Ladder Operators}
 \label{subsec:operators}
 
-%\ws{@Gus, you probably have much better language to define all of this stuff. I just needed to write something down so I could reference it in the circuit construction. Don't hesitate to scrap anything in here.}
 \subsubsection{Feromons and Antiferomons}
-
-%Define action of fermionic ladder operators.
 
 Fermions (and antifermions) obey the Pauli-exclusion principle \ws{citation} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
 Fermionic (and antifermionic) ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
