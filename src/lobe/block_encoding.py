@@ -8,6 +8,7 @@ from openparticle import (
 )
 from ._utils import get_parsed_dictionary
 from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
+import math
 
 
 def add_lobe_oracle(
@@ -179,16 +180,24 @@ def add_lobe_oracle(
 
         # Perform rotations related to term coefficients
         if perform_coefficient_oracle:
+            rotation_angle = 2 * np.arccos(np.abs(term.coeff))
+            if math.isnan(rotation_angle):
+                print(
+                    "Encountered nan for rotation angle. Term coeff was: {}".format(
+                        term.coeff
+                    )
+                )
+                rotation_angle = np.sqrt(2)
             gates_for_term.append(
                 cirq.Moment(
-                    cirq.ry(2 * np.arccos(np.abs(term.coeff)))
+                    cirq.ry(rotation_angle)
                     .on(rotation_register[0])
                     .controlled_by(*index_ctrls[0], control_values=index_ctrls[1])
                 )
             )
             numerics["rotations"] += 2
-            numerics["angles"].append(-np.arccos(np.abs(term.coeff)))
-            numerics["angles"].append(np.arccos(np.abs(term.coeff)))
+            numerics["angles"].append(-rotation_angle / 2)
+            numerics["angles"].append(rotation_angle / 2)
 
         # Right-elbow to uncompute index of term
         circuit_ops, _ = _get_index_register_ctrls(
