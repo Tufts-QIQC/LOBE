@@ -10,9 +10,9 @@ where $p(l)$ is a probability distribution along the different indices ($l$) wit
 
 In the context of block-encodings, preparing such probability distributions can be used to construct the $Prepare$ oracle:
 \begin{equation}
-    \ket{0^{\otimes \lceil \log_2{L} \rceil}} \rightarrow_{\textit{Prepare}} \sum_{l = 0}^{L-1} \sqrt{|\alpha_l| / \lambda_{asp}} \ket{l}
+    \ket{0^{\otimes \lceil \log_2{L} \rceil}} \rightarrow_{\textit{Prepare}} \sum_{l = 0}^{L-1} \sqrt{|\alpha_l| / \lambda_{ASP}} \ket{l}
 \end{equation}
-where the probability distribution is defined by the normalized magnitudes of the coefficients of the terms in the linear combination: $p(l) = |\alpha_l| / \lambda_{asp}$.
+where the probability distribution is defined by the normalized magnitudes of the coefficients of the terms in the linear combination: $p(l) = |\alpha_l| / \lambda_{ASP}$.
 
 The Grover-Rudolph algorithm works by sequentially summing up the probability distribution to the left and right of a given index and then performing a rotation controlled based on the current index.
 

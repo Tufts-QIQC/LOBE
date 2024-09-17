@@ -7,11 +7,10 @@ from src.lobe.block_encoding import add_lobe_oracle
 from src.lobe.usp import add_naive_usp
 from src.lobe.asp import add_prepare_circuit, get_target_state
 from src.lobe._utils import get_basis_of_full_system
-from src.lobe.lobe_circuit import lobe_circuit
 from src.lobe.rescale import (
-    rescale_terms,
+    bosonically_rescale_terms,
+    rescale_terms_usp,
     get_numbers_of_bosonic_operators_in_terms,
-    rescale_coefficients,
 )
 import pytest
 
@@ -23,7 +22,10 @@ def _test_helper(terms, maximum_occupation_number, decompose):
 
     number_of_modes = max([term.max_mode() for term in terms]) + 1
 
-    rescaled_terms, scaling_factor = rescale_terms(terms, maximum_occupation_number)
+    rescaled_terms, bosonic_rescaling_factor = bosonically_rescale_terms(
+        terms, maximum_occupation_number
+    )
+    rescaled_terms, usp_rescaling_factor = rescale_terms_usp(rescaled_terms)
 
     number_of_ancillae = 100
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
@@ -31,7 +33,9 @@ def _test_helper(terms, maximum_occupation_number, decompose):
         max(get_numbers_of_bosonic_operators_in_terms(terms)) + 1
     )
 
-    block_encoding_scaling_factor = (1 << number_of_index_qubits) * scaling_factor
+    rescaling_factor = (
+        (1 << number_of_index_qubits) * bosonic_rescaling_factor * usp_rescaling_factor
+    )
 
     # Declare Qubits
     circuit = cirq.Circuit()
@@ -104,7 +108,7 @@ def _test_helper(terms, maximum_occupation_number, decompose):
             : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
         ]
 
-        assert np.allclose(upper_left_block * block_encoding_scaling_factor, matrix)
+        assert np.allclose(upper_left_block * rescaling_factor, matrix)
 
 
 @pytest.mark.parametrize(
@@ -255,20 +259,20 @@ def test_lobe_block_encoding_random(trial, decompose):
 def test_lobe_block_encoding_asp(maximum_occupation_number):
     terms = [
         ParticleOperator("b0"),
-        ParticleOperator("a0"),
-        -1 * ParticleOperator("b0^ d0^ a0"),
-        ParticleOperator("a0^ a0^ a0^ d0"),
+        0.5 * ParticleOperator("a0"),
+        -0.25 * ParticleOperator("b0^ d0^ a0"),
+        (1 / 3) * ParticleOperator("a0^ a0^ a0^ d0"),
     ]
-    coefficients = np.array([1, 0.5, 0.25, 1 / 3])
-    hamiltonian = coefficients[0] * terms[0]
-    for coeff, term in zip(coefficients[1:], terms[1:]):
-        hamiltonian += coeff * term
+    hamiltonian = terms[0]
+    for term in terms[1:]:
+        hamiltonian += term
 
-    coefficients, bosonic_scaling_factor = rescale_coefficients(
-        terms, coefficients, maximum_occupation_number
+    rescaled_terms, bosonic_rescaling_factor = bosonically_rescale_terms(
+        terms, maximum_occupation_number
     )
-    norm = sum(np.abs(coefficients))
-    target_state = get_target_state(coefficients)
+    rescaled_coefficients = [term.coeff for term in rescaled_terms]
+    norm = sum(np.abs(rescaled_coefficients))
+    target_state = get_target_state(rescaled_coefficients)
 
     number_of_modes = max([term.max_mode() for term in terms]) + 1
 
@@ -288,8 +292,6 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
     number_of_ancillae = 5
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
     number_of_rotation_qubits = max_number_of_bosonic_ops_in_term + 1
-
-    block_encoding_scaling_factor = norm * bosonic_scaling_factor
 
     # Declare Qubits
     circuit = cirq.Circuit()
@@ -323,7 +325,7 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
     circuit.append(cirq.X.on(validation))
     circuit += add_prepare_circuit(index_register, target_state=target_state)
     circuit += add_lobe_oracle(
-        terms,
+        rescaled_terms,
         validation,
         index_register,
         system,
@@ -340,7 +342,7 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
         : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
     ]
 
-    encoded_block = upper_left_block * block_encoding_scaling_factor
+    encoded_block = upper_left_block * norm * bosonic_rescaling_factor
     real_block = np.real(encoded_block)
 
     assert np.allclose(encoded_block, real_block)
