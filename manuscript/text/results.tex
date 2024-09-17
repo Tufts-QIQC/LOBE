@@ -1,7 +1,7 @@
 \section{Results}
 \label{sec:results}
 
-In this section, we demonstrate the use of LOBE to block-encode Hamiltonians derived from quantum field theories: Yukawa theory and $\phi^4$ theory \ws{citations}. These models are \ws{insert-blah here @gus @kamil}.
+In this section, we demonstrate the use of LOBE to block-encode Hamiltonians derived from quantum field theories: Yukawa theory and $\phi^4$ theory \cite{Peskin:1995ev}. These models are \ws{insert-blah here @gus @kamil}.
 We study both variants of the block-encoding described in Sections \ref{sec:block-encoding} and expanded upon in Section \ref{sec:lobe} and give numerical counts for the numbers of non-Clifford operations, the number of ancillae required beyond the system register, and the rescaling factor imposed on the resulting block-encoding.
 
 \subsection{Yukawa Theory}
@@ -9,9 +9,17 @@ A quantum field theory that models the strong nuclear force between hadrons is Y
 
 Utilizing the lightfront frame \cite{Dirac1949}, leads to a straightforward approach to writing down the Hamiltonian bound-state eigenvalue equation in terms of ladder operators. This lightfront frame removes the ambiguous $\sqrt{\nabla^2 + m^2}$ term that appears in a canonical, instant-time frame Hamiltonian approach. 
 
-The interaction terms in the Hamiltonian are $H_{\text{Yukawa int}} \in \{b^\dagger b a, b^\dagger b a^\dagger, d^\dagger d a, d^\dagger d a^\dagger, b^\dagger d^\dagger a, bda^\dagger, b^\dagger b a^\dagger a, d^\dagger d a^\dagger a \}$, while the free part of the Hamiltonian is $H_{\text{free}} \in \{b^\dagger b, d^\dagger d, a^\dagger a \}$.
-This Hamiltonian can be written out as an integral (discretized to a sum in order to block encode with LOBE) over these free and interaction ladder operators modulated with coefficients (which are not added here). 
+The interaction terms in the Hamiltonian are $H_{\text{Yukawa int}} \in \{b^\dagger b a, b^\dagger b a^\dagger, d^\dagger d a, d^\dagger d a^\dagger, b^\dagger d^\dagger a, bda^\dagger, b^\dagger b a^\dagger a, d^\dagger d a^\dagger a \}$, while the free part of the Hamiltonian is $H_{\text{free}} \in \{b^\dagger b, d^\dagger d, a^\dagger a \}$. 
+Much of the interesting physics arises from the interacting piece. The terms $b^\dagger b a$ and $b^\dagger b a^\dagger$ describe the annihilation of a fermion with a boson and creation of a fermion, and the creation of a fermion-boson pair from a fermion respectively. $d^\dagger d a$ and $d^\dagger d a^\dagger$ describe the same interactions but for antifermions and bosons. 
+$b^\dagger d^\dagger a$ and $bda^\dagger$ correspond to fermion-antifermion pair creation and annihilation, and lastly, $b^\dagger b a^\dagger a$ and $d^\dagger d a^\dagger a$ are terms of $\mathcal{O}(g^2)$, unique to the lighfront frame.
 
+This Hamiltonian can be written out as a discrete sum over these free and interaction ladder operators with coefficients coming from lightfront coordinates. The Hamiltonian can be written as:
+
+\begin{equation}
+    \label{eq:Yukawa-hamiltonian}
+    H_{\text{Yukawa}} = H_0 + H_{\bar\psi \psi \phi}.
+\end{equation}
+The explicit form of the Hamiltonian will be written out in the appendix. 
 
 \begin{figure}
     \centering
@@ -40,7 +48,7 @@ This Hamiltonian can be written out as an integral (discretized to a sum in orde
 \end{figure}
 
 In Figure \ref{fig:Yukawa_hamiltonian_gates_vs_terms}, we plot the numerical gate counts estimates for the Yukawa Hamiltonian (Eq. \ref{eq:Yukawa-hamiltonian}) \gus{@will do we want to explicitly show the discretized Hamiltonian for both Yukawa and $\phi^4$ in the appendix?} as the number of terms in the Hamiltonain ($L$) increases.
-The number of terms ($L$) increases directly with an increasing number of momentum modes and is given by $L = 1.3I^3 + 0.65I^2 - 0.4I $ \ws{confirm this, im just eyeballing rn} \gus{I did some fits to $L$ vs. $I$, and got this from np.polyfit (see Yukawa.ipynb)}.
+The number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$
 For the three non-Clifford operations, the number of operations increases linearly with the number of terms in the Hamiltonian for this model.
 Additionally, the two different compilation strategies (\textit{USP} (blue), \textit{ASP} orange) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations.
 When the number of terms ($L$) is far from the next largest power of 2, \textit{ASP} requires more arbitrary rotations due to the compilation of Grover-Rudolph that is used in this work.
