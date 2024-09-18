@@ -6,7 +6,7 @@ import pytest
 def test_lobe_function_toy_fermionic():
     hamiltonian = ParticleOperator({"b0^ b0": 1, "b0^ b1": 1, "b1^ b0": 1, "b1^ b1": 1})
 
-    _, unitary, matrix = lobe_circuit(hamiltonian)
+    _, numerics, unitary, matrix = lobe_circuit(hamiltonian, return_unitary=True)
     assert np.allclose(np.real(unitary), matrix)
 
 
@@ -14,7 +14,9 @@ def test_lobe_function_toy_fermionic():
 def test_lobe_function_toy_bosonic(max_bose_occ):
     hamiltonian = ParticleOperator({"a0^ a0": 1, "a0^ a1": 1, "a1^ a0": 1, "a1^ a1": 1})
 
-    _, unitary, matrix = lobe_circuit(hamiltonian, max_bose_occ=max_bose_occ)
+    _, numerics, unitary, matrix = lobe_circuit(
+        hamiltonian, max_bose_occ=max_bose_occ, return_unitary=True
+    )
     assert np.allclose(np.real(unitary), matrix)
 
 
@@ -33,7 +35,7 @@ def test_lobe_function_quartic_osc():
         }
     )
 
-    _, unitary, matrix = lobe_circuit(
-        renormalized_quartic_oscillator_hamiltonian, max_bose_occ=3
+    _, numerics, unitary, matrix = lobe_circuit(
+        renormalized_quartic_oscillator_hamiltonian, max_bose_occ=3, return_unitary=True
     )
     assert np.allclose(np.real(unitary), matrix)
