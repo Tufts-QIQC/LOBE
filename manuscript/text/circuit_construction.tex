@@ -44,7 +44,7 @@ A left-elbow with $N$ controls producing one ancilla qubit storing the quantum b
     C_{N-ctrl-elbow} = (0, N-1, N-2)
 \end{equation}
 
-Additionally, arbitrary rotations are typically decomposed into non-Clifford operations via one of several methods \cite{}. \ws{Ross-Selinger, RUS, phase gradient states} 
+Additionally, arbitrary rotations are typically decomposed into non-Clifford operations via one of several methods \cite{ross2014optimal, bocharov2015efficient} \ws{cite addition with phase gradient states}.
 The cost of these decompositions is dependent upon the desired rotation angle and the required precision on the angle of the rotation.
 For this reason, we will leave these costs in terms of rotations and elbows instead of decomposing them further into T gates.
 
@@ -338,20 +338,24 @@ The action of the rescaled operator on the state of the $i^{th}$ bosonic mode wi
 
 This operation can implemented in the block-encoding via a quantum circuit as follows with $m$ denoting the number of bosonic modes that have already been applied in this term:
 \begin{algorithmic}[1]
-    \State Let $\ket{\text{fire}}$ be the quantum boolean indicating that the term $T_l$ should be applied onto the quantum state if $\ket{\text{fire}} == \ket{1}$.
-
+    \State Let $\ket{\text{anc}}_\text{fire}$ indicate if $T_l$ should be applied onto the quantum state
+    
     \For{$\ket{m} \in [0, M-1]$}
 
-        \If{$\ket{\text{fire}} == \ket{1}$}
-            \State Apply a Pauli-X gate on the $m^{th}$ qubit in the coefficient register to rotate it completely outside of the encoded subspace.
+        \If{$\ket{\text{anc}}_\text{fire} == \ket{1}$}
+            \State $\ket{0}_m \gets X \ket{0}_m = \ket{1}_m$
             \For{Multiplex: $\omega_i \in S \leq \omega_i \leq \min(\Omega, \Omega - S + R)$}
-                \State Apply an Ry rotation on the $m^{th}$ qubit in the coefficient register of angle $\theta$ given by Eq. \ref{eq:smarter-rot-angle}
+                \State $\ket{1}_m \gets R_y(\theta) \ket{1}_m$
             \EndFor
 
             \State $\ket{\omega_i} \gets \ket{\omega_i + R - S}$
         \EndIf
     \EndFor
 \end{algorithmic}
+where $\ket{\text{anc}}_\text{fire}$ represents the bottom ancilla qubit in Figure \ref{fig:select}.
+
+The application of a Pauli-X gate on the $m^{th}$ qubit in the coefficient register is used to rotate that qubit completely outside of the encoded subspace.
+
 For the multiplexor over the occupation states, any state beginning with an occupation less than $S$ will be zeroed-out and therefore can be left outside of the encoded subspace by setting the rotation angle to zero.
 Likewise, any state that should \textit{end} with an occupation greater than $\Omega$ will also be zeroed-out and therefore can also be left unmodified by setting the rotation angle to zero.
 For occupation states inside the allowable range, the purpose of the rotations is to rotate the $m^{th}$ qubit in the coefficient register back into the encoded subspace with an amplitude in the $\ket{0}$ state equal to the amplitude in Eq. \ref{eq:bosonic-operator-action}:
@@ -359,6 +363,8 @@ For occupation states inside the allowable range, the purpose of the rotations i
     \label{eq:smarter-rot-angle}
     \theta(\omega_i, S, R) = 2 \sin^{-1}{\Big(\prod_{r=0}^{R-1} \big( \sqrt{\frac{\omega_i - S + r + 1}{\Omega + 1}} \big) \prod_{s=0}^{S-1} \big( \sqrt{\frac{\omega_i - s}{\Omega + 1}} \big)\Big)}
 \end{equation}
+
+This desired action is performed by the application of an Ry rotation on the $m^{th}$ qubit in the coefficient register by the angle $\theta$ given in Eq. \ref{eq:smarter-rot-angle}.
 The implementation for these controlled-multiplexed rotations is discussed in more detail in Appendix \ref{sec:multiplexed-rotations}.
 The gate cost for one of these controlled-multiplexed rotations is given by:
 \begin{equation}
@@ -457,9 +463,7 @@ The total qubit requirement under these compilation choices - disregarding the c
 \end{equation}
 which is linear in the number of modes and logarithmic in the number of terms and the bosonic occupation cutoff.
 
-For the overall gate counts, we will focus on the variant using Grover-Rudolph to implement \textit{ASP}, however it is straightforward to compute the associate gate counts for $\text{USP}$.
-Beginning from Figure \ref{fig:lobe}, we can compute the overall gate cost of the block-encoding as $2*C_{GR} + C_{\textit{Select}}$.
-$C_{\textit{Select}}$ can be computed as a sum of the individual costs outlined above:
+The cost of the \textit{Select} oracle for LOBE, $C_{\textit{Select}}$, can be computed as a sum of the individual costs outlined above:
 \begin{equation}
     \begin{split}
         C_{\textit{Select}} &= C_{\text{multiplex: index}} + \sum_l (C_{\text{term-boolean}} + C_\text{bosonic-updates} + C_{\text{clean: term-boolean}}) \\
@@ -479,6 +483,9 @@ Though the exact gate counts are not clear from this expression, we can see that
 \end{split}
 \end{equation}
 where $M$ is upper-bounded by $I$.
+
+For the overall gate counts, we will focus on the variant using Grover-Rudolph to implement \textit{ASP}, however it is straightforward to compute the associate gate counts for $\text{USP}$.
+Beginning from Figure \ref{fig:lobe}, we can compute the overall gate cost of the block-encoding as $2*C_{GR} + C_{\textit{Select}}$.
 
 % Since the $\textit{Prepare}$ oracle for $USP$ is simply a string of Hadamard gates, this oracle contributes no non-Cliffords and $C_{\textit{USP}} = (0, 0, 0, 0)$.
 % In Appendix \ref{sec:grover-rudolph}, we discuss the gate cost for the implementation of Grover-Rudolph used in this work. \ws{Fill this out once gate cost is better understood.}

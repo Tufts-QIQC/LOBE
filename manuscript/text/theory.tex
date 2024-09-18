@@ -1,9 +1,10 @@
 \section{Theory}
+\label{sec:theory}
 
 %Give background of ladder operators and constructions of realistic Hamiltonians/Observables from ladder Operators
 In quantum field theories and quantum chemistry, the main method of keeping track of multiparticle states is known as second quantization \cite{Sakurai_Napolitano_2020}.
 In second quantization, multiparticle state vectors are written as $\ket{n} = \ket{n_{I-1}, \dots, n_1, n_0}$ where $n_i \in \mathbb{Z}$ is the number of particles present in mode $i$.
-The fermionic (and antifermionic) occupancy of a mode can either be $0$ or $1$ due to the Pauli exclusion principle \gus{cite PEP}.
+The fermionic (and antifermionic) occupancy of a mode can either be $0$ or $1$ due to the Pauli exclusion principle \cite{pauli1925zusammenhang}.
 
 There is no physical limitation on the occupancy of bosonic modes: $n_{i_a} \in [0, 1, 2, \dots)$.
 This leads to an infinitely large space, therefore we can impose an artificial occupancy cutoff ($\Omega$) such that $n_{i_a} \in [0, 1, 2, \Omega)$ and the space becomes finite.
@@ -18,7 +19,7 @@ In second quantization, the Hilbert space is promoted to the Fock space via \cit
     \mathcal{F} = \oplus_n \mathcal{H}_n.
 \end{equation}
 
-Second quantization appears in quantum chemistry after projecting the Hamiltonian onto basis wavefunctions, and ensuring exchange symmetry via Slater determinants. \gus{Will, you know more about quantum chemistry than me, so please edit this as needed}.
+Second quantization appears in quantum chemistry after projecting the Hamiltonian onto basis wavefunctions, and ensuring exchange symmetry via Slater determinants.
 Similarly, in quantum field theories, field operators, rather than wavefunctions, are the main objects of the theory. These field operators act on second-quantized states to create and annihilate particles in the field. 
 
 In second quantization, creation and annihilation operators - which will collectively be refered to as \emph{ladder operators} - are used to manipulate the state of the system.
@@ -53,9 +54,9 @@ Thus, the Hamiltonians derived from equation \ref{eq:H_from_phi} will be compris
 \subsection{Ladder Operators}
 \label{subsec:operators}
 
-\subsubsection{Feromons and Antiferomons}
+\subsubsection{Fermions and Antifermions}
 
-Fermions (and antifermions) obey the Pauli-exclusion principle \ws{citation} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
+Fermions (and antifermions) obey the Pauli-exclusion principle \cite{pauli1925zusammenhang} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
 Fermionic (and antifermionic) ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
 
 The fermionic creation operator is given by:
@@ -70,7 +71,7 @@ where $b_i$ denotes a fermionic ladder operator on the $i^{th}$ mode, the $^\dag
 An antifermionic creation operator is defined as above with the symbol $d$ to denote that the operator acts on antifermions.
 
 For a fermionic creation operator, if the mode being acted upon is unoccupied, then the creation operator ``creates" a fermion in that mode and applies a phase determined by the parity of the occupation of the previous modes.
-The value of $(-1)^{\sum_{j < i} n_{j_b}}$ introduces a sign flip if the parity of the $j$ modes indexed prior to $i$ is odd and does not change the sign if the parity is even. 
+The value of the coefficient on the output state introduces a sign flip if the parity of the $j$ modes indexed prior to $i$ is odd and does not change the sign if the parity is even. 
 Therefore the ordering of the modes in the encoding has an implication on the action of the operator which must be accounted for.
 If the mode is already occupied before a creation operator is applied, then the operator sets the amplitude of the quantum state to zero since a state with two particles in the same mode is not physical.
 This action "destroys" that portion of the quantum state and we refer to this as ``zeroing-out" the quantum state. 
@@ -89,7 +90,7 @@ The action of the annihilation operators is similar (and opposite) to the creati
 If the mode is already occupied, then the annihilation operator ``annihilates" the fermion at that mode by setting the occupation to zero and applies a phase based on the parity of the occupation of the preceeding modes.
 If the mode is unoccupied before the operator is applied, then the annihilation operator ``zeroes-out" the amplitude.
 
-\subsubsection{Bosos}
+\subsubsection{Bosons}
 
 Similarly to fermions, the action of bosonic creation operators is to increase the occupation of the mode being acted upon by $1$.
 If the occupancy is already at the (artificially restricted) maximum allowable occupancy, then the operator will zero-out the amplitude:
@@ -192,6 +193,4 @@ Thus, for a general Fock state with fermions, antifermions, and bosons, the tota
     Q_{sys} = I_b + I_d + I_a \lceil \log_2{\Omega} \rceil
 \end{equation}
 Throughout this work, for simplicity we assume that the number of modes is the same for each type of particle ($I_b = I_d = I_a \equiv I)$, though this limitation is not required.
-
-\ws{Question: do we want to also cost-out the unary encoding or just the ``compact" encoding that we've been primarily working with?}
 
