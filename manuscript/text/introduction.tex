@@ -2,9 +2,8 @@
 \label{sec:intro}
 
 The simulation of many-body quantum systems is a promising potential application for quantum computers \cite{feynman2018simulating}.
-For simulations of quantum systems to be performed, the information describing the Hamiltonian of the system must be encoded onto the quantum computer.
-Hamiltonians are Hermitian operators, however, only unitary operations - apart from measurement - can be performed on quantum computers. 
-This task of uploading the information of non-unitary operators has been pursued through various means, resulting in subroutines such as Trotterization \cite{suzuki1976generalized,hatano2005finding,lie1893theorie,trotter1959product,childs2021theory} and block-encoding \cite{lin2022lecture, poulin2018quantum, low2019hamiltonian}.
+Encoding the information of non-unitary operators - such as the Hamiltonian - within a quantum simulation algorithm is a necessary subroutine for performing such simulations.
+This task has been pursued through various means, resulting in methods such as Trotterization \cite{suzuki1976generalized,hatano2005finding,lie1893theorie,trotter1959product,childs2021theory} and block-encoding \cite{lin2022lecture, poulin2018quantum, low2019hamiltonian}.
 
 Block-encoding describes a general strategy for uploading the information of a non-unitary operator by encoding it within a chosen subspace (or block) of a larger unitary operator.
 Two frameworks for constructing block-encodings have dominated most of the literature on block-encodings: sparse block-encodings \cite{berry2009black, childs2009universal, lin2022lecture} and Linear Combinations of Unitaries (LCU) \cite{childs2012hamiltonian}.
@@ -34,4 +33,5 @@ In Section \ref{sec:block-encoding}, we define block-encodings and review strate
 In this section, we also establish a clear connection between several works which give compiled spare block-encodings constructions \cite{camps2024explicit,liu2024efficient} and LCU.
 In Section \ref{sec:lobe}, we detail the construction of the oracles comprising LOBE and give analytical spacetime costs for implementing them using the constructions chosen in this work.
 In Section \ref{sec:results}, we provide numerical benchmarks for the quantum resources required to block-encode Hamiltonians arising from quantum field theories. 
-Lastly, in Section \ref{sec:conclusions}, we summarize the results presented in this work and discuss future directions.
+In Section \ref{sec:conclusions}, we summarize the results presented in this work and discuss future directions.
+A glossary that defines the terminology and variables used throughout this work is given in Appendix \ref{sec:glossary}.
