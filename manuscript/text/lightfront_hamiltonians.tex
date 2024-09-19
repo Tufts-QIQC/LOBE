@@ -3,7 +3,69 @@
 Here, the explicit discrete form of the Yukawa and $\phi^4$ Hamiltonians will be written out in lightfront coordinates. 
 
 \subsection{Yukawa}
-\gus{Gus}
+The Hamiltonian is written in terms of fields of discrete momenta, confined to a box, with integration of the Hamiltonian density $\mathcal{H}$ over lightfront space $x^-$:
+\begin{align}
+    \label{eq:yukawa-hamiltonian-fields}
+    H &= H_0 + g\int_{-L}^L dx^- \bar \psi(x) \psi(x) \phi(x)\\ 
+    &+ g^2\int_{-L}^L  dx^- \bar \psi(x) \phi(x) \gamma^+\left(i\partial^+ \right)^{-1}\phi(x) \psi(x) \nonumber
+\end{align}
+
+The discretized fields are given as:
+
+\begin{align}
+    \psi(x) &= \sum_{k = 1/2}^\infty\frac{b_k u(p_k)e^{-ip_k x} + d_k^\dagger v(p_k)e^{ip_k x}}{\sqrt{4\pi k}}\\ 
+    \bar \psi(x)&= \sum_{k = 1/2}^\infty\frac{b_k^\dagger \bar u(p_k)e^{ip_k x} + d_k \bar v(p_k)e^{-ip_k x}}{\sqrt{4\pi k}}\\
+    \phi(x) &= \sum_{k = 1}^\infty\frac{a_k e^{-ip_k x} + a_k^\dagger e^{ip_k x}}{\sqrt{4\pi k}}
+\end{align}
+
+The free part of the Hamiltonian is 
+
+\begin{equation}
+    H_0 = \sum_{k = 1/2}^\infty \frac{m_F^2}{p_k^+}\left(b_k^\dagger b_k + d_k^\dagger d_k \right) + \sum_{k = 1}^\infty \frac{m_B^2}{p_k^+}a_k^\dagger a_k 
+\end{equation}
+
+Taking a product of the fields and integrating, we get: 
+\begin{align*}
+    \int_{-L}^L dx^- \bar \psi(x) \psi(x) \phi(x)  = \frac{g(2L)^{5/2}}{(4\pi)^{3/2}} \sum_{k_1, k_2, k_3}^\infty \frac{1}{\sqrt{k_1k_2k_3}}& \left(  b_{k_1}^\dagger b_{k_2}a_{k_3}\bar u(p_{k_1})u(p_{k_2})\delta_{k_1, k_2 + k_3}  \right. \\
+      &\left. + b_{k_1}^\dagger b_{k_2}a^\dagger_{k_3}\bar u(p_{k_1})u(p_{k_2})\delta_{k_1 + k_3, k_2} \right)\\
+      &\left. + b_{k_1}^\dagger d_{k_2}^\dagger a_{k_3} \bar u(p_{k_1})v(p_{k_2})\delta_{k_1 + k_2, k_3} \right)\\
+      &\left. -  b_{k_2}d_{k_1} a^\dagger_{k_3}\bar v(p_{k_1})u(p_{k_2})\delta_{k_3, k_1 + k_2} \right)\\
+      &\left. -d_{k_2}^\dagger d_{k_1}  a_{k_3}\bar v(p_{k_1})v(p_{k_2})\delta_{k_2, k_1 + k_3} \right)\\
+      &\left. -d_{k_2}^\dagger d_{k_1}  a^\dagger_{k_3}\bar v(p_{k_1})v(p_{k_2})\delta_{k_1, k_2 + k_3} \right)
+\end{align*}
+
+where 
+\begin{align}
+    &\bar u(p_k) u(q_k) = \bar v(p_k) v(q_k) = \sqrt{p_k^+ q_k^+}\left(\frac{m}{p_k^+} + \frac{m}{q_k^+} \right)\\
+    &\bar u(p_k) v(q_k) = \bar v(p_k) u(q_k) = \sqrt{p_k^+ q_k^+}\left(\frac{m}{q_k^+} - \frac{m}{p_k^+} \right)
+\end{align}
+
+The discretized momentum is given by $p_k = \frac{2\pi k}{L}$
+
+Lastly, the interaction term unique to lightfront coordinates in equation \ref{eq:yukawa-hamiltonian-fields} can be written as:
+\begin{align*}
+    \int_{-L}^L dx^- \bar \psi(x) \phi(x) \gamma^+ \left(i\partial^+ \right) \phi(x) \psi(x) = \frac{g(2L)^3}{(4\pi)^{2}} \sum_{k_1, k_2, k_3,k_4}^\infty \frac{1}{\sqrt{k_1k_2k_3k_4}}& \left(  b_{k_1}^\dagger b_{k_4}a_{k_2}a_{k_3}\frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_1, k_2 + k_3 + k_4}  \right. \\
+     & \left.-b_{k_1}^\dagger d_{k_4}^\dagger a_{k_2}a_{k_3}\frac{\bar u(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_1 + k_4, k_2 + k_3}\right)  \\
+     & \left.-b_{k_1}^\dagger b_{k_4} a_{k_2}a_{k_3}^\dagger \frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_1 + k_3, k_2 + k_4}\right)  \\
+     & \left.-b_{k_1}^\dagger d_{k_4}^\dagger a_{k_2}a_{k_3}^\dagger \frac{\bar u(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_2, k_1 + k_4 + k_3}\right)  \\
+     & \left.+b_{k_1}^\dagger b_{k_4} a_{k_2}^\dagger a_{k_3} \frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_1 + k_2,k_3 + k_4}\right)  \\
+     & \left.-b_{k_1}^\dagger d_{k_4}^\dagger a_{k_2}^\dagger a_{k_3} \frac{\bar u(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_3, k_2 + k_1+ k_4}\right)  \\
+     & \left.-b_{k_1}^\dagger b_{k_4} a_{k_2}^\dagger a_{k_3}^\dagger \frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_4, k_2 + k_3 + k_1}\right)  \\
+     & \left.+d_{k_4}^\dagger d_{k_1} a_{k_2}a_{k_3} \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_4, k_1 + k_2 + k_3}\right)  \\
+     & \left. +b_{k_4} d_{k_1} a_{k_2}a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_3, k_1 + k_2 + k_4}\right)  \\
+     & \left. +d_{k_4}^\dagger d_{k_1} a_{k_2}a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_4 + k_3, k_1 + k_2}\right)  \\
+     & \left.-b_{k_4} d_{k_1} a_{k_2}^\dagger a_{k_3} \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_2, k_4 + k_1 + k_3}\right)  \\
+     & \left.+d_{k_4}^\dagger d_{k_1} a_{k_2 }^\dagger a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_1, k_2 + k_3 + k_4}\right)  \\
+     & \left.-b_{k_4} d_{k_1} a_{k_2}^\dagger a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_1 + k_4, k_2 + k_3 }\right)  \\
+     & \left.-b_{k_4} d_{k_1} a_{k_2}^\dagger a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_1 + k_4, k_2 + k_3}\right)  \\
+\end{align*}
+
+where 
+
+\begin{align}
+    &\bar u(p_k)\gamma^+ u(q_k) = \bar v(p_k)\gamma^+ v(q_k) = 2\sqrt{p_k^+ q_k^+}\\
+    &\bar u(p_k)\gamma^+ v(q_k) = \bar v(p_k)\gamma^+ u(q_k) = -2\sqrt{p_k^+ q_k^+}
+\end{align}
 
 \subsection{$\phi^4$}
 \gus{Kamil}
