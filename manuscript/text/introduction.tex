@@ -1,7 +1,37 @@
 \section{Introduction}
 \label{sec:intro}
 
-Wop, wop, wop, wop, wop, Dot, fuck 'em up
+The simulation of many-body quantum systems is a promising potential application for quantum computers \cite{feynman2018simulating}.
+Encoding the information of non-unitary operators - such as the Hamiltonian - within a quantum simulation algorithm is a necessary subroutine for performing such simulations.
+This task has been pursued through various means, resulting in methods such as Trotterization \cite{suzuki1976generalized,hatano2005finding,lie1893theorie,trotter1959product,childs2021theory} and block-encoding \cite{lin2022lecture, poulin2018quantum, low2019hamiltonian}.
 
-Wop, wop, wop, wop, wop, I'ma do my stuff
-\cite{Lamar_2024}
+Block-encoding describes a general strategy for uploading the information of a non-unitary operator by encoding it within a chosen subspace (or block) of a larger unitary operator.
+Two frameworks for constructing block-encodings have dominated most of the literature on block-encodings: sparse block-encodings \cite{berry2009black, childs2009universal, lin2022lecture} and Linear Combinations of Unitaries (LCU) \cite{childs2012hamiltonian}.
+With the latter being restricted to operators written as a linear combination of unitary operators.
+In a recent work \cite{kane2024block}, several strategies for generating block-encoding were provided that use techniques such as Quantum Signal Processing \cite{low2017optimal}.
+
+Understanding the spacetime quantum resources - number of qubits (space) and number of non-Clifford operations (time) - required for quantum simulation algorithms is important for understanding the feasability of simulating different systems.
+These quantum resource estimates are important benchmarks to set in order to gauge the practical usefulness of quantum computers, particularly those that have experimentally demonstrated quantum error correction \cite{bluvstein2024logical, acharya2024quantum}.
+
+Many previous works have investigated quantum simulation for purely fermionic systems, with a particular emphasis on the simulation of molecules in quantum chemistry \cite{aspuru2005simulated, peruzzo2014variational, babbush2014adiabatic, o2016scalable, babbush2018encoding, google2020hartree, lee2021even}.
+Quantum resource estimates for the simulation of fermionic systems have been provided for both Trotterization \cite{kivlichan2020improved, campbell2021early} and LCU block-encodings \cite{babbush2018encoding,lee2021even} where the circuits presented are compiled down to elementary circuit operations such that their associated spacetime costs can be explicitly analyzed.
+
+Another interesting set of quantum systems to simulate are those that are derived from quantum field theories \cite{Peskin:1995ev, jordan2012quantum} \ws{add citation for phi4}.
+These theories, which have applications in areas such as high-energy physics \cite{bauer2023quantum}, often result in models that include interactions between fermions, antifermions, and bosons.
+Recent works have shown quantum resource estimates for simulating such systems for sparse block-encodings \cite{camps2024explicit, liu2024efficient} and LCU block-encodings \cite{rhodes2024exponential}.
+% loke2017efficient, sunderhauf2024block
+
+In this work, we provide a novel framework for constructing block-encodings of operators written as a linear combination of products of ladder operators, which we refer to as Ladder-Operator Block-Encoding (LOBE).
+This is a clear extension beyond LCU block-encodings as the terms in these linear combinations are explicitly not unitary, despite the form of the circuits being similar to LCU constructions.
+This framework also does not require the use of operator transformations to transform both fermionic ladder operators \cite{jordan1928paulische, bravyi2002fermionic,seeley2012bravyi} and bosonic ladder operators \cite{somma2005quantum} to Pauli operators.
+Additionally, we present numerical quantum resource estimates for implementing block-encodings of Hamiltonians arising in quantum field theories - which include ladder operators acting on fermions, antifermions, and bosons - such as the Yukawa theory \cite{Peskin:1995ev} and the $\phi^4$ theory \cite{}.
+Numerical quantum resource estimates are also presented for randomly generated operators written as linear combination of products of ladder operators.
+
+This work is organized as follows.
+In Section \ref{sec:theory}, we define ladder operators and their action on quantum states as well as describe how Hamiltonians written as linear combinations of products of ladder operators acting on fermions, antifermions, and bosons are commonly found in quantum field theories.
+In Section \ref{sec:block-encoding}, we define block-encodings and review strategies for constructing block-encodings through the sparse block-encoding approach and LCU.
+In this section, we also establish a clear connection between several works which give compiled spare block-encodings constructions \cite{camps2024explicit,liu2024efficient} and LCU.
+In Section \ref{sec:lobe}, we detail the construction of the oracles comprising LOBE and give analytical spacetime costs for implementing them using the constructions chosen in this work.
+In Section \ref{sec:results}, we provide numerical benchmarks for the quantum resources required to block-encode Hamiltonians arising from quantum field theories. 
+In Section \ref{sec:conclusions}, we summarize the results presented in this work and discuss future directions.
+A glossary that defines the terminology and variables used throughout this work is given in Appendix \ref{sec:glossary}.
