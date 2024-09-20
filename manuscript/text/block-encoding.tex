@@ -29,7 +29,7 @@ This success probability is a function of the rescaling factor of $H / \bar{H}$ 
 \subsection{Linear Combination of Unitaries}
 \label{subsec:lcu}
 
-Linear Combination of Unitary (LCU) is a method for generating block-encodings of operators that can be written as:
+Linear Combination of Unitary (LCU) \cite{childs2012hamiltonian} is a method for generating block-encodings of operators that can be written as:
 \begin{equation}
     H = \sum_{l=0}^{L-1} \alpha_l U_l
 \end{equation}
@@ -77,14 +77,14 @@ With these two oracles defined, a block-encoding of $H$ can be realized as:
 \end{equation}
 where $\ket{\perp}$ and $\ket{\perp^*}$ denote quantum states of both the system and the index register that are outside the encoded subspace.
 The state within the encoded subspace, $\bar{H} \ket{\psi} \ket{0}_{\text{\text{index}}}$, gives the rescaled Hamiltonian applied to the quantum state.
-\ws{The math on this is sketchy. Probably gonna replace this with something actually correct.}
+\ws{The math on this is a bit sketchy, particularly the junk state in the final line. Will try to find a better way to express this.}
 
 \subsection{Sparse Block-Encoding of Pairing Hamiltonians}
 \label{subsec:sparse-be}
 
-An alternative framework for constructing block-encodings is the sparse oracle approach.
+An alternative framework for constructing block-encodings is the sparse oracle approach \cite{berry2009black, childs2009universal, lin2022lecture}.
 In this approach, we assume access to two oracles: $O_A$ and $O_C$.
-$O_A$ performs a controlled-rotation of a signal qubit encoding the value of the matrix element \cite{lin2022lecture} \ws{Is there another citation for this?}.
+$O_A$ performs a controlled-rotation of a signal qubit encoding the value of the matrix element \cite{lin2022lecture}.
 On inputs $\ket{l}$ and $\ket{j}$, $O_C$ returns the row index of the $l^{th}$ nonzero element in column $j$ \cite{camps2024explicit}.
 The general idea of these oracles is that $O_C$ indicates where the non-zero matrix elements are and $O_A$ encodes what the values of the corresponding matrix elements are. 
 
@@ -115,13 +115,13 @@ The sequence of $O_H^l$ operators implement the $O_A$ oracle.
 This oracle performs a controlled rotation on an ancilla qubit that, given the basis state from the index register, rotates the ancilla qubit proportionally to the coefficient of the term.
 Explicity, this is implemented via the following steps:
 \begin{algorithmic}[1]
-    \For{$\ket{l} \in [0, L-1]$}
+    \For{Multiplex: $\ket{l} \in [0, L-1]$}
         \If{$\ket{\text{index}} == \ket{l}$}
             \State $\ket{\text{anc}} \gets \ket{1}$
         \EndIf
 
         \If{$\ket{\text{anc}} == \ket{1}$}
-            \State $\theta_l \gets 2\arccos(\alpha_l)$, where $\alpha_l$ is $h_{ij}$ and a predetermined ordering of $i$ and $j$ gives a function: $f(i, j) = l$.
+            \State $\theta_l \gets 2\arccos(\alpha_l)$
             \State $\ket{0}_{\text{coeff}} \gets R_y(\theta_l) \ket{0}_{\text{coeff}}$ 
         \EndIf
 
@@ -135,13 +135,14 @@ Explicity, this is implemented via the following steps:
 % \end{enumerate}
 where the ``for'' loop is a coherent for-loop implemented by a mulitplexor over the index register.
 Additionally, $\ket{\text{anc}}$ is a clean ancilla qubit and $\ket{0}_{\text{coeff}}$ is a single qubit in a ``coefficient" register that begins in the $\ket{0}$ state on the branch of the wavefunction where $\ket{\text{anc}}$ is $\ket{1}$. 
-A constraint on the coefficients $h_{i, j}$ is that they be scaled such that all have magnitude less than $1$ which can be easily achieved by rescaling the Hamiltonian by the maximum value of $h_{i, j}$ for all $i$ and $j$.
+$\alpha_l$ is $h_{ij}$ and a predetermined ordering of $i$ and $j$ gives a function: $f(i, j) = l$.
+A constraint on the coefficients $h_{i, j}$ is that they be scaled such that all have magnitude less than or equal to $1$ which can be easily achieved by rescaling the Hamiltonian by the maximum value of $h_{i, j}$ for all $i$ and $j$.
 
 The $O_C$ oracle is constructed by the unitaries denoted as $U_0 \dots U_{L - 1}$. 
 Each of the unitaries encodes the behavior of one term $T_l$ when acting on the system. 
 In general, these unitaries are constructed with the following steps:
 \begin{algorithmic}[1]
-    \For{$\ket{l} \in [0, L-1]$}
+    \For{Multiplex: $\ket{l} \in [0, L-1]$}
         \If{$\ket{\text{index}} == \ket{l}$}
             \State $\ket{\text{anc}}_{\text{index}} \gets \ket{1}$
         \EndIf
@@ -179,7 +180,7 @@ The unitary operators comprising $O_H^l$ commute with both one another and the u
 A more efficient ordering of these unitaries is to place $O_H^l$ directly before or after $U_l$.
 In this construction, the multiplexor over the index register is only performed once and the quantum boolean determining the index can be used for both oracles:
 \begin{algorithmic}[1]
-    \For{$\ket{l} \in [0, L-1]$}
+    \For{Multiplex: $\ket{l} \in [0, L-1]$}
         \If{$\ket{\text{index}} == \ket{l}$}
             \State $\ket{\text{anc}}_{\text{index}} \gets \ket{1}$
         \EndIf
@@ -196,7 +197,7 @@ In this construction, the multiplexor over the index register is only performed 
         \State $\ket{\text{anc}}_{\text{ctrl}} \gets \ket{0}$
 
         \If{$\ket{\text{anc}} == \ket{1}$}
-            \State $\theta_l \gets 2\arccos(\alpha_l)$, where $\alpha_l$ is $h_{ij}$ and a predetermined ordering of $i$ and $j$ gives a function: $f(i, j) = l$.
+            \State $\theta_l \gets 2\arccos(\alpha_l)$
             \State $\ket{0}_{\text{coeff}} \gets R_y(\theta_l) \ket{0}_{\text{coeff}}$ 
         \EndIf
 
@@ -209,7 +210,7 @@ In this construction, the multiplexor over the index register is only performed 
 %     \item Controlled on this ancilla, perform a Pauli-Y rotation on an ancilla qubit of the angle $\theta_l = 2\arccos(\alpha_l)$
 %     \item Uncompute the quantum boolean and proceed to the next value of $l$
 % \end{enumerate}
-This ordering significantly reduces the number of non-Clifford operations as the multiplexor over the index register is only performed once.
+This ordering of the oracles in the algorithm significantly reduces the number of non-Clifford operations as the multiplexor over the index register is only performed once.
 
 One can construct a block-encoding for a Hermitian operator written as and LCU using these steps wherein $T_l$ is the $l^{th}$ unitary in the LCU.
 The main difference here with the circuit construction as compared to LCU is that the \textit{Prepare} oracle is not used to load the coefficients of the terms.
@@ -228,7 +229,6 @@ This series of operators applying $U_l$ implements the \textit{Select} oracle, h
 In this construction, more rotations may be required as the \textit{Prepare} oracle is called twice.
 In Section \ref{sec:results} we give numerical counts for the number of rotations and often find that the number of additional rotations is not significant.
 The main advantage of this construction, as opposed to the use of the Diffusion operator and $O_A$, is that the rescaling factor is often significantly smaller.
-The rescaling factor in this construction is the L1-norm of the coefficients whereas the rescaling factor of the sparse-oracle implementation is $2^{\lceil \log_2{L} \rceil} * \max{\alpha_l}$.
-\ws{I believe the latter is a strict upper-bound of the former. This is probably obvious, but would be good to prove/show.}
+The rescaling factor in this construction is the L1-norm of the coefficients whereas the rescaling factor of the sparse-oracle implementation is $2^{\lceil \log_2{L} \rceil} * \max{\alpha_l}$ with the latter being an upper-bound of the former (Appendix \ref{sec:proof-of-rescaling-factors}).
 In Subsection \ref{subsec:prepare}, these two methods and their effects on the rescaling factor are described in more detail.
 In Subsection \ref{subsec:prepare}, we refer to the method using the Diffusion operator and $O_A$ as \textit{USP} and the method using the \textit{Prepare} oracle in LCU as \textit{ASP}.
