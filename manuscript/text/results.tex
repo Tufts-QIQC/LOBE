@@ -23,7 +23,7 @@ This Hamiltonian can be written out as a discrete sum over these free and intera
     \label{eq:Yukawa-hamiltonian}
     H_{\text{Yukawa}} = H_0 + H_{\bar\psi \psi \phi}.
 \end{equation}
-The explicit form of the Hamiltonian will be written out in the appendix. 
+The explicit form of the Hamiltonian will be written out in the appendix \ref{subsec:lightfront-hamiltonian}.
 
 \begin{figure}
     \centering
@@ -52,7 +52,7 @@ The explicit form of the Hamiltonian will be written out in the appendix.
 \end{figure}
 
 In Figure \ref{fig:Yukawa_hamiltonian_gates_vs_terms}, we plot the numerical gate counts estimates for the Yukawa Hamiltonian (Eq. \ref{eq:Yukawa-hamiltonian}) as the number of terms in the Hamiltonain ($L$) increases.
-The number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$
+The number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$.
 For the three non-Clifford operations, the number of operations increases linearly with the number of terms in the Hamiltonian for this model.
 Additionally, the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations.
 When the number of terms ($L$) is far from the next largest power of 2, \textit{ASP} requires more arbitrary rotations due to the compilation of Grover-Rudolph and multiplexed rotations that is used in this work.
@@ -101,6 +101,71 @@ The number of ancillae grows logarithmically with the bosonic occupation cutoff 
 The number of ancillae needed to update the bosonic occupancy grows logarithmically with $\Omega$ (Eq. \ref{eq:ancillae-bosonic-updates}) which accounts for this scaling.
 Again, the main advantage of the \textit{ASP} variant is that the imposed rescaling factor is significantly smaller than the \textit{USP} variant, especially for large values of $\Omega$ despite the asymptotic scaling being linear for both.
 
+It is important to note about the rescaling factor ($\lambda$) with the occupation cutoff ($\Omega$). For both \textit{USP} and \textit{ASP}, the rescaling factors depend on $\lambda_A$ \ref{eq:bosonic-rescaling-factor}, which is proportional to $\Omega^{A/2}$. 
+For Yukawa theory, $A$, is fixed to 2 (this comes from the free piece $\sim a^\dagger a$). Thus, $(\Omega + 1)^{A/2}$ gives linear scaling. 
+
 
 \subsection{$\phi^4$ Theory}
-\gus{@kamil}
+Another interesting field theoretical application of LOBE comes from a purely bosonic theory: $\phi^4$. This model describes a self-interacting bosonic field with $\mathcal{L}_{int} = g\phi^4$. 
+There are three main interaction first order vertices in this theory: 2 bosons $\rightarrow$ 2 bosons: $a^\dagger a^\dagger a a$, 1 boson $\rightarrow$ 3 bosons: $a^\dagger a^\dagger a^\dagger a$, and 3 bosons $\rightarrow$ 1 boson: $a^\dagger a a a$. 
+The explicit form of the Hamiltonian is given in appendix \ref{subsec:lightfront-hamiltonian}.
+
+Figures \ref{fig:phi4_hamiltonian_gates_vs_terms} and \ref{fig:phi4_hamiltonian_qubits_and_rescaling_vs_terms} show the scaling of gates and qubits needed to simulate the $\phi^4$ Hamiltonian with LOBE as the number of terms in the Hamiltonian ($L$) increases. 
+In the same way as the Yukawa Hamiltonian, the number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$. The scaling for the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations. 
+
+Figures \ref{fig:phi4_hamiltonian_gates_vs_omega} and \ref{fig:phi4_hamiltonian_qubits_and_rescaling_vs_omega} show the scaling of gates and qubits needed to simulate the $\phi^4$ Hamiltonian with LOBE as the maximum bosonic occupancy ($\Omega$) increases. Similar to the case with increasing \textit{I}, the scaling for the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations. 
+
+Again, the scaling of $\lambda$ with $\Omega$ must be mentioned. For $\phi^4$-theory, $A = 4$, (this comes from the interaction piece), so the scaling of $\lambda$ is $\sim \Omega^2$, which gives quadratic scaling for both \textit{USP} and \textit{ASP}.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=16cm]{figures/phi4_hamiltonian_gates_vs_terms.pdf}
+    \caption{
+        \textbf{Numerical Gate Counts for Increasing $L$ ($\phi^4$ Hamiltonian).}
+        The number of rotations (left), left-elbows (middle), and right-elbows (right) are plotted as a function of the number of terms in the Hamiltonian ($L$) for an increasing number of momentum modes ($I$).
+        The gate counts for the variant of LOBE using \textit{USP} are shown as the blue squares.
+        The gate counts for the variant of LOBE using \textit{ASP} are shown as the orange circles.
+        The bosonic occupancy cutoff ($\Omega$) is set to $3$.
+        The number of rotations excludes rotations by angles that result in Clifford operations.
+    }
+    \label{fig:phi4_hamiltonian_gates_vs_terms}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=12cm]{figures/phi4_hamiltonian_qubits_and_rescaling_vs_terms.pdf}
+    \caption{
+        \textbf{Numerical Ancillae Counts and Rescaling Factors for Increasing $L$ ($\phi^4$ Hamiltonian).}
+        The number of required ancillae (left) and the resulting rescaling factor (right) for LOBE are plotted as a function of the number of terms in the Hamiltonian ($L$) for an increasing number of momentum modes ($I$).
+        The counts for the variant of LOBE using \textit{USP} are shown as the blue squares.
+        The counts for the variant of LOBE using \textit{ASP} are shown as the orange circles.
+        The bosonic occupancy cutoff ($\Omega$) is set to $3$.
+    }
+    \label{fig:phi4_hamiltonian_qubits_and_rescaling_vs_terms}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=16cm]{figures/phi4_hamiltonian_gates_vs_omega.pdf}
+    \caption{
+        \textbf{Numerical Gate Counts for Increasing $\Omega$ ($\phi^4$ Hamiltonian) .}
+        The number of rotations (left), left-elbows (middle), and right-elbows (right) are plotted as a function of the bosonic occupation cutoff ($\Omega$).
+        The gate counts for the variant of LOBE using \textit{USP} are shown as the blue squares.
+        The gate counts for the variant of LOBE using \textit{ASP} are shown as the orange circles.
+        The number of momentum modes ($I$) is set to $3$.
+        The number of rotations excludes rotations by angles that result in Clifford operations.
+    }
+    \label{fig:phi4_hamiltonian_gates_vs_omega}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=12cm]{figures/phi4_hamiltonian_qubits_and_rescaling_vs_omega.pdf}
+    \caption{
+        \textbf{Numerical Ancillae Counts and Rescaling Factors for Increasing $\Omega$ ($\phi^4$ Hamiltonian).}
+        The number of required ancillae (left) and the resulting rescaling factor (right) for LOBE are plotted as a function of the bosonic occupation cutoff ($\Omega$).
+        The counts for the variant of LOBE using \textit{USP} are shown as the blue squares.
+        The counts for the variant of LOBE using \textit{ASP} are shown as the orange circles.
+        The number of momentum modes ($I$) is set to $3$.
+    }
+    \label{fig:phi4_hamiltonian_qubits_and_rescaling_vs_omega}
+\end{figure}

@@ -3,7 +3,9 @@
 
 In the previous subsections, the costs associated with LOBE are benchmarked for physically relevant models.
 In this subsection, we benchmark the same costs for LOBE for randomly generated operators of form of Eq. \ref{eq:lclo}.
-\ws{@Gus, we need to describe here how the "random" protocol in OpenParticle works.}
+%\ws{@Gus, we need to describe here how the "random" protocol in OpenParticle works.}
+Randomly generated operators were generated with the open-sourced package, \textit{OpenParticle} \cite{openparticle}. In OpenParticle, terms are represented by objects called \textit{ParticleOperators}. The random method takes in parameters: particle types ((anti)fermions or bosons), number of terms in the sum, then max mode and length of term. 
+The random method relies on NumPy's \cite{harris2020array} random method to generate \textit{ParticleOperators} with a random configuration of terms, modes, and lengths. 
 
 \begin{figure}
     \centering
