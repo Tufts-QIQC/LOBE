@@ -1,8 +1,12 @@
 \section{Results}
 \label{sec:results}
 
-In this section, we demonstrate the use of LOBE to block-encode Hamiltonians derived from quantum field theories: Yukawa theory and $\phi^4$ theory \cite{Peskin:1995ev}. These models are \ws{insert-blah here @gus @kamil}.
+In this section, we demonstrate the use of LOBE to block-encode Hamiltonians derived from quantum field theories: Yukawa theory and $\phi^4$ theory \cite{Peskin:1995ev}.
 We study both variants of the block-encoding described in Sections \ref{sec:block-encoding} and expanded upon in Section \ref{sec:lobe} and give numerical counts for the numbers of non-Clifford operations, the number of ancillae required beyond the system register, and the rescaling factor imposed on the resulting block-encoding.
+
+The results that we present here are generated based on constructions of LOBE that are written in Cirq \cite{cirq} and the block-encodings are numerically verified for circuits of up to 14 qubits.
+Additionally, the operators are constructed through the use of OpenParticle \cite{openparticle}, a software library for the construction and manipulation of fermionic, antifermionic, and bosonic ladder operators.
+The software library \cite{grover-rudolph-github} is used to determine the rotation angles required for Grover-Rudolph.
 
 \subsection{Yukawa Theory}
 A quantum field theory that models the strong nuclear force between hadrons is Yukawa theory \cite{Peskin:1995ev}. In this theory, hadrons are described by a fermionic field $\psi$, coupled via a scalar boson $\phi$. The interaction term is $\mathcal{L}_{\text{Yukawa}} = g\bar\psi \psi \phi$, which leads to interaction vertices containing fermions and/or antifermions and bosons. The Lagrangian, and thus the Hamiltonian, is written as a sum of free, non-ineteracting fields and the interaction term.
@@ -25,7 +29,7 @@ The explicit form of the Hamiltonian will be written out in the appendix.
     \centering
     \includegraphics[width=16cm]{figures/Yukawa_hamiltonian_gates_vs_terms.pdf}
     \caption{
-        \textbf{Numerical Gate Counts for Increasing $I$ (Yukawa Hamiltonian).}
+        \textbf{Numerical Gate Counts for Increasing $L$ (Yukawa Hamiltonian).}
         The number of rotations (left), left-elbows (middle), and right-elbows (right) are plotted as a function of the number of terms in the Hamiltonian ($L$) for an increasing number of momentum modes ($I$).
         The gate counts for the variant of LOBE using \textit{USP} are shown as the blue squares.
         The gate counts for the variant of LOBE using \textit{ASP} are shown as the orange circles.
@@ -38,7 +42,7 @@ The explicit form of the Hamiltonian will be written out in the appendix.
     \centering
     \includegraphics[width=12cm]{figures/Yukawa_hamiltonian_qubits_and_rescaling_vs_terms.pdf}
     \caption{
-        \textbf{Numerical Ancillae Counts and Rescaling Factors for Increasing $I$ (Yukawa Hamiltonian).}
+        \textbf{Numerical Ancillae Counts and Rescaling Factors for Increasing $L$ (Yukawa Hamiltonian).}
         The number of required ancillae (left) and the resulting rescaling factor (right) for LOBE are plotted as a function of the number of terms in the Hamiltonian ($L$) for an increasing number of momentum modes ($I$).
         The counts for the variant of LOBE using \textit{USP} are shown as the blue squares.
         The counts for the variant of LOBE using \textit{ASP} are shown as the orange circles.
@@ -47,11 +51,11 @@ The explicit form of the Hamiltonian will be written out in the appendix.
     \label{fig:Yukawa_hamiltonian_qubits_and_rescaling_vs_terms}
 \end{figure}
 
-In Figure \ref{fig:Yukawa_hamiltonian_gates_vs_terms}, we plot the numerical gate counts estimates for the Yukawa Hamiltonian (Eq. \ref{eq:Yukawa-hamiltonian}) \gus{@will do we want to explicitly show the discretized Hamiltonian for both Yukawa and $\phi^4$ in the appendix?} as the number of terms in the Hamiltonain ($L$) increases.
+In Figure \ref{fig:Yukawa_hamiltonian_gates_vs_terms}, we plot the numerical gate counts estimates for the Yukawa Hamiltonian (Eq. \ref{eq:Yukawa-hamiltonian}) as the number of terms in the Hamiltonain ($L$) increases.
 The number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$
 For the three non-Clifford operations, the number of operations increases linearly with the number of terms in the Hamiltonian for this model.
-Additionally, the two different compilation strategies (\textit{USP} (blue), \textit{ASP} orange) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations.
-When the number of terms ($L$) is far from the next largest power of 2, \textit{ASP} requires more arbitrary rotations due to the compilation of Grover-Rudolph that is used in this work.
+Additionally, the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations.
+When the number of terms ($L$) is far from the next largest power of 2, \textit{ASP} requires more arbitrary rotations due to the compilation of Grover-Rudolph and multiplexed rotations that is used in this work.
 
 In Figure \ref{fig:Yukawa_hamiltonian_qubits_and_rescaling_vs_terms}, we plot the numerical estimates for the number of required ancillae (left) and the imposed rescaling factor (right) as the number of terms in the Hamiltonain ($L$) increases.
 The number of ancillae grows logarithmically with the number of terms for both implementations.
