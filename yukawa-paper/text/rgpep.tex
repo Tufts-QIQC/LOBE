@@ -159,7 +159,7 @@ g^2\dot{H}^{(2)}(t) = \left[\left[H_0, g^2H^{(2)}(t)\right], H_0\right] + \left[
 
 At first glance at equation \ref{eq:yukawa-hamiltonian}, it appears as if only the instantaneous terms make up $H^{(2)}(t)$. 
 However, it is important to add to $H^{(2)}(t)$ higher order terms arising from combining two $\mathcal{O}(g)$ interactions. 
-Computing the second commutator in equation \label{eq:rgpep-second-order} reveals the $\mathcal{O}(g^2)$ interaction terms. 
+Computing the second commutator in equation \ref{eq:rgpep-second-order} reveals the $\mathcal{O}(g^2)$ interaction terms. 
 This commutator is written as $$\left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right].$$
 Using Wick's theorem, we can simplify this commutator \footnote{For example, to compute $\left[b_n^\dagger b_n, b_x^\dagger b_y a_z \right] = b_n^\dagger b_nb_x^\dagger b_y a_z - b_x^\dagger b_y a_zb_n^\dagger b_n$, we first normal order both terms and induce Dirac deltas: $b_n^\dagger b_nb_x^\dagger b_y a_z - b_x^\dagger b_y a_zb_n^\dagger b_n = b_n^\dagger \left(\delta_{nx} - b_x^\dagger b_n \right)b_y a_z - b_x^\dagger \left(\delta_{ny} - b_n^\dagger b_y \right)b_n a_z = \delta_{nx}b_n^\dagger b_y a_z - \delta_{ny}b_x^\dagger b_n a_z$. This is the difference between normal ordered contractions in the last line of equation \ref{eq:commutator-to-contractions}}: 
 
@@ -171,3 +171,38 @@ Using Wick's theorem, we can simplify this commutator \footnote{For example, to 
 \end{align} 
 
 Here, it is assumed that $:\mathcal{G}^{(1)}(t)H^{(1)}(t): = H^{(1)}(t)\mathcal{G}^{(1)}(t): $ since the number of fermions (antifermions) always come in pairs in any quantum field theory.
+
+We can continue simplifying equation \ref{eq:commutator-to-contractions}:
+
+\begin{align}
+    \label{eq:full-simplification-of-GH-comm}
+    \left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right] &= :C\left(\mathcal{G}^{(1)}(t)H^{(1)}(t)\right): - :C\left(H^{(1)}(t) \mathcal{G}^{(1)}(t)\right):\\ \nonumber
+    &= \sum_{D_1, D_2} \left(:C\left(\mathcal{G}_{D_1}^{(1)}(t)H_{D_2}^{(1)}(t)\right): - :C\left(H^{(1)}_{D_1}(t) \mathcal{G}^{(1)}_{D_2}(t)\right) \right) \\ \nonumber
+    &= \sum_{contractions} \left(\mathcal{P}_A + \mathcal{P}_B -2\mathcal{P}_C  \right)V_1(0) V_2(0)T_{contraction}
+\end{align}
+
+To understand the final form of equation \ref{eq:full-simplification-of-GH-comm}, we note $D_i \in \{\text{Yukawa interactions} \}$. 
+Thus, we calculate contractions of every pair of interaction terms in $H^{(1)}(t)$ (since interaction terms in $\mathcal{G}^{(1)}(t)$ are the same, up to some coefficient modifications).
+After writing down every possible contraction, we now have $\mathcal{O}(g^2)$ interaction diagrams, labeled by $T_{contraction}$, which describes the ladder operator structure of the term. 
+Instead of meticulously keeping track of indices, the last line in equation \ref{eq:full-simplification-of-GH-comm} allows you to take a given contraction from two interactions, and gives the modification to the coefficient needed to write out the commutator in equation \ref{eq:full-simplification-of-GH-comm}.
+An example is given in figures \ref{fig:D1D2} and \ref{fig:contraction}.
+
+\begin{figure}
+    \includegraphics[width = 0.75\textwidth]{figures/D1D2.pdf}
+    \caption{Two interaction diagrams, $D1$ and $D2$ are chosen. There is only one possible contraction, which is circled in red.}
+    \label{fig:D1D2}
+\end{figure}
+
+\begin{figure}
+    \includegraphics[width = 0.6\textwidth]{figures/contraction.pdf}
+    \caption{When we contract the bosons in $D1$ and $D2$ in figure \ref{fig:D1D2}, we get an $\mathcal{O}(g^2)$ diagram. Keeping track of the original indices is unnecesssary, if you label them in a consistent way.}
+    \label{fig:contraction}
+\end{figure}
+
+For this example, $\mathcal{P}_A + \mathcal{P}_B - 2\mathcal{P}_2 = c_i - c_{i'} + c_j - c_{j'} - 2c_k$, and $V_1(0) = c_{ijk}(0), V_2(0) = \bar c^*_{ijk}(0)$. Thus, $$\left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right]_{D_1, D_2} = \int_{ijki'j'}\left(c_i - c_{i'} + c_j - c_{j'} - 2c_k \right)c_{ijk}(0)\bar c^*_{ijk}(0) b_i^\dagger b_{i'}d_j^\dagger d_{j'}.$$
+
+Doing this $\forall D_1, D_2 \in \{interactions\}$, we obtain $\left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right]$. 
+The important information obtained from computing all of the contractions is that you can now write down a parameterized form for $\mathcal{O}(g^2)$ terms to add to $H^{(2)}(t)$. 
+Again, using the example of figures \ref{fig:D1D2} and \ref{fig:contraction}, we could parameterize this addition to $H^{(2)}(t)$ as $$H^{(2)}_{D_1, D_2}(t) = \int_{ijki'j'}K(t)  b_i^\dagger b_{i'}d_j^\dagger d_{j'},$$ where $K(t)$ is a parameterized coefficient to be determined by solving equation \ref{eq:rgpep-second-order}. \gus{Change $D1, D2$ subscript in above equation to be a figure of the corresponding diagram}.
+
+Now that we have a parameterized form of $H^{(2)}(t)$, complete with additional terms from the contractions, we can calculate the first commutator in equation \ref{eq:rgpep-second-order}.
