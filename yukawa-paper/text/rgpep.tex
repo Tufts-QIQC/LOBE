@@ -199,10 +199,337 @@ An example is given in figures \ref{fig:D1D2} and \ref{fig:contraction}.
     \label{fig:contraction}
 \end{figure}
 
-For this example, $\mathcal{P}_A + \mathcal{P}_B - 2\mathcal{P}_2 = c_i - c_{i'} + c_j - c_{j'} - 2c_k$, and $V_1(0) = c_{ijk}(0), V_2(0) = \bar c^*_{ijk}(0)$. Thus, $$\left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right]_{D_1, D_2} = \int_{ijki'j'}\left(c_i - c_{i'} + c_j - c_{j'} - 2c_k \right)c_{ijk}(0)\bar c^*_{ijk}(0) b_i^\dagger b_{i'}d_j^\dagger d_{j'}.$$
+For this example, $\mathcal{P}_A + \mathcal{P}_B - 2\mathcal{P}_2 = c_i - c_{i'} + c_j - c_{j'} - 2c_k$ (i.e. $\mathcal{P}_i$ is the sum of momentum along the red line of $i$), and $V_1(t) = c_{ijk}(t), V_2(t) = \bar c^*_{ijk}(t)$. Thus, $$\left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right]_{D_1, D_2} = \int_{ijki'j'}\left(c_i - c_{i'} + c_j - c_{j'} - 2c_k \right)c_{ijk}(0)\bar c^*_{ijk}(0) b_i^\dagger b_{i'}d_j^\dagger d_{j'}.$$
 
 Doing this $\forall D_1, D_2 \in \{interactions\}$, we obtain $\left[\mathcal{G}^{(1)}(t), H^{(1)}(t) \right]$. 
 The important information obtained from computing all of the contractions is that you can now write down a parameterized form for $\mathcal{O}(g^2)$ terms to add to $H^{(2)}(t)$. 
 Again, using the example of figures \ref{fig:D1D2} and \ref{fig:contraction}, we could parameterize this addition to $H^{(2)}(t)$ as $$H^{(2)}_{D_1, D_2}(t) = \int_{ijki'j'}K(t)  b_i^\dagger b_{i'}d_j^\dagger d_{j'},$$ where $K(t)$ is a parameterized coefficient to be determined by solving equation \ref{eq:rgpep-second-order}. \gus{Change $D1, D2$ subscript in above equation to be a figure of the corresponding diagram}.
 
 Now that we have a parameterized form of $H^{(2)}(t)$, complete with additional terms from the contractions, we can calculate the first commutator in equation \ref{eq:rgpep-second-order}.
+
+For a given term in $H^{(2)}(t)$, the commutator $\left[\left[H_0, g^2H^{(2)}(t)\right], H_0\right]$ is simple to calculate. 
+In a similar way that $\left[\left[H_0, gH^{(1)}(t)\right], H_0\right]$ was calculated, this second order commutator will modify the given term by $-\left(\mathcal{P}_A - \mathcal{P}_B\right)^2$ (refer to figure \ref{fig:contraction}).
+
+We can finally write down the general form of the differential equation that comes from equation \ref{eq:rgpep-second-order} for a given second order diagram $D$ with parameterized coefficient in $H^{(2)}(t)$, $K(t)$:
+
+\begin{equation}
+    \label{eq:second-order-DE}
+    \frac{d}{dt}K_D(t) = -\left(\mathcal{P}_A - \mathcal{P}_B \right)^2 K_D(t) + \left(\mathcal{P}_A + \mathcal{P}_B - 2\mathcal{P}_C \right)V_1(0)e^{-p_{V_1}^2t}V_2(0)e^{-p_{V_2}^2t}
+\end{equation}
+
+where $p_{V_i}^2$ is sum of $c_j's$ into $V_i$ minus sum of $c_j's$ out of $V_i$. 
+For the example of $D_1$ in figure \ref{fig:D1D2}, $p_{V_1} = \left(c_i - c_j - c_k \right)$.
+
+The general solution to equation \ref{eq:second-order-DE} is \footnote{A differential equation of the form $\frac{dy}{dt} = -p(t)y(t) + q(t)$ has the general solution $y(t) = e^{-h(t)}\int e^{h(t)}q(t) + Ce^{-h(t)}$, where $h(t) = \int dt p(t)$}:
+
+\begin{equation}
+    K_D(t) = \frac{\left(\mathcal{P}_A + \mathcal{P}_B - 2\mathcal{P}_C \right)V_1(0)V_2(0)}{p_{V_1}^2 + p_{V_2}^2 - \left(\mathcal{P}_A - \mathcal{P}_B \right)^2} \left(e^{-\left( \mathcal{P}_A - \mathcal{P}_B\right)^2t} - e^{-\left(p_{V_1}^2 + p_{V_2}^2\right)t} \right) + K_D(0)
+\end{equation}
+
+The last thing to note before writing out the solution to \ref{eq:rgpep-second-order} is that we must take into account the original instantaneous second order diagrams present in \ref{eq:yukawa-hamiltonian}. 
+The first commutator in \ref{eq:rgpep-second-order} will be non-zero for this interaction, and can simply be wrote down as the original term, modified by $-\left(\mathcal{P}_A - \mathcal{P}_B \right)^2$. 
+Each second order term in the Hamiltonian is now written out explicitly in table \ref{tab:H2}:
+
+
+\begin{table}[h]
+    \centering
+    \hspace*{-1.7cm} % Move table to the left
+    \begin{tabular}{|c|c|}
+        \hline
+        \textbf{Diagram ($D$)} & \textbf{$H_D^{(2)}(t)$} \\
+        \hline
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/ffbar-ffbar(1).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'j'} \frac{(c_i + c_{j'} - c_{i'} - c_j - 2c_k)c_{ii'k}(0)\bar c^*_{jj'k}(0)}
+        {(c_i - c_{i'} - c_k)^2 + (c_j + c_k - c_{j'})^2 - (c_i + c_j - c_{i'} - c_{j'})^2}
+        \left( e^{- (c_i + c_j - c_{i'} - c_{j'})^2t} 
+        - e^{-\left( (c_i - c_{i'} - c_k)^2 + (c_j + c_k - c_{j'})^2 \right)t} \right)
+        b_i^\dagger b_{i'} d_j^\dagger d_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/ffbar-ffbar(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'j'} \frac{(c_{i'} + c_{j} -c_i  - c_{j'} - 2c_k)c^*_{ii'k}(0)\bar c_{jj'k}(0)}
+        {(c_i + c_k - c_{i'} )^2 + (c_j - c_{j'}- c_k )^2 - (c_i + c_j - c_{i'} - c_{j'})^2}
+        \left( e^{- (c_i + c_j - c_{i'} - c_{j'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{i'} )^2 + (c_j - c_{j'}- c_k )^2 \right)t} \right)
+        b_i^\dagger b_{i'} d_j^\dagger d_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/ff-ff.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'j'} \frac{(c_{i'} + c_{j} -c_i  - c_{j'} - 2c_k)c^*_{ii'k}(0)c_{jj'k}(0)}
+        {(c_i + c_k - c_{i'} )^2 + (c_j - c_{j'}- c_k )^2 - (c_i + c_j - c_{i'} - c_{j'})^2}
+        \left( e^{- (c_i + c_j - c_{i'} - c_{j'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{i'} )^2 + (c_j - c_{j'}- c_k )^2 \right)t} \right)
+        b_i^\dagger b_j^\dagger b_{i'}  b_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbarfbar-fbarfbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'j'} \frac{(c_{i'} + c_{j} -c_i  - c_{j'} - 2c_k)\bar c^*_{ii'k}(0)\bar c_{jj'k}(0)}
+        {(c_i + c_k - c_{i'} )^2 + (c_j - c_{j'}- c_k )^2 - (c_i + c_j - c_{i'} - c_{j'})^2}
+        \left( e^{- (c_i + c_j - c_{i'} - c_{j'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{i'} )^2 + (c_j - c_{j'}- c_k )^2 \right)t} \right)
+        d_i^\dagger d_j^\dagger d_{i'}  d_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fb-fb.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{i'} + c_{k'} +c_k  - 2c_j) c^*_{ikj}(0) c_{ji'k'}(0)}
+        {(c_i + c_k - c_{j} )^2 + (c_j - c_{i'}- c_{k'} )^2 - (c_i + c_k - c_{i'} - c_{k'})^2}
+        \left( e^{- (c_i + c_k - c_{i'} - c_{k'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{j} )^2 + (c_j - c_{i'}- c_{k'} )^2 \right)t} \right)
+        b_i^\dagger b_{i'}  a_k^\dagger a_{k'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbarb-fbarb.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{i'} + c_{k'} +c_k  - 2c_j) \bar c^*_{ikj}(0)\bar c_{ji'k'}(0)}
+        {(c_i + c_k - c_{j} )^2 + (c_j - c_{i'}- c_{k'} )^2 - (c_i + c_k - c_{i'} - c_{k'})^2}
+        \left( e^{- (c_i + c_k - c_{i'} - c_{k'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{j} )^2 + (c_j - c_{i'}- c_{k'} )^2 \right)t} \right)
+        d_i^\dagger d_{i'}  a_k^\dagger a_{k'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/ffbar-ffbar(3).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{i'} + c_{j'} +c_j  - 2c_k) \tilde c_{ijk}(0)\tilde c^*_{ki'j'}(0)}
+        {(c_i + c_j - c_{k} )^2 + (c_k - c_{i'}- c_{j'} )^2 - (c_i + c_j - c_{i'} - c_{j'})^2}
+        \left( e^{- (c_i + c_j - c_{i'} - c_{j'})^2t} 
+        - e^{-\left( (c_i + c_j - c_{k} )^2 + (c_k - c_{i'}- c_{j'} )^2\right)t} \right)
+        b_i^\dagger b_{i'} d_j^\dagger d_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fb-fb(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{i'}-c_k - c_{k'}   - 2c_j)  c_{ijk}(0) c^*_{jk'i'}(0)}
+        {(c_i - c_k - c_{j} )^2 + (c_j+ c_{k'} - c_{i'} )^2 - (c_i + c_{k'} - c_{i'} - c_{k})^2}
+        \left( e^{- (c_i + c_{k'} - c_{i'} - c_{k})^2t} 
+        - e^{-\left( (c_i - c_k - c_{j} )^2 + (c_j+ c_{k'} - c_{i'} )^2 \right)t} \right)
+        b_i^\dagger b_{i'}   a_{k'}^\dagger a_k
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbarb-fbarb(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{i'}-c_k - c_{k'}   - 2c_j)  \bar c_{ijk}(0) \bar c^*_{jk'i'}(0)}
+        {(c_i - c_k - c_{j} )^2 + (c_j+ c_{k'} - c_{i'} )^2 - (c_i + c_{k'} - c_{i'} - c_{k})^2}
+        \left( e^{- (c_i + c_{k'} - c_{i'} - c_{k})^2t} 
+        - e^{-\left( (c_i - c_k - c_{j} )^2 + (c_j+ c_{k'} - c_{i'} )^2 \right)t} \right)
+        d_i^\dagger d_{i'}   a_{k'}^\dagger a_k
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/bf-bf.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_k + c_{k'}-c_i - c_{i'}   - 2c_j)  \tilde c_{i'jk'}(0) \tilde c^*_{kij}(0)}
+        {(c_{i'} + c_j - c_{k'} )^2 + (c_k- c_{i} - c_{j} )^2 - (c_{i'} + c_{k} - c_{i} - c_{k'})^2}
+        \left( e^{- (c_{i'} + c_{k} - c_{i} - c_{k'})^2t} 
+        - e^{-\left((c_{i'} + c_j - c_{k'} )^2 + (c_k- c_{i} - c_{j} )^2 \right)t} \right)
+        d_{i'}^\dagger d_{i}   a_{k}^\dagger a_{k'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/bfbar-bfbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_k + c_{k'}-c_i - c_{i'}   - 2c_j)  \tilde c_{i'jk'}(0) \tilde c^*_{kij}(0)}
+        {(c_{i'} + c_j - c_{k'} )^2 + (c_k- c_{i} - c_{j} )^2 - (c_{i'} + c_{k} - c_{i} - c_{k'})^2}
+        \left( e^{- (c_{i'} + c_{k} - c_{i} - c_{k'})^2t} 
+        - e^{-\left((c_{i'} + c_j - c_{k'} )^2 + (c_k- c_{i} - c_{j} )^2 \right)t} \right)
+        b_{i'}^\dagger b_{i}   a_{k}^\dagger a_{k'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/bb-ffbar(1).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_j + c_{k}-c_{k'} - c_{i}   - 2c_{j'})  \bar c_{jj'k'}(0) \tilde c_{ij'k}(0)}
+        { (c_i - c_{k'} - c_{j'} )^2 + (c_i+ c_{j'} - c_{k} )^2 - (c_i + c_{j} - c_{k'} - c_{k})^2}
+        \left( e^{- (c_i + c_{j} - c_{k'} - c_{k})^2t} 
+        - e^{-\left( (c_i - c_{k'} - c_{j'} )^2 + (c_i+ c_{j'} - c_{k} )^2 \right)t} \right)
+        b_i^\dagger d_{j}^\dagger   a_{k'} a_k
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/bb-ffbar(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_j + c_{k}-c_{k'} - c_{i}   - 2c_{j'})  c_{jj'k'}(0) \tilde c_{ij'k}(0)}
+        { (c_i - c_{k'} - c_{j'} )^2 + (c_i+ c_{j'} - c_{k} )^2 - (c_i + c_{j} - c_{k'} - c_{k})^2}
+        \left( e^{- (c_i + c_{j} - c_{k'} - c_{k})^2t} 
+        - e^{-\left( (c_i - c_{k'} - c_{j'} )^2 + (c_i+ c_{j'} - c_{k} )^2 \right)t} \right)
+        b_j^\dagger d_{i}^\dagger   a_{k'} a_k
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/ffbar-bb(1).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_j + c_{k}-c_{k'} - c_{i}   - 2c_{j'})  c^*_{jj'k'}(0) \tilde c^*_{ij'k}(0)}
+        { (c_{k'} + c_{j'} - c_{j} )^2 + (c_k- c_{j'} - c_{i} )^2 -(c_k + c_{k'} - c_{i'} - c_{j})^2}
+        \left( e^{- (c_k + c_{k'} - c_{i'} - c_{j})^2t} 
+        - e^{-\left((c_{k'} + c_{j'} - c_{j} )^2 + (c_k- c_{j'} - c_{i} )^2 \right)t} \right)
+        b_j d_{i}   a_{k'}^\dagger a_k ^\dagger
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/ffbar-bb(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_j + c_{k}-c_{k'} - c_{i}   - 2c_{j'})  \bar c^*_{jj'k'}(0) \tilde c^*_{ij'k}(0)}
+        { (c_{k'} + c_{j'} - c_{j} )^2 + (c_k- c_{j'} - c_{i} )^2 -(c_k + c_{k'} - c_{i'} - c_{j})^2}
+        \left( e^{- (c_k + c_{k'} - c_{i'} - c_{j})^2t} 
+        - e^{-\left((c_{k'} + c_{j'} - c_{j} )^2 + (c_k- c_{j'} - c_{i} )^2 \right)t} \right)
+        b_i d_{j}   a_{k'}^\dagger a_k^\dagger
+        $} \\
+        \hline
+    \end{tabular}
+    
+\end{table}
+
+
+\begin{table}[h]
+    \centering
+    \hspace*{-1.7cm} % Move table to the left
+    \begin{tabular}{|c|c|}
+        \hline
+        %1-3 or 3-1 diagrams
+        \includegraphics[width=0.15\textwidth]{figures/fbb-f.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{k'} + c_{i'} - c_k - 2c_j)  c_{ijk}(0)  c_{ji'k'}(0)}
+        { (c_i - c_j - c_k)^2 + (c_j - c_{i'} - c_{j'})^2 -(c_i - c_k - c_{i'} - c_{k'})^2}
+        \left( e^{- (c_i - c_k - c_{i'} - c_{k'})^2t} 
+        - e^{-\left((c_i - c_j - c_k)^2 + (c_j - c_{i'} - c_{j'})^2 \right)t} \right)
+        b_i^\dagger b_{i'}   a_{k'} a_k
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbarbb-fbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{k'} + c_{i'} - c_k - 2c_j)  \bar c_{ijk}(0)  \bar c_{ji'k'}(0)}
+        { (c_i - c_j - c_k)^2 + (c_j - c_{i'} - c_{j'})^2 -(c_i - c_k - c_{i'} - c_{k'})^2}
+        \left( e^{- (c_i - c_k - c_{i'} - c_{k'})^2t} 
+        - e^{-\left((c_i - c_j - c_k)^2 + (c_j - c_{i'} - c_{j'})^2 \right)t} \right)
+        d_i^\dagger d_{i'}   a_{k'} a_k
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/f-fbb.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{k'} + c_{i'} - c_k - 2c_j)   c^*_{ik'j}(0)  c^*_{jki'}(0)}
+        { (c_i + c_{k'} - c_j )^2 + (c_j + c_{k} - c_{i'})^2 -(c_i + c_k + c_{k'} - c_{i'})^2}
+        \left( e^{-(c_i + c_k + c_{k'} - c_{i'})^2t} 
+        - e^{-\left((c_i + c_{k'} - c_j )^2 + (c_j + c_{k} - c_{i'})^2 \right)t} \right)
+        b_i^\dagger b_{i'}   a_{k'}^\dagger a_k^\dagger
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbar-fbarbb.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_i + c_{k'} + c_{i'} - c_k - 2c_j)   \bar c^*_{ik'j}(0)  \bar c^*_{jki'}(0)}
+        { (c_i + c_{k'} - c_j )^2 + (c_j + c_{k} - c_{i'})^2 -(c_i + c_k + c_{k'} - c_{i'})^2}
+        \left( e^{-(c_i + c_k + c_{k'} - c_{i'})^2t} 
+        - e^{-\left((c_i + c_{k'} - c_j )^2 + (c_j + c_{k} - c_{i'})^2 \right)t} \right)
+        d_i^\dagger d_{i'}   a_{k'}^\dagger a_k^\dagger
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/f-fffbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{i'} + c_{j} + c_{j'} - c_i - 2c_k)   c^*_{iki'}(0)  \tilde c_{ij'k}(0)}
+        { (c_i + c_k - c_{i'})^2 + (c_i + c_{j'} - c_k)^2 -(c_i + c_j + c_{j'} - c_{i'})^2}
+        \left( e^{-(c_i + c_j + c_{j'} - c_{i'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{i'})^2 + (c_i + c_{j'} - c_k)^2 \right)t} \right)
+        b_i^\dagger b_{j'}^\dagger  b_{i'}  d_{j}^\dagger 
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbar-ffbarfbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{i'} + c_{j} + c_{j'} - c_i - 2c_k)   \bar c^*_{iki'}(0)  \tilde c_{ij'k}(0)}
+        { (c_i + c_k - c_{i'})^2 + (c_i + c_{j'} - c_k)^2 -(c_i + c_j + c_{j'} - c_{i'})^2}
+        \left( e^{-(c_i + c_j + c_{j'} - c_{i'})^2t} 
+        - e^{-\left( (c_i + c_k - c_{i'})^2 + (c_i + c_{j'} - c_k)^2 \right)t} \right)
+        b_{j'}^\dagger d_i^\dagger d_{j}^\dagger d_{i'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fffbar-f.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{i} - c_{j} - c_{j'} - c_{i'} - 2c_k)   c_{iki'}(0)  \tilde c^*_{ij'k}(0)}
+        { (c_i - c_k - c_{i'})^2 + (c_k - c_{j'} - c_j)^2 -(c_i - c_j - c_{j'} - c_{i'})^2}
+        \left( e^{-(c_i - c_j - c_{j'} - c_{i'})^2t} 
+        - e^{-\left((c_i - c_k - c_{i'})^2 + (c_k - c_{j'} - c_j)^2\right)t} \right)
+        b_i^\dagger b_{i'}   b_j d_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbarfbarf-fbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{i} - c_{j} - c_{j'} - c_{i'} - 2c_k)   \bar c_{iki'}(0)  \tilde c^*_{ij'k}(0)}
+        { (c_i - c_k - c_{i'})^2 + (c_k - c_{j'} - c_j)^2 -(c_i - c_j - c_{j'} - c_{i'})^2}
+        \left( e^{-(c_i - c_j - c_{j'} - c_{i'})^2t} 
+        - e^{-\left((c_i - c_k - c_{i'})^2 + (c_k - c_{j'} - c_j)^2\right)t} \right)
+        b_j d_i^\dagger d_{i'}    d_{j'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/b-bffbar.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{k'} - c_{i'} - c_{i} - c_{k} - 2c_j) \bar c^*_{ikj}(0)  \tilde c_{i'jk'}(0)}
+        { (c_i + c_k - c_j)^2 + (c_{i'} + c_j - c_{k'})^2 -(c_i + c_{i'} + c_k - c_{k'})^2}
+        \left( e^{-(c_i + c_{i'} + c_k - c_{k'})^2t} 
+        - e^{-\left((c_i + c_k - c_j)^2 + (c_{i'} + c_j - c_{k'})^2\right)t} \right)
+        b_{i'}^\dagger d_i^\dagger a_k^\dagger a_{k'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/b-bffbar(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{k'} - c_{i'} - c_{i} - c_{k} - 2c_j)  c^*_{ji'k'}(0)  \tilde c_{kij}(0)}
+        { (c_k - c_i - c_j)^2 + (c_j + c_{i'} - c_{k'})^2 -(c_k - c_i - c_{i'} - c_k)^2}
+        \left( e^{-(c_k - c_i - c_{i'} - c_k)^2t} 
+        - e^{-\left((c_k - c_i - c_j)^2 + (c_j + c_{i'} - c_{k'})^2\right)t} \right)
+        b_{i}^\dagger d_{i'}^\dagger a_k^\dagger a_{k'} 
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/bffbar-b.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{k} - c_{i'} - c_{i} - c_{k'} - 2c_j) \bar c_{ikj}(0)  \tilde c^*_{i'jk'}(0)}
+        { (c_i + c_k - c_j)^2 + (c_{i'} + c_j - c_{k'})^2 -(c_i + c_{i'} + c_k - c_{k'})^2}
+        \left( e^{-(c_i + c_{i'} + c_k - c_{k'})^2t} 
+        - e^{-\left((c_i + c_k - c_j)^2 + (c_{i'} + c_j - c_{k'})^2\right)t} \right)
+        b_i d_{i'} a_{k}^\dagger a_{k'}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/bffbar-b(2).pdf} & 
+        {\small $\displaystyle 
+        \int_{ijki'k'} \frac{(c_{k} - c_{i'} - c_{i} - c_{k'} - 2c_j) \tilde c^*_{kij}(0)  c_{ji'k'}(0)}
+        { (c_i + c_k - c_j)^2 + (c_{i'} + c_j - c_{k'})^2 -(c_i + c_{i'} + c_k - c_{k'})^2}
+        \left( e^{-(c_i + c_{i'} + c_k - c_{k'})^2t} 
+        - e^{-\left((c_i + c_k - c_j)^2 + (c_{i'} + c_j - c_{k'})^2\right)t} \right)
+        b_{i'} d_{i} a_{k}^\dagger a_{k'} 
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/f-loop.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijk} \frac{|c_{ijk}(0)|^2}{c_i - c_j - c_k}\left(1 - e^{-2\left(c_i - c_j - c_k \right)^2t} \right) b_i^\dagger b_i + \chi_{\delta_{m_F}}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbar-loop.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijk} \frac{|\bar c_{ijk}(0)|^2}{c_i - c_j - c_k}\left(1 - e^{-2\left(c_i - c_j - c_k \right)^2t} \right) d_i^\dagger d_i + \chi_{\delta_{m_{\bar F}}}
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/b-loop.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijk} \frac{|\tilde c_{kij}(0)|^2}{c_k - c_i - c_j}\left(1 - e^{-2\left(c_k - c_i - c_j\right)^2t} \right) a_k^\dagger a_k + \chi_{\delta_{m_B}}
+        $} \\
+        \hline
+
+    \end{tabular}
+\end{table}
+
+\begin{table}[h]
+    \centering
+    \hspace*{-1.7cm} % Move table to the left
+    \begin{tabular}{|c|c|}
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/f-inst.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijkl} \hat c_{ijkl}(0) e^{-\left(c_i + c_k - c_j - c_l \right)^2t} b_i^\dagger b_j a_k^\dagger a_l
+        $} \\
+        \hline
+        \includegraphics[width=0.15\textwidth]{figures/fbar-inst.pdf} & 
+        {\small $\displaystyle 
+        \int_{ijkl} \hat{\bar{c}}_{ijkl}(0) e^{-\left(c_i + c_k - c_j - c_l \right)^2t} d_i^\dagger d_j a_k^\dagger a_l
+        $} \\
+        \hline
+
+    \end{tabular}
+    \caption{Terms that make up $H^{(2)}(t)$} 
+    \label{tab:H2}
+
+\end{table}
