@@ -348,3 +348,132 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
     assert np.allclose(encoded_block, real_block)
 
     assert np.allclose(real_block, matrix)
+
+
+@pytest.mark.parametrize("control_is_on", [True, False])
+def test_lobe_block_encoding_is_controllable(control_is_on):
+    maximum_occupation_number = 3
+    terms = [
+        ParticleOperator("b0"),
+        0.5 * ParticleOperator("a0"),
+        -0.25 * ParticleOperator("b0^ d0^ a0"),
+        (1 / 3) * ParticleOperator("a0^ a0^ a0^ d0"),
+    ]
+    hamiltonian = terms[0]
+    for term in terms[1:]:
+        hamiltonian += term
+
+    rescaled_terms, bosonic_rescaling_factor = bosonically_rescale_terms(
+        terms, maximum_occupation_number
+    )
+    rescaled_coefficients = [term.coeff for term in rescaled_terms]
+    norm = sum(np.abs(rescaled_coefficients))
+    target_state = get_target_state(rescaled_coefficients)
+
+    number_of_modes = max([term.max_mode() for term in terms]) + 1
+
+    full_fock_basis = get_basis_of_full_system(
+        number_of_modes,
+        maximum_occupation_number,
+        has_fermions=hamiltonian.has_fermions,
+        has_antifermions=hamiltonian.has_antifermions,
+        has_bosons=hamiltonian.has_bosons,
+    )
+    matrix = generate_matrix(hamiltonian, full_fock_basis)
+
+    max_number_of_bosonic_ops_in_term = max(
+        get_numbers_of_bosonic_operators_in_terms(terms)
+    )
+
+    number_of_ancillae = 5
+    number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
+    number_of_rotation_qubits = max_number_of_bosonic_ops_in_term + 1
+
+    # Declare Qubits
+    circuit = cirq.Circuit()
+    ctrl = cirq.LineQubit(0)
+    validation = cirq.LineQubit(1)
+    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_ancillae)]
+    rotation_qubits = [
+        cirq.LineQubit(i + 2 + number_of_ancillae)
+        for i in range(number_of_rotation_qubits)
+    ]
+    index_register = [
+        cirq.LineQubit(i + 2 + number_of_ancillae + number_of_rotation_qubits)
+        for i in range(number_of_index_qubits)
+    ]
+    system = System(
+        number_of_modes=number_of_modes,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=2
+        + number_of_ancillae
+        + number_of_rotation_qubits
+        + number_of_index_qubits,
+        has_fermions=hamiltonian.has_fermions,
+        has_antifermions=hamiltonian.has_antifermions,
+        has_bosons=hamiltonian.has_bosons,
+    )
+    circuit.append(cirq.I.on_each(*system.fermionic_register))
+    circuit.append(cirq.I.on_each(*system.antifermionic_register))
+    for bosonic_reg in system.bosonic_system:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
+
+    # Generate full Block-Encoding circuit
+    circuit += add_prepare_circuit(index_register, target_state=target_state)
+    circuit += add_lobe_oracle(
+        rescaled_terms,
+        validation,
+        index_register,
+        system,
+        rotation_qubits,
+        clean_ancillae,
+        perform_coefficient_oracle=False,
+        decompose=True,
+        ctrls=([ctrl], [1]),
+    )
+    circuit += add_prepare_circuit(
+        index_register, target_state=target_state, dagger=True
+    )
+
+    number_of_used_ancillae = (
+        len(circuit.all_qubits())
+        - 2
+        - number_of_rotation_qubits
+        - number_of_index_qubits
+        - system.number_of_system_qubits
+    )
+
+    zero_state = np.zeros(2, dtype=complex)
+    zero_state[0] = 1
+    one_state = np.zeros(2, dtype=complex)
+    one_state[1] = 1
+
+    if control_is_on:
+        initial_state = one_state
+    else:
+        initial_state = zero_state
+
+    initial_state = np.kron(initial_state, one_state)
+
+    for _ in range(
+        number_of_used_ancillae + number_of_rotation_qubits + number_of_index_qubits
+    ):
+        initial_state = np.kron(initial_state, zero_state)
+
+    random_system_state = np.random.uniform(
+        -1, 1, size=1 << system.number_of_system_qubits
+    ) + 1j * np.random.uniform(-1, 1, size=1 << system.number_of_system_qubits)
+    random_system_state = random_system_state / np.linalg.norm(random_system_state)
+
+    initial_state = np.kron(initial_state, random_system_state)
+
+    final_state = (
+        cirq.Simulator()
+        .simulate(circuit, initial_state=initial_state)
+        .final_state_vector
+    )
+
+    if control_is_on:
+        assert not np.allclose(initial_state, final_state, atol=1e-7)
+    else:
+        assert np.allclose(initial_state, final_state, atol=1e-7)

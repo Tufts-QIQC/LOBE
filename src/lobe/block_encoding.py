@@ -21,6 +21,7 @@ def add_lobe_oracle(
     perform_coefficient_oracle=True,
     decompose=True,
     numerics=None,
+    ctrls=([], []),
 ):
     """This function should add the Ladder Operator Block Encoding oracle.
 
@@ -83,6 +84,7 @@ def add_lobe_oracle(
             clean_ancillae[clean_ancillae_counter:],
             index,
             decompose=decompose,
+            ctrls=ctrls,
         )
         gates_for_term += circuit_ops
         if decompose:
@@ -205,6 +207,7 @@ def add_lobe_oracle(
             clean_ancillae[clean_ancillae_counter:],
             index,
             decompose=decompose,
+            ctrls=ctrls,
         )
         gates_for_term += circuit_ops
         if decompose:
@@ -289,7 +292,9 @@ def _apply_term(
     return gates
 
 
-def _get_index_register_ctrls(index_register, ancillae, index, decompose=True):
+def _get_index_register_ctrls(
+    index_register, ancillae, index, decompose=True, ctrls=([], [])
+):
     """Create a quantum Boolean that stores whether or not the index_register is in the state |index>
 
     This function operates as an N-Qubit left-elbow gate (Toffoli) controlled on the state of
@@ -313,7 +318,7 @@ def _get_index_register_ctrls(index_register, ancillae, index, decompose=True):
     # Get binary control values corresponding to index
     index_register_control_values = [
         int(i) for i in format(index, f"#0{2+len(index_register)}b")[2:]
-    ]
+    ] + ctrls[1]
 
     if decompose:
         # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
@@ -321,6 +326,7 @@ def _get_index_register_ctrls(index_register, ancillae, index, decompose=True):
             cirq.Moment(
                 cirq.X.on(ancillae[0]).controlled_by(
                     *index_register,
+                    *ctrls[0],
                     control_values=index_register_control_values,
                 )
             )
