@@ -101,21 +101,27 @@ The number of ancillae grows logarithmically with the bosonic occupation cutoff 
 The number of ancillae needed to update the bosonic occupancy grows logarithmically with $\Omega$ (Eq. \ref{eq:ancillae-bosonic-updates}) which accounts for this scaling.
 Again, the main advantage of the \textit{ASP} variant is that the imposed rescaling factor is significantly smaller than the \textit{USP} variant, especially for large values of $\Omega$ despite the asymptotic scaling being linear for both.
 
-It is important to note about the rescaling factor ($\lambda$) with the occupation cutoff ($\Omega$). For both \textit{USP} and \textit{ASP}, the rescaling factors depend on $\lambda_A$ \ref{eq:bosonic-rescaling-factor}, which is proportional to $\Omega^{A/2}$. 
-For Yukawa theory, $A$, is fixed to 2 (this comes from the free piece $\sim a^\dagger a$). Thus, $(\Omega + 1)^{A/2}$ gives linear scaling. 
+% It is important to note about the rescaling factor ($\lambda$) with the bosonic occupation cutoff ($\Omega$). 
+The bosonic rescaling factor ($\lambda_A$, Eq. \ref{eq:bosonic-rescaling-factor}) scales as $(\Omega + 1)^{A/2}$ where $\Omega$ is the bosonic occupation cutoff and $A$ is the maximum number of bosonic ladder operators within a single term.
+For Yukawa theory, $A$, is fixed to 2 regardless of the number of modes and the bosonic occupation cutoff.
+This implies that the bosonic rescaling factor scales linearly with the bosonic occupation cutoff. 
 
 
 \subsection{$\phi^4$ Theory}
-Another interesting field theoretical application of LOBE comes from a purely bosonic theory: $\phi^4$. This model describes a self-interacting bosonic field with $\mathcal{L}_{int} = g\phi^4$. 
+Another interesting field theoretical application of LOBE comes from a purely bosonic theory: $\phi^4$.
+This model describes a self-interacting bosonic field with $\mathcal{L}_{int} = g\phi^4$. 
 There are three main interaction first order vertices in this theory: 2 bosons $\rightarrow$ 2 bosons: $a^\dagger a^\dagger a a$, 1 boson $\rightarrow$ 3 bosons: $a^\dagger a^\dagger a^\dagger a$, and 3 bosons $\rightarrow$ 1 boson: $a^\dagger a a a$. 
 The explicit form of the Hamiltonian is given in appendix \ref{subsec:lightfront-hamiltonian}.
 
 Figures \ref{fig:phi4_hamiltonian_gates_vs_terms} and \ref{fig:phi4_hamiltonian_qubits_and_rescaling_vs_terms} show the scaling of gates and qubits needed to simulate the $\phi^4$ Hamiltonian with LOBE as the number of terms in the Hamiltonian ($L$) increases. 
-In the same way as the Yukawa Hamiltonian, the number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$. The scaling for the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations. 
+Similarly to the Yukawa Hamiltonian, the number of terms ($L$) increases directly with an increasing number of momentum modes as $\mathcal{O}(I^3)$.
+The scaling for the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all non-Clifford operations. 
 
-Figures \ref{fig:phi4_hamiltonian_gates_vs_omega} and \ref{fig:phi4_hamiltonian_qubits_and_rescaling_vs_omega} show the scaling of gates and qubits needed to simulate the $\phi^4$ Hamiltonian with LOBE as the maximum bosonic occupancy ($\Omega$) increases. Similar to the case with increasing \textit{I}, the scaling for the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations. 
+Figures \ref{fig:phi4_hamiltonian_gates_vs_omega} and \ref{fig:phi4_hamiltonian_qubits_and_rescaling_vs_omega} show the scaling of gates and qubits needed to simulate the $\phi^4$ Hamiltonian with LOBE as the maximum bosonic occupancy ($\Omega$) increases. 
+Similar to the case with increasing \textit{I}, the scaling for the two different compilation strategies (\textit{USP} (blue), \textit{ASP} (orange)) demonstrate the same numerical scaling and have nearly identical gate counts for all types of operations. 
 
-Again, the scaling of $\lambda$ with $\Omega$ must be mentioned. For $\phi^4$-theory, $A = 4$, (this comes from the interaction piece), so the scaling of $\lambda$ is $\sim \Omega^2$, which gives quadratic scaling for both \textit{USP} and \textit{ASP}.
+For $\phi^4$-theory, the maximum number of bosonic ladder operators within a single term ($A$) is $4$.
+This implies that the bosonic rescaling factor scales quadratically with the bosonic occupation cutoff.
 
 
 \begin{figure}

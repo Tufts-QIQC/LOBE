@@ -1,12 +1,17 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-\textbf{Future Directions}
+Block-encodings of Hamiltonians are important components for quantum simulation algorithms.
+Two frameworks for constructing block-encodings that have gained traction in the field are sparse block-encodings and LCU,with the latter being restricted to operators written as a linear combination of unitaries.
 
-This block-encoding creates an extension of the block-encodings known as LCU (Linear Combination of Unitaries).
-It would be interesting to try to do a side-by-side cost analysis for a traditional LCU block-encoding using standard transformations to map ladder operators to Paulis vs a LOBE block-encoding.
+In this work, we presented a framework that bridges the gap between sparse and LCU block-encodings which we refer to as LOBE (Ladder Operator Block-Encoding).
+LOBE can be used to construct block-encodings of operators written as a linear combination of products of ladder operators, providing a clear extension of LCU methods.
 
-Separately, an alternative encoding scheme (which we refer to as "unary encoding") creates a "one-hot" encoding for the occupation of the bosonic modes.
-This encoding using $\Lambda (\Omega + 1)$ qubits to encode the bosonic system.
-It would be interesting to also compile the oracles for this encoding and cost it out and compare with the "compact" encoding used in this work.
-  
+In this work, we provided schematics for constructing block-encodings using LOBE of Hamiltonians that act on fermionic, antifermionic, and bosonic modes.
+We gave both analytical and numerical quantum resource estimates for the Yukawa model and the $\phi^4$ model using two different variants of LOBE.
+Notably, we show that the number of qubits required scales logarithmically with both the number of terms in the Hamiltonian and the bosonic occupation cutoff.
+Additionally, we show that the number of non-Clifford operations scales linearly with both the number of terms and the bosonic occupation cutoff.
+Lastly, the rescaling factor of the block-encoding scales polynomially with both the number of terms and the bosonic occupation cutoff.
+
+Hamiltonians of quantum systems that arise in high-energy physics and quantum field theory are often written as a linear combination of ladder operators acting on fermions, antifermions, and bosons.
+LOBE introduces a clear method to construct efficient block-encodings for such systems, providing a key ingredient for composing quantum simluation algorithms of models arising in both high-energy physics and quantum field theory.
