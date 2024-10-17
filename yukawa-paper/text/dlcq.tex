@@ -1,0 +1,68 @@
+\section{Discretized Lightcone Quantization (DLCQ)}
+\label{sec:dlcq}
+
+One can discretize equation \ref{eq:yukawa-hamiltonian} directly by discretizing each piece individually. 
+Alternatively, and perhaps more straightforward, one may discretize the fields before writing out the Hamiltonian.
+Also, since we want the Hamiltonian in momentum space, we perform a Fourier transformation of the discretized fields. 
+
+The fields are discretized in a 1+1D box of length $x^- \in \{-L, L\}$ which, due to boundary conditions and symmetry requirements for fermions and bosons, leads to discretized momenta, $p_k$ given as 
+
+$$p_k = \frac{2\pi k}{L}; k = 
+\begin{cases}
+    \frac{1}{2},\frac{3}{2},\frac{5}{2} \dots ; \text{fermions}\\
+    1, 2, 3, \dots ; \text{bosons}
+\end{cases}$$
+
+For the scalar field, $\phi(x)$, $$\phi(x) = \sum_{k = 1}^\infty \frac{1}{\sqrt{4\pi k}}\left(a_{i_k} e^{-ip_k x} + a_{i_k}^\dagger e^{ip_k x} \right).$$
+Here, the subscript $i_k$ refers to a particular index corresponding to mode $k$. 
+We can transpose $\phi(x)$ to its corresponding momentum space field, denoted by $\tilde \phi(k)$: $$\tilde \phi(k) = \int_{-L}^L dx^- e^{\frac{i}{2}q_k^+ x^-}\phi(x).$$
+The exponent in the exponential in this equation comes from the dot product in lightfront coordinates and asserting a fixed $x^+ = 0$ plane. 
+Plugging in the form of $\phi(x)$, we obtain the discretized scalar field in momentum space as:
+
+\begin{equation}
+    \tilde \phi(k) = 2L \frac{\theta(k)a_{i_k} + \theta(-k)a_{-i_k}}{\sqrt{4\pi |k|}}.
+\end{equation}
+
+The fermionic field is $$\psi(x) = \sum_{k = 1/2}^\infty \frac{1}{\sqrt{4\pi k}}\left(b_{i_k}u(p_k) e^{-ip_k x} + v(p_k)d_{i_k}^\dagger e^{ip_k x} \right)$$ where $$u(p_k) = \frac{1}{\sqrt{p_k^+}}\left[\begin{matrix} p^+_k \\ m \end{matrix}\right],$$ $$v(p_k) = \frac{1}{\sqrt{p_k^+}}\left[\begin{matrix} -p^+_k \\ m \end{matrix}\right].$$
+After the same Fourier transformation that leads to $\tilde \phi(x)$, we obtain 
+
+\begin{equation}
+    \tilde \psi(k) = 2L \frac{\theta(k)b_{i_k}u(p_k) + \theta(-k)d^\dagger_{-i_k}v(-p_k)}{\sqrt{4\pi |k|}}.
+\end{equation}
+
+From the Lagrangian, \ref{eq:yukawa-lagrangian}, we can write the stress-energy tensor and extract the Hamiltonian density: 
+
+\begin{equation}
+    \mathcal{H} = : \bar\psi \frac{\gamma^+}{2}
+    \frac{ m^2 }
+    {i\partial^+}\psi :
+  + \frac{\mu^2}{2} :\phi \phi:
+  + g : \bar\psi\psi : \phi
+  + \frac{1}{2} g^2
+  :\bar\psi \phi
+  \frac{\gamma^+}{i\partial^+} \phi \psi:,
+\end{equation}
+which, after integrating over a spacetime 1+1D ``volume'', $dx^-$, we arrive at $$P^- = \int_{-L}^L dx^- \mathcal{H}.$$
+
+From the discrete forms of the Fourier-transformed fields, we can write $\mathcal{H}$ in terms of $\tilde \phi(k)$ and $\tilde \psi(k)$.
+\gus{Fill in derivation here.}
+
+\begin{align}
+    H_0 &= \sum_{k = 1/2}^\infty \frac{1}{k}\left(m_F^2 b_{i_k}^\dagger b_{i_k} + m_{\bar F}^2 d_{i_k}^\dagger d_{i_k} \right) + \sum_{k = 1}^\infty \frac{m_B^2}{k}a_{i_k}^\dagger a_{i_k}\\ \nonumber
+    H_{3pt.} &= \\\nonumber
+    H_{inst.} &= \\\nonumber
+\end{align}
+
+Now that we have a discrete form of the Hamiltonian, we must introduce a mode cutoff, $\Lambda$ to get a finite Hamiltonian.
+This is accomplished by the substitution $\sum_k^\infty \rightarrow \sum_k^\Lambda$.
+If one wanted to obtain the explicit matrix form of $H$, a basis of Fock states must be chosen. 
+A protocol for choosing a basis is as follows:
+
+\begin{enumerate}
+    \item Choose a value of $P^+$.
+    \item Construct all states of fermions, antifermions and bosons whose momentum sum to $1, 2, \dots, P^+$.
+    \item Form a block of the Hamiltonian of fixed $P^+$ by calculating matrix elements $\langle i|H|j\rangle$.
+\end{enumerate}
+
+The matrix will now be block-diagonal, with each block having fixed $P^+$.
+For a given block, the mode cutoff, $\Lambda$, is the same as the $P^+$ of the block.
