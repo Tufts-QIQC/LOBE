@@ -57,6 +57,7 @@ def add_lobe_oracle(
         numerics["angles"] = []
 
     all_gates = []
+    all_gates.append(cirq.X.on(validation))
     clean_ancillae_counter = 0
 
     # cost of ctrld-multiplexing over the index register
@@ -98,8 +99,8 @@ def add_lobe_oracle(
                 cirq.X.on(control_qubit).controlled_by(
                     *system_ctrls[0],
                     *index_ctrls[0],
-                    validation,
-                    control_values=system_ctrls[1] + index_ctrls[1] + [1],
+                    # validation,
+                    control_values=system_ctrls[1] + index_ctrls[1],
                 )
             )
         )
@@ -112,10 +113,10 @@ def add_lobe_oracle(
         )
         numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-2] + 1)
 
-        # Flip validation qubit if term fires
-        gates_for_term.append(
-            cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
-        )
+        # # Flip validation qubit if term fires
+        # gates_for_term.append(
+        #     cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
+        # )
 
         # Apply term onto system
         gates_for_term += _apply_term(
@@ -131,7 +132,7 @@ def add_lobe_oracle(
         gates_for_term.append(
             cirq.Moment(
                 cirq.X.on(control_qubit).controlled_by(
-                    validation, *index_ctrls[0], control_values=[0] + index_ctrls[1]
+                    *index_ctrls[0], control_values=index_ctrls[1]
                 )
             )
         )
@@ -318,7 +319,7 @@ def _get_index_register_ctrls(
     # Get binary control values corresponding to index
     index_register_control_values = [
         int(i) for i in format(index, f"#0{2+len(index_register)}b")[2:]
-    ] + ctrls[1]
+    ]
 
     if decompose:
         # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
@@ -327,13 +328,13 @@ def _get_index_register_ctrls(
                 cirq.X.on(ancillae[0]).controlled_by(
                     *index_register,
                     *ctrls[0],
-                    control_values=index_register_control_values,
+                    control_values=index_register_control_values + ctrls[1],
                 )
             )
         )
         return gates, ([ancillae[0]], [1])
 
-    return gates, (index_register, index_register_control_values)
+    return gates, (index_register + ctrls[0], index_register_control_values + ctrls[1])
 
 
 def _get_system_ctrls(system, term, uncompute=False):

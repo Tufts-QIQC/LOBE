@@ -16,15 +16,15 @@ def _add_reflection(target_state, index_register, ctrls=([], [])):
         )
         gates.append(cirq.X.on(index_register[0]))
     elif len(ctrls[0]) == 1:
-        if ctrls[1] == 0:
+        if ctrls[1][0] == 0:
             gates.append(cirq.X.on(ctrls[0][0]))
         gates.append(
-            cirq.Z.on_each(*ctrls[0]).controlled_by(
-                *index_register[1:],
-                control_values=[0] * (len(index_register) - 1),
+            cirq.Z.on(ctrls[0][0]).controlled_by(
+                *index_register,
+                control_values=[0] * (len(index_register)),
             )
         )
-        if ctrls[1] == 0:
+        if ctrls[1][0] == 0:
             gates.append(cirq.X.on(ctrls[0][0]))
     else:
         raise RuntimeError("Length of quantum controls must be zero or one.")
@@ -59,9 +59,17 @@ def add_qubitized_walk_operator(
 
     gates += _add_reflection(target_state, index_register, ctrls)
 
-    gates.append(cirq.X.on(validation))
-    gates.append(cirq.Y.on(validation))
-    gates.append(cirq.X.on(validation))
-    gates.append(cirq.Y.on(validation))
+    gates.append(
+        cirq.X.on(validation).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    gates.append(
+        cirq.Y.on(validation).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    gates.append(
+        cirq.X.on(validation).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    gates.append(
+        cirq.Y.on(validation).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
 
     return gates
