@@ -491,6 +491,21 @@ def _update_fermionic_and_antifermionic_system(term, system, ctrls=([], [])):
                     )
                 )
 
+            if isinstance(particle_operator, AntifermionOperator):
+                # Additional (-1)**(N_fermions in state) parity constraint when acting on state with antifermionic operator
+                for (
+                    system_qubit
+                ) in (
+                    system.fermionic_register
+                ):  # Place Z's on fermionic occupancy register
+                    gates.append(
+                        cirq.Moment(
+                            cirq.Z.on(system_qubit).controlled_by(
+                                *ctrls[0], control_values=ctrls[1]
+                            )
+                        )
+                    )
+
             # update occupation
             gates.append(
                 cirq.Moment(
