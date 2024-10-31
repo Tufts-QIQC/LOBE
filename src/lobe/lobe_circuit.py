@@ -18,7 +18,6 @@ def lobe_circuit(
     operator: Union[ParticleOperator, List],
     max_bose_occ: int = 1,
     state_prep_protocol: str = "usp",
-    decompose: bool = True,
     return_unitary: bool = False,
 ):
 
@@ -110,7 +109,6 @@ def lobe_circuit(
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=perform_coefficient_oracle,
-        decompose=decompose,
         numerics=NUMERICS,
     )
     if state_prep_protocol == "usp":
