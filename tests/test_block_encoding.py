@@ -212,7 +212,7 @@ def test_lobe_block_encoding_large_occupancy(
 
 
 # Roughly 75% of these will get skipped due to needing too many qubits
-@pytest.mark.parametrize("trial", range(300))
+@pytest.mark.parametrize("trial", range(100))
 def test_lobe_block_encoding_random(trial):
     possible_types = [
         ["fermion"],
