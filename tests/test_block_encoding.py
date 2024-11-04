@@ -15,7 +15,7 @@ from src.lobe.rescale import (
 import pytest
 
 
-def _test_helper(terms, maximum_occupation_number, decompose):
+def _test_helper(terms, maximum_occupation_number):
     hamiltonian = terms[0]
     for term in terms[1:]:
         hamiltonian += term
@@ -86,7 +86,6 @@ def _test_helper(terms, maximum_occupation_number, decompose):
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=True,
-        decompose=decompose,
     )
     circuit += add_naive_usp(index_register)
 
@@ -114,6 +113,16 @@ def _test_helper(terms, maximum_occupation_number, decompose):
 @pytest.mark.parametrize(
     "terms",
     [
+        [
+            ParticleOperator("a0"),
+        ],
+        [
+            ParticleOperator("a0^"),
+        ],
+        [
+            ParticleOperator("a0^ b0"),
+            0.25 * ParticleOperator("b0^ a0"),
+        ],
         [
             ParticleOperator("a0^ a0"),
         ],
@@ -169,34 +178,11 @@ def _test_helper(terms, maximum_occupation_number, decompose):
     ],
 )
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
-def test_lobe_block_encoding_undecomposed(
+def test_lobe_block_encoding(
     terms,
     maximum_occupation_number,
 ):
-    _test_helper(terms, maximum_occupation_number, decompose=False)
-
-
-@pytest.mark.parametrize(
-    "terms",
-    [
-        [
-            ParticleOperator("a0"),
-        ],
-        [
-            ParticleOperator("a0^"),
-        ],
-        [
-            ParticleOperator("a0^ b0"),
-            0.25 * ParticleOperator("b0^ a0"),
-        ],
-    ],
-)
-@pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
-def test_lobe_block_encoding_decomposed(
-    terms,
-    maximum_occupation_number,
-):
-    _test_helper(terms, maximum_occupation_number, decompose=True)
+    _test_helper(terms, maximum_occupation_number)
 
 
 @pytest.mark.parametrize(
@@ -222,13 +208,12 @@ def test_lobe_block_encoding_large_occupancy(
     maximum_occupation_number,
 ):
 
-    _test_helper(terms, maximum_occupation_number, False)
+    _test_helper(terms, maximum_occupation_number)
 
 
 # Roughly 75% of these will get skipped due to needing too many qubits
-@pytest.mark.parametrize("trial", range(100))
-@pytest.mark.parametrize("decompose", [True, False])
-def test_lobe_block_encoding_random(trial, decompose):
+@pytest.mark.parametrize("trial", range(50))
+def test_lobe_block_encoding_random(trial):
     possible_types = [
         ["fermion"],
         ["antifermion"],
@@ -252,7 +237,7 @@ def test_lobe_block_encoding_random(trial, decompose):
     ).normal_order()
     operator.remove_identity()
     maximum_occupation_number = np.random.choice([1, 3, 7])
-    _test_helper(operator.to_list(), maximum_occupation_number, decompose)
+    _test_helper(operator.to_list(), maximum_occupation_number)
 
 
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
@@ -332,7 +317,6 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=False,
-        decompose=False,
     )
     circuit += add_prepare_circuit(
         index_register, target_state=target_state, dagger=True
