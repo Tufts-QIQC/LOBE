@@ -19,7 +19,6 @@ def add_lobe_oracle(
     rotation_register,
     clean_ancillae=[],
     perform_coefficient_oracle=True,
-    decompose=True,
     numerics=None,
     ctrls=([], []),
 ):
@@ -39,9 +38,6 @@ def add_lobe_oracle(
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
             They are to be used as ancillae to store quantum booleans.
         perform_coefficient_oracle (bool): Classical boolean to dictate if the coefficient oracle should be added.
-        decompose (bool): Classical boolean determining if quantum conditions should be decomposed into ancillae
-            to reduce number of Toffolis (True) or if they should be left as a series of multiple controls to reduce
-            additional ancillae requirements (False).
 
     Returns:
         - The gates to perform the LOBE oracle
@@ -84,12 +80,10 @@ def add_lobe_oracle(
             index_register,
             clean_ancillae[clean_ancillae_counter:],
             index,
-            decompose=decompose,
             ctrls=ctrls,
         )
         gates_for_term += circuit_ops
-        if decompose:
-            clean_ancillae_counter += 1
+        clean_ancillae_counter += 1
 
         system_ctrls = _get_system_ctrls(system, term)
 
@@ -207,12 +201,10 @@ def add_lobe_oracle(
             index_register,
             clean_ancillae[clean_ancillae_counter:],
             index,
-            decompose=decompose,
             ctrls=ctrls,
         )
         gates_for_term += circuit_ops
-        if decompose:
-            clean_ancillae_counter -= 1
+        clean_ancillae_counter -= 1
 
         all_gates += gates_for_term
 
@@ -293,9 +285,7 @@ def _apply_term(
     return gates
 
 
-def _get_index_register_ctrls(
-    index_register, ancillae, index, decompose=True, ctrls=([], [])
-):
+def _get_index_register_ctrls(index_register, ancillae, index, ctrls=([], [])):
     """Create a quantum Boolean that stores whether or not the index_register is in the state |index>
 
     This function operates as an N-Qubit left-elbow gate (Toffoli) controlled on the state of
@@ -306,9 +296,6 @@ def _get_index_register_ctrls(
         ancillae (cirq.LineQubit): The ancilla qubit that will store the quantum boolean on output
         index (int): The computational basis state of index_register to control on. Stored as an integer
             and the binary representation gives the control structure on index_register
-        decompose (bool): Classical boolean determining if quantum conditions should be decomposed into ancillae
-            to reduce number of Toffolis (True) or if they should be left as a series of multiple controls to reduce
-            additional ancillae requirements (False).
 
     Returns:
         - The gates to perform the unitary operation
@@ -321,20 +308,17 @@ def _get_index_register_ctrls(
         int(i) for i in format(index, f"#0{2+len(index_register)}b")[2:]
     ]
 
-    if decompose:
-        # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(ancillae[0]).controlled_by(
-                    *index_register,
-                    *ctrls[0],
-                    control_values=index_register_control_values + ctrls[1],
-                )
+    # Elbow onto ancilla: will be |1> iff index_register is in comp. basis state |index>
+    gates.append(
+        cirq.Moment(
+            cirq.X.on(ancillae[0]).controlled_by(
+                *index_register,
+                *ctrls[0],
+                control_values=index_register_control_values + ctrls[1],
             )
         )
-        return gates, ([ancillae[0]], [1])
-
-    return gates, (index_register + ctrls[0], index_register_control_values + ctrls[1])
+    )
+    return gates, ([ancillae[0]], [1])
 
 
 def _get_system_ctrls(system, term, uncompute=False):
@@ -497,6 +481,21 @@ def _update_fermionic_and_antifermionic_system(term, system, ctrls=([], [])):
                         )
                     )
                 )
+
+            if isinstance(particle_operator, AntifermionOperator):
+                # Additional (-1)**(N_fermions in state) parity constraint when acting on state with antifermionic operator
+                for (
+                    system_qubit
+                ) in (
+                    system.fermionic_register
+                ):  # Place Z's on fermionic occupancy register
+                    gates.append(
+                        cirq.Moment(
+                            cirq.Z.on(system_qubit).controlled_by(
+                                *ctrls[0], control_values=ctrls[1]
+                            )
+                        )
+                    )
 
             # update occupation
             gates.append(

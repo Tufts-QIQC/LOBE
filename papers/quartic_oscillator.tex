@@ -1,0 +1,229 @@
+\documentclass[%
+ reprint,
+%superscriptaddress,
+%groupedaddress,
+%unsortedaddress,
+%runinaddress,
+%frontmatterverbose, 
+%preprint,
+%preprintnumbers,
+nofootinbib,
+%nobibnotes,
+%bibnotes,
+ amsmath,amssymb,
+ aps,
+%pra,
+%prb,
+%rmp,
+%prstab,
+%prstper,
+%floatfix,
+]{revtex4-2}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{lipsum}
+\usepackage{fancyhdr}       % header
+\usepackage{blindtext}
+\usepackage{physics}
+\usepackage{amssymb,amsmath}
+\numberwithin{equation}{section}
+\usepackage{bbm}
+\usepackage{listings}
+\usepackage[dvipsnames]{xcolor}
+
+\bibliographystyle{apsrev4-2}
+
+
+
+
+\usepackage{graphicx}% Include figure files
+\usepackage{dcolumn}% Align table columns on decimal point
+\usepackage{bm}% bold math
+%\usepackage{hyperref}% add hypertext capabilities
+%\usepackage[mathlines]{lineno}% Enable numbering of text and display math
+%\linenumbers\relax % Commence numbering lines
+
+%\usepackage[showframe,%Uncomment any one of the following lines to test 
+%%scale=0.7, marginratio={1:1, 2:3}, ignoreall,% default settings
+%%text={7in,10in},centering,
+%%margin=1.5in,
+%%total={6.5in,8.75in}, top=1.2in, left=0.9in, includefoot,
+%%height=10in,a5paper,hmargin={3cm,0.8in},
+%]{geometry}
+
+\begin{document}
+
+\preprint{APS/123-QED}
+
+\title{A Block-Encoding of the Renormalized Quartic Oscillator Hamiltonian}% Force line breaks with \\
+
+\author{Gustin, Serafin, Simon, Goldstein, Love}%
+ %\email{carter.gustin@tufts.edu}
+
+\affiliation{Tufts University}%
+
+
+
+\date{\today}% It is always \today, today,
+             %  but any date may be explicitly specified
+
+\begin{abstract}
+Abstract
+\end{abstract}
+
+%\keywords{Suggested keywords}%Use showkeys class option if keyword
+                              %display desired
+\maketitle
+
+\section{Introduction}
+\subsection{The Quartic Oscillator Model} 
+The quartic oscillator can be viewed as a quantum field theory as $\phi^4$ constrained to
+one point in space time. Althernatively, it can be viewed as an extension of the quantum
+simple harmonic oscillator with a quartic potential term added, e.g.:
+\begin{equation}
+  H = \frac{\dot{\phi}^2}{2} + \frac{m^2\phi^2}{2} + gm^3\phi^4.
+\end{equation}
+
+In second quantized form, the Hamiltonian can be expressed in terms of creation and 
+annihilation operators as
+
+\begin{equation}
+  \label{Hamiltonian}
+  H = a^\dagger a + g(a + a^\dagger)^4
+\end{equation}
+where $m = 1$, and $g$ is an arbitrary coupling constant. The normalized eigenstates of
+the free part of the Hamiltonian, $H_0$ are $\ket{k} = (k!)^{-1/2}(a^\dagger)^k\ket{0}$. The goal
+is thus, given this basis, finding the ground state eigenvalue of the problem when the 
+quartic potential is turned on ($g \neq 0$). 
+
+In the basis of states defined above, the Hamiltonian matrix, 
+$H_{kl} \equiv\matrixel{k}{H}{l}$ is 5-band-diagonal. We first must pick some cutoff
+on the basis states to get an explicit matrix form. In general, we want this cutoff, $N$,
+to be very large, such that diagonalizing this $N \times N$ Hamiltonian gives a very good 
+approximation to the true ground state. Note that in this model, when it is said that
+there is no divergence, it means that as $N \rightarrow \infty$, the ground state energy
+$E_0$ tends to the true ground state of the infinite problem. In more complicated field
+theories, this won't be true and will require more advanced renormalization techniques.
+
+This $N \times N$ matrix can be diagonalized exactly, or simulated to give an approximation to
+$E_0$; however, this will be very expensive. \textcolor{red}{We should be explicit in 
+what we mean by expensive?} Alternatively, we can ``renormalize'' the model, allowing quantum
+simulation to be performed. This is done with Gaussian elimination.
+
+\section{Renormalization}
+\subsection{Gaussian Elimination}
+The quartic oscillator is a model that is not studied here within the context
+of quantum field theories; however, we can utilize techniques from these 
+theories to reduce the resources needed to simulate this model. 
+In quantum field theories, renormalization is the process of removing infinities
+that arise when doing calculations beyond leading order. Here, Gaussian elimination 
+is performed to systematically remove one row and column from the ``infinitely''
+large Hamiltonian, thus reducing the dimension of the matrix. Although there are no 
+divergences that arise in this model, Gaussian elimination still is useful. This is done
+approximately, since pure Gaussian elimination isn't any cheaper than 
+diagonalizing the infinite matrix. 
+
+Guassian elimination starts by writing down the eigenvalue equation: 
+
+\begin{equation}
+  H\psi^{(0)} = E_0 \psi^{(0)}
+\end{equation}
+where $\psi^{(0)}$ is a $N \times 1$ vector with entries $\psi_0, \dots \psi_{N - 1}$ and $H$
+is a $N \times N$ matrix. Writing $H\psi = E\psi$ for the ground state in matrix form gives 
+$N$ coupled equations. To perform Gaussian elimination, one writes down the equation
+corresponding to $\psi^{(0)}_{N - 1}$:
+
+\begin{equation}
+  \sum_{l = 0}^{N - 1} H_{N - 1, l}\psi_l = E_0\psi_{N - 1}
+\end{equation}
+From here, we rewrite this equation in terms of $\psi_{N - 1}$ and plug this into the equation
+for $\psi^{(0)}_{N - 2}$. We say this removes a row and column from the matrix because now
+there is one less independent degree of freedom. The resulting set of equations is now given
+as:
+
+\begin{equation}
+  \sum_{l = 0}^{N - 2}\left(H_{N-2, l} + \frac{H_{N-2, N}H_{N, l}}{E_0 - H_{N, N}} \right)\psi_{N - 2} = E_0\psi_{N - 2}
+\end{equation}
+
+A problem now becomes evident: the eigenvalue equation for $\psi_{N - 2}$ now depends on $E_0$ in two places.
+This is where an approximation comes in that allows us to ``approximately'' Gaussian eliminate the
+Hamiltonian matrix, leading to a recurrsion relation that shrinks the size of the matrix. We assume
+that the ground state eigenvalue is small compared to the bottom-right-most matrix element (which 
+is the large-energy corner). Thus, we can let
+\begin{equation}
+  E_0 - H_{N, N} \approx -H_{N, N}
+  \label{approx}
+\end{equation}
+
+Now, a recurrsion relation can be defined on each matrix element $H_{kl}$ where the ``new'' matrix
+after one Gaussian elimination step is one row and column smaller:
+
+\begin{equation}
+  \label{recurrsion}
+  H_{kl}^{(j)} = H_{kl}^{(j - 1)} - g\frac{H_{k,N-j}^{(j - 1)}H_{N-j,l}^{(j - 1)}}{H_{N-j,N-j}^{(j - 1)}}
+\end{equation}
+
+There comes a point when using this recurssion relation where this approximation in \ref{approx} starts to break down. This becomes obvious when examining the spectrum of the matrix with a large cutoff $N \gg 0$ vs. the matrix after $k = N - n$ renormalization steps in figure \ref{qosc_renorm_eigvals}.
+Note that there is a linear threshold on this figure at $10^{-9}$ to remove noise for very small energy differences at larger $n$. 
+Another take
+
+For the purposes of this work, figure \ref{qosc_renorm_eigvals} shows that in renormalizing the quartic oscillator Hamiltonian down to a $4 \times 4$ Hamiltonian, the ground state eigenvalue will be accurate up to $1\%$ error. 
+
+\begin{figure}
+  \label{qosc_renorm_eigvals}
+  \includegraphics[width = \linewidth]{figures/qosc_renorm_eigvals.png}
+  \caption{Difference between the renormalized Hamiltonian spectrum and the continuum limit Hamiltonian spectrum}
+\end{figure}
+
+\subsection{Renormalized Hamiltonian}
+In order to block-encode this Hamiltonian with the Ladder Operator Block Encoding (LOBE) algorithm, it is necessary to get an explicit expression for the renormalized Hamiltonian in terms of creation and annihilation operators. 
+This will be done by utilizing the recurssion relation in equation \ref{recurrsion}. For one Gaussian elimination step, going from a $N \times N \rightarrow (N - 1)\times (N - 1)$ dimension Hamiltonian, the matrix elements are updated via equation \ref{recurrsion}. Due to the band-structure of the Hamiltonian, one can see that the only matrix elements that will be updated in one Gaussian elimination step are $H_{N-4, N-4}, H_{N-2, N-2}, H_{N-4, N-2}, H_{N-2, N-4}$. 
+
+Certain combinations of ladder operators can be used to modify the 4 matrix elements in each Gaussian elimination step. To modify the matrix element $H_{N-4, N-4}$, one needs to add an operator of the form $C_{N-4, N-4}(a^\dagger)^{N-4}a^{N-4}$, while for $H_{N-2, N-2}$, one needs to add an operator of the form $C_{N-2, N-2}(a^\dagger)^{N-2}a^{N-2}$, and similarly for $H_{N-4, N-2}, H_{N-2, N-4}$, add $C_{N-4, N-2}(a^\dagger)^{N-4}a^{N-2}, C_{N-2, N-4}(a^\dagger)^{N-2}a^{N-4}$.
+
+In adding these terms, other matrix elements will be affected. This necessitates counterterms to be added to undo unwanted affects. 
+
+\section{Simulation of Renormalized Hamiltonian via LOBE}
+\subsection{Overview of LOBE}
+\textcolor{Green}{Will}
+
+\subsection{Resource Estimates}
+\textcolor{red}{What are LOBE estimates for the ``infinite'' Hamiltonian matrix vs. the 
+renormalized matrix. How do we quantify if this trade-off is useful?}
+
+\section{Conclusion}
+
+
+
+\appendix
+\section{Renormalized Hamiltonian in terms of Ladder Operators}
+The following terms must be added to the Hamiltonian in equation \ref{Hamiltonian}, in order to produce a renormalized Hamiltonian in terms of ladder operators. Note that $n$ is the size of the renormalized matrix such that $n = N - k$, with $k$ Gaussian elimination steps.
+What follows is the expression for the renormalized Hamiltonian, where each term (product of ladder operators) has a coefficient of the form $\Delta H(i,j)$ which picks up the information about the recurssion relation \ref{recurrsion}:
+
+\begin{widetext}
+\begin{align}
+  \label{renH}
+  H_{eff} = H &+ \frac{\Delta H(n-3, n-3)}{(n-3)!}(a^\dagger)^{n-3}a^{n-3} - \frac{\Delta H(n-3, n-3)}{(n-3)!}(a^\dagger)^{n-2}a^{n-2} + \frac{\Delta H(n-3, n-3)}{2(n-3)!}(a^\dagger)^{n-1}a^{n-1}\\ \nonumber
+             &- \frac{\Delta H(n-3, n-3)}{6(n-3)!}(a^\dagger)^{n}a^{n} +  \frac{\Delta H(n-1, n-1)}{(n-1)!}(a^\dagger)^{n - 1}a^{n - 1} - \frac{\Delta H(n-1, n-1)}{(n-1)!}(a^\dagger)^{n}a^{n}\\ \nonumber
+             &+ \frac{\Delta H(n-3, n-1)}{\sqrt{(n-3)!(n-1)!}}\left[(a^\dagger)^{n-3}a^{n-1} - (a^\dagger)^{n-2}a^{n} \right]+ \frac{\Delta H(n-1, n-3)}{\sqrt{(n-1)!(n-3)!}}\left[(a^\dagger)^{n-1}a^{n-3} - (a^\dagger)^{n}a^{n-2} \right] \\ \nonumber
+             &+ \frac{\Delta H(n-2, n-2)}{(n-2)!}(a^\dagger)^{n-2}a^{n-2} - \frac{\Delta H(n-2, n-2)}{(n-2)!}(a^\dagger)^{n-1}a^{n-1} + \frac{\Delta H(n-2, n-2)}{2(n-2)!}(a^\dagger)^{n}a^{n} \\ \nonumber
+             &-\frac{\Delta H(n-2, n-2)}{6(n-2)!}(a^\dagger)^{n+1}a^{n+1} + \frac{\Delta H(n, n)}{n!}(a^\dagger)^n a^n -\frac{\Delta H(n, n)}{n!}(a^\dagger)^{n + 1} a^{n + 1} \\ \nonumber
+             &+ \frac{\Delta H(n-2, n)}{\sqrt{(n)!(n-2)!}}\left[(a^\dagger)^{n-2}a^{n} - (a^\dagger)^{n-1}a^{n+1} \right]+ \frac{\Delta H(n, n-2)}{\sqrt{(n)!(n-2)!}}\left[(a^\dagger)^{n}a^{n-2} - (a^\dagger)^{n+1}a^{n-1} \right]
+\end{align}
+\end{widetext}
+where $H$ is the model Hamiltonian given in equation \ref{Hamiltonian}.
+
+To obtain the proper coefficients, $\Delta H(i,j)$, one must first generate a matrix from the relation \ref{recurrsion} of size $n \times n$. From here, it is possible to obtain the proper coefficients for equation \ref{renH} to obtain:
+
+\begin{equation}
+  \Delta H(i, j) = \tilde{H}(i,j) - H(i,j)
+\end{equation}
+where $\tilde{H}(i,j)$ is the matrix element from the recurrsion relation.
+\end{document}
