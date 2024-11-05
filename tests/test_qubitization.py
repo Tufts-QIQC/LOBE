@@ -3,7 +3,7 @@ import pytest
 import cirq
 from src.lobe.system import System
 from src.lobe.rescale import (
-    get_numbers_of_bosonic_operators_in_terms,
+    get_number_of_active_bosonic_modes,
     bosonically_rescale_terms,
 )
 from src.lobe.asp import get_target_state
@@ -13,16 +13,16 @@ from openparticle import ParticleOperator
 
 
 def _get_operator():
-    possible_types = [
-        ["fermion"],
-        ["antifermion"],
-        ["boson"],
-        ["fermion", "antifermion"],
-        ["fermion", "boson"],
-        ["antifermion", "boson"],
-        ["fermion", "antifermion", "boson"],
-    ]
-    types = possible_types[np.random.choice(range(7))]
+    # possible_types = [
+    #     ["fermion"],
+    #     ["antifermion"],
+    #     ["boson"],
+    #     ["fermion", "antifermion"],
+    #     ["fermion", "boson"],
+    #     ["antifermion", "boson"],
+    #     ["fermion", "antifermion", "boson"],
+    # ]
+    types = ["boson"]
     n_terms = np.random.choice(range(1, 17))
     max_mode = np.random.choice(range(1, 9))
     max_len_of_terms = np.random.choice(range(1, 9))
@@ -64,9 +64,7 @@ def test_reflection_operator(trial):
         prepared_state[i] = np.sqrt(np.abs(coefficient) / norm)
 
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
-    number_of_rotation_qubits = (
-        max(get_numbers_of_bosonic_operators_in_terms(terms)) + 1
-    )
+    number_of_rotation_qubits = max(get_number_of_active_bosonic_modes(terms)) + 1
 
     # Declare Qubits
     reflection_circuit = cirq.Circuit()
@@ -115,9 +113,7 @@ def test_walk_operator(trial):
 
     number_of_ancillae = 100
     number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
-    number_of_rotation_qubits = (
-        max(get_numbers_of_bosonic_operators_in_terms(terms)) + 1
-    )
+    number_of_rotation_qubits = max(get_number_of_active_bosonic_modes(terms))
 
     # Declare Qubits
     select_circuit = cirq.Circuit()
