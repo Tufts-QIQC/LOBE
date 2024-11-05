@@ -125,7 +125,7 @@ def add_lobe_oracle(
         gates_for_term.append(
             cirq.Moment(
                 cirq.X.on(control_qubit).controlled_by(
-                    *index_ctrls[0], control_values=index_ctrls[1]
+                    validation, *index_ctrls[0], control_values=[0] + index_ctrls[1]
                 )
             )
         )
