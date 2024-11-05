@@ -53,7 +53,6 @@ def add_lobe_oracle(
         numerics["angles"] = []
 
     all_gates = []
-    all_gates.append(cirq.X.on(validation))
     clean_ancillae_counter = 0
 
     # cost of ctrld-multiplexing over the index register
@@ -93,8 +92,8 @@ def add_lobe_oracle(
                 cirq.X.on(control_qubit).controlled_by(
                     *system_ctrls[0],
                     *index_ctrls[0],
-                    # validation,
-                    control_values=system_ctrls[1] + index_ctrls[1],
+                    validation,
+                    control_values=system_ctrls[1] + index_ctrls[1] + [1],
                 )
             )
         )
@@ -107,10 +106,10 @@ def add_lobe_oracle(
         )
         numerics["ancillae_tracker"].append(numerics["ancillae_tracker"][-2] + 1)
 
-        # # Flip validation qubit if term fires
-        # gates_for_term.append(
-        #     cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
-        # )
+        # Flip validation qubit if term fires
+        gates_for_term.append(
+            cirq.Moment(cirq.X.on(validation).controlled_by(control_qubit))
+        )
 
         # Apply term onto system
         gates_for_term += _apply_term(
