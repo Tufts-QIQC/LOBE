@@ -168,7 +168,6 @@ def test_walk_operator(trial):
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=False,
-        decompose=True,
     )
     if len(select_circuit.all_qubits()) >= 14:
         pytest.skip(

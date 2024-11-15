@@ -53,7 +53,6 @@ def add_qubitized_walk_operator(
         rotation_register,
         clean_ancillae_register,
         perform_coefficient_oracle=False,
-        decompose=True,
         ctrls=ctrls,
     )
 

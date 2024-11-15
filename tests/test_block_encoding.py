@@ -3,7 +3,7 @@ import numpy as np
 
 import cirq
 from src.lobe.system import System
-from src.lobe.block_encoding import add_lobe_oracle
+from src.lobe.block_encoding import add_lobe_oracle, add_daggered_lobe_oracle
 from src.lobe.usp import add_naive_usp
 from src.lobe.asp import add_prepare_circuit, get_target_state
 from src.lobe._utils import get_basis_of_full_system
@@ -412,7 +412,6 @@ def test_lobe_block_encoding_is_controllable(control_is_on):
         rotation_qubits,
         clean_ancillae,
         perform_coefficient_oracle=False,
-        decompose=True,
         ctrls=([ctrl], [1]),
     )
     circuit += add_prepare_circuit(
@@ -461,3 +460,106 @@ def test_lobe_block_encoding_is_controllable(control_is_on):
         assert not np.allclose(initial_state, final_state, atol=1e-7)
     else:
         assert np.allclose(initial_state, final_state, atol=1e-7)
+
+
+# Roughly 75% of these will get skipped due to needing too many qubits
+@pytest.mark.parametrize("trial", range(20))
+def test_select_inverse(trial):
+    possible_types = [
+        ["fermion"],
+        ["antifermion"],
+        ["boson"],
+        ["fermion", "antifermion"],
+        ["fermion", "boson"],
+        ["antifermion", "boson"],
+        ["fermion", "antifermion", "boson"],
+    ]
+    types = possible_types[np.random.choice(range(7))]
+    n_terms = np.random.choice(range(1, 17))
+    max_mode = np.random.choice(range(1, 9))
+    max_len_of_terms = np.random.choice(range(1, 9))
+    operator = ParticleOperator.random(
+        types,
+        n_terms,
+        max_mode=max_mode,
+        max_len_of_terms=max_len_of_terms,
+        complex_coeffs=False,
+        normal_order=True,
+    ).normal_order()
+    operator.remove_identity()
+    maximum_occupation_number = 3
+    terms = operator.to_list()
+
+    rescaled_terms, _ = bosonically_rescale_terms(terms, maximum_occupation_number)
+
+    number_of_modes = max([term.max_mode() for term in terms]) + 1
+
+    max_number_of_bosonic_ops_in_term = max(
+        get_numbers_of_bosonic_operators_in_terms(terms)
+    )
+
+    number_of_ancillae = 5
+    number_of_index_qubits = max(int(np.ceil(np.log2(len(terms)))), 1)
+    number_of_rotation_qubits = max_number_of_bosonic_ops_in_term
+
+    # Declare Qubits
+    select_circuit = cirq.Circuit()
+    validation = cirq.LineQubit(0)
+    clean_ancillae = [cirq.LineQubit(i + 1) for i in range(number_of_ancillae)]
+    rotation_qubits = [
+        cirq.LineQubit(i + 1 + number_of_ancillae)
+        for i in range(number_of_rotation_qubits)
+    ]
+    index_register = [
+        cirq.LineQubit(i + 1 + number_of_ancillae + number_of_rotation_qubits)
+        for i in range(number_of_index_qubits)
+    ]
+    system = System(
+        number_of_modes=number_of_modes,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=1
+        + number_of_ancillae
+        + number_of_rotation_qubits
+        + number_of_index_qubits,
+        has_fermions=operator.has_fermions,
+        has_antifermions=operator.has_antifermions,
+        has_bosons=operator.has_bosons,
+    )
+    select_circuit.append(cirq.I.on_each(*system.fermionic_register))
+    select_circuit.append(cirq.I.on_each(*system.antifermionic_register))
+    for bosonic_reg in system.bosonic_system:
+        select_circuit.append(cirq.I.on_each(*bosonic_reg))
+
+    select_circuit += add_lobe_oracle(
+        rescaled_terms,
+        validation,
+        index_register,
+        system,
+        rotation_qubits,
+        clean_ancillae,
+        perform_coefficient_oracle=False,
+    )
+
+    inverted_select_circuit = cirq.Circuit()
+    inverted_select_circuit.append(cirq.I.on_each(*system.fermionic_register))
+    inverted_select_circuit.append(cirq.I.on_each(*system.antifermionic_register))
+    for bosonic_reg in system.bosonic_system:
+        inverted_select_circuit.append(cirq.I.on_each(*bosonic_reg))
+    inverted_select_circuit += add_daggered_lobe_oracle(
+        rescaled_terms,
+        validation,
+        index_register,
+        system,
+        rotation_qubits,
+        clean_ancillae,
+        perform_coefficient_oracle=False,
+    )
+
+    if len(select_circuit.all_qubits()) >= 14:
+        pytest.skip(
+            f"too many qubits {len(select_circuit.all_qubits())} to explicitly validate"
+        )
+
+    assert np.allclose(
+        select_circuit.unitary().T.conj(), inverted_select_circuit.unitary(), 1e-6
+    )

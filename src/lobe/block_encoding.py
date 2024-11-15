@@ -11,6 +11,38 @@ from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 import math
 
 
+def add_daggered_lobe_oracle(
+    operators,
+    validation,
+    index_register,
+    system,
+    rotation_register,
+    clean_ancillae=[],
+    perform_coefficient_oracle=True,
+    numerics=None,
+    ctrls=([], []),
+):
+    instructions = add_lobe_oracle(
+        operators,
+        validation,
+        index_register,
+        system,
+        rotation_register,
+        clean_ancillae=clean_ancillae,
+        perform_coefficient_oracle=perform_coefficient_oracle,
+        numerics=numerics,
+        ctrls=ctrls,
+    )
+    inverted_instructions = []
+    for gate in instructions[::-1]:
+        if isinstance(gate, cirq.Moment):
+            for instruction in gate:
+                inverted_instructions.append(instruction**-1)
+        else:
+            inverted_instructions.append(gate**-1)
+    return inverted_instructions
+
+
 def add_lobe_oracle(
     operators,
     validation,
