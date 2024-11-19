@@ -1,0 +1,103 @@
+\section{Constructing Ladder Operator Oracles}
+\label{sec:ladder-op-oracles}
+
+In this section, we discuss the explicit construction of the oracles used to apply different ladder operators onto the quantum state.
+We separate these oracles based on the type of particle that they act on: fermionic ($O_b$), antifermionic ($O_d$), and bosonic ($O_a$).
+Application of a product of ladder operators or a ``term'' as defined by Eq. \ref{eq:term} is achieved by successively applying the corresponding oracles for each operator included in the term.   
+
+\subsection{Encoding}
+\label{subsec:encoding}
+
+Before discussing the compilation of these oracles, we first define the encoding of the system that we use in this work.
+Different system encodings will require different oracle constructions for applying operators.
+
+In this work, the encoding that is used for the occupation of the fermionic modes is identical to the Jordan-Wigner encoding \cite{jordan-wigner}.
+The map between a Fock state to a qubit state is given as 
+\begin{equation}
+    \ket{n_{I_b}, \dots, n_{1_b}, n_{0_b}} \rightarrow \ket{q_{I_b}, \dots, q_{1_b}, q_{0_b}}
+\end{equation}
+where $n_{i_b} = q_{i_b} \in [0, 1]$ depending on if mode $i$ is occupied or not.
+The encoding scheme is the same for antifermions.
+In total, the number of qubits required for the fermionic and antifermionic susbsystems is: $Q_{\psi_b} = I_b$ and $Q_{\psi_d} = I_d$.
+
+The encoding scheme for bosons must allow for occupancies in the range $[0, \Omega]$ due to the absence of the Pauli exclusion principle.
+We choose to represent store the occupancy of a bosonic mode in binary notation: 
+\begin{equation}
+    \ket{n_{i_a}} \rightarrow \ket{b_j, b_{j-1}, ..., b_0}
+\end{equation}
+where $j$ runs from $0$ to $\lceil \log_2{\Omega} \rceil - 1$ and the values of $b_j$ are given by the binary representation of $n_{i_a}$.
+This is identical to the encoding used in \cite{rhodes2024exponential}. \ws{check citation}
+
+Storing the occupation of each bosonic mode requires $\lceil \log_2{\Omega} \rceil$ qubits if we assume that the maximum bosonic occupation is the same for each bosonic mode.
+This choice of the maximum bosonic occupation being constant for all bosonic modes is not a restriction of the methods presented in this work, but is chosen for simplicity. 
+With this choice, the number of qubits required for the bosonic subsystem is: $Q_{\psi_a} = I_a \lceil \log_2{\Omega} \rceil$.
+
+\subsection{Fermionic Ladder Operators}
+
+\subsubsection{Encoding}
+
+\subsubsection{Action}
+
+\ws{
+    \begin{enumerate}
+        \item Desired action
+        \item Define action as non-unitary operator (flip coefficient qubit, high-level circuit)
+        \item Applying phase pickup/coefficient
+        \item Update Occupancy
+    \end{enumerate}
+}
+
+In this section, we aim to define a family of oracles ($\{O_{b^\dagger_i}, O_{b_i}\}$) that apply the associated fermionic creation ($b_i^\dagger$) and annihilation ($b_i$) operators onto the quantum state.
+As these are non-unitary operators, we define these oracles to be of the form of Eq. \ref{eq:general-block-encoding}:
+\begin{equation}
+    O_{b^\dagger_i} \ket{\psi} \ket{0}_\text{anc} = b^\dagger_i \ket{\psi}\ket{0}_\text{anc} + \ket{\text{junk}}\ket{0_\perp}_\text{anc}
+\end{equation}
+
+Since the fermionic (and antifermionic) ladder operators are already scaled such that their spectral norm is less than $1$, we do not need to introduce any rescaling factor for these operators.
+
+We will begin by discussing the action of applying a fermionic creation operator on the $i^\text{th}$ mode: $b_i^\dagger$.
+Recall the definition of this operator given by equation \ref{eq:fermionic-creation}.
+
+We can first notice that the action of the operator creates two implications.
+First, if the mode is already occupied, then state in our encoded subspace should be zeroed-out. 
+Second, if the mode is unoccupied, then the mode should become occupied and a sign should be applied based on the occupancy of the preceeding fermionic modes.
+
+
+The sign of the output state can be achieved simply by applying Pauli-Z operators to each of the fermionic modes with index $j < i$.
+Each of these operators is a Clifford operator, even if controlled.
+
+
+\subsection{Bosonic Ladder Operators}
+
+\subsection{Encoding}
+
+\ws{
+\begin{enumerate}
+    \item Chosen encoding
+    \item Bosonic cutoffs
+\end{enumerate}
+}
+
+\subsection{Action}
+
+\ws{
+    \begin{enumerate}
+        \item Desired action
+        \item Define rescaled operators
+        \item Applying bosonic coefficients 
+        \item Updating Occupancy
+        \item Applying single bosonic op
+        \item Applying multiple bosonic operators on same mode
+        \item Applying multiple bosonic operators on different modes
+    \end{enumerate}
+}
+
+\subsection{Terms}
+
+\ws{
+    How do we apply a term?
+    \begin{enumerate}
+        \item Define rescaled term and applying rescaled term with updated coefficient
+        \item Applying term by sequentially applying ladder-op oracles 
+    \end{enumerate}
+}

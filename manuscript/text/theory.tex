@@ -1,7 +1,18 @@
 \section{Theory}
 \label{sec:theory}
 
-%Give background of ladder operators and constructions of realistic Hamiltonians/Observables from ladder Operators
+\ws{
+    @Gus, order of this section should go something like:
+    \begin{enumerate}
+        \item Introduce second-quantization
+        \item Discuss importance/relevance from chemisty and roughly how it comes into play from quantum field theory
+        \item Define ladder operators
+        \item Comment on how/why we can treat antifermions as fermions
+        \item Define terms as product of ladder operators
+        \item Define linear combination of ladder operators and how this gives the form of second-quantized hamiltonians 
+    \end{enumerate}
+}
+
 In quantum field theories and quantum chemistry, the main method of keeping track of multiparticle states is known as second quantization \cite{Sakurai_Napolitano_2020}.
 In second quantization, multiparticle state vectors are written as $\ket{n} = \ket{n_{I-1}, \dots, n_1, n_0}$ where $n_i \in \mathbb{Z}$ is the number of particles present in mode $i$.
 The fermionic (and antifermionic) occupancy of a mode can either be $0$ or $1$ due to the Pauli exclusion principle \cite{pauli1925zusammenhang}.
@@ -61,6 +72,7 @@ Fermionic (and antifermionic) ladder operators only act non-trivially on the qub
 
 The fermionic creation operator is given by:
 \begin{equation}
+    \label{eq:fermionic-creation}
     b_i^\dagger \ket{n_{i_b}} = 
     \begin{cases} 
         (-1)^{\sum_{j < i} n_{j_b}} \ket{1}  & when \ket{n_{i_b}} is \ket{0} \\
@@ -78,6 +90,7 @@ This action "destroys" that portion of the quantum state and we refer to this as
 
 The fermionic annihilation operator is given by:
 \begin{equation}
+    \label{eq:fermionic-annihilation}
     b_i \ket{n_{i_b}} = 
     \begin{cases} 
         (-1)^{\sum_{j < i} n_{j_b}} \ket{0}  & when \ket{n_{i_b}} = \ket{1} \\
@@ -123,6 +136,7 @@ Similarly, if the occupancy of the state is zero before the operator is applied,
 
 We define a \textit{term} ($T$) as a product of ladder operators that can act on fermionic, antifermionic, and bosonic modes:
 \begin{equation}
+    \label{eq:term}
     T = \prod_{m=0}^{M-1} c_m
 \end{equation}
 where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^\dagger, d_i, d_i^\dagger, a_i, a_i^\dagger\}$.
@@ -163,34 +177,3 @@ Hamiltonians (or observables) can be written in the form of linear combinations 
     H = \sum_{l=0}^{L-1} \alpha_l T_l
 \end{equation}
 where $L$ is the total number of terms and $\alpha_l$ are real-valued coefficients associated with the terms $T_l$.
-
-
-\subsection{Encoding}
-\label{subsec:encoding}
-In order to map information about the multiparticle system to Fock states (and thus qubit states), an encoding of quantum states must be chosen.
-
-In this work, the encoding that is used for the occupation of the fermionic modes is identical to the Jordan-Wigner encoding \cite{jordan-wigner}.
-The map between a Fock state to a qubit state is given as 
-\begin{equation}
-    \ket{n_{I_b}, \dots, n_{1_b}, n_{0_b}} \rightarrow \ket{q_{I_b}, \dots, q_{1_b}, q_{0_b}}
-\end{equation}
-where $n_{i_b} = q_{i_b} \in [0, 1]$ depending on if mode $i$ is occupied or not.
-The encoding scheme is the same for antifermions.
-In total, the number of qubits required for the fermionic and antifermionic susbsystems is: $Q_{\psi_b} = I_b$ and $Q_{\psi_d} = I_d$.
-
-The encoding scheme for bosons must allow for occupancies in the range $[0, \Omega]$ due to the absence of the Pauli exclusion principle.
-For bosons, a Fock state of a single mode stores the occupancy in binary notation: 
-\begin{equation}
-    \ket{n_{i_a}} \rightarrow \ket{b_j, b_{j-1}, ..., b_0}
-\end{equation}
-where $j$ runs from $0$ to $\lceil \log_2{\Omega} \rceil - 1$ and the values of $b_j$ are given by the binary representation of $n_{i_a}$.
-Each bosonic mode requires $\lceil \log_2{\Omega} \rceil$ qubits.
-For each mode ($i_a \in [0, I_a)$), we must encode the corresponding occupancy of this mode in binary. 
-Therefore, the number of qubits required for the bosonic subsystem is: $Q_{\psi_a} = I_a \lceil \log_2{\Omega} \rceil$.
-
-Thus, for a general Fock state with fermions, antifermions, and bosons, the total number of qubits needed to encode this state in a qubit register is:
-\begin{equation}
-    Q_{sys} = I_b + I_d + I_a \lceil \log_2{\Omega} \rceil
-\end{equation}
-Throughout this work, for simplicity we assume that the number of modes is the same for each type of particle ($I_b = I_d = I_a \equiv I)$, though this limitation is not required.
-
