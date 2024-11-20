@@ -15,3 +15,13 @@ manuscript/*.synctex.gz
 manuscript/*Notes.bib
 
 
+yukawa-paper/*.aux
+yukawa-paper/*.bbl
+yukawa-paper/*.blg
+yukawa-paper/*.fdb_latexmk
+yukawa-paper/*.fls
+yukawa-paper/*.log
+yukawa-paper/*.out
+yukawa-paper/*.synctex.gz
+yukawa-paper/*Notes.bib
+
