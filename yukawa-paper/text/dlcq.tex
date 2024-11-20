@@ -1,17 +1,93 @@
 \section{Discretized Lightcone Quantization (DLCQ)}
 \label{sec:dlcq}
 
-One can discretize equation \ref{eq:yukawa-hamiltonian} directly by discretizing each piece individually. 
-Alternatively, and perhaps more straightforward, one may discretize the fields before writing out the Hamiltonian.
-Also, since we want the Hamiltonian in momentum space, we perform a Fourier transformation of the discretized fields. 
+The main goal of the lightfront approach is calculating mass spectra. 
+This is done by solving an eigenvalue equation \ref{eq:eigenvalue}.
+In the continuum limit, this is intractible.
+To obtain solutions, a discretization procedure is needed to computationally calculate $M^2$.
+This procedure is known as discretized lightcone quantization (DLCQ).
 
-The fields are discretized in a 1+1D box of length $x^- \in \{-L, L\}$ which, due to boundary conditions and symmetry requirements for fermions and bosons, leads to discretized momenta, $p_k$ given as 
+\subsection{Continuous to discrete theory}
+Any lightfront Hamiltonian ($H \equiv P^-$) written similarly to equation \ref{eq:yukawa-hamiltonian} can be cast as an eigenvalue equation of the form 
+\begin{equation}
+    \label{eq:eigenvalue}
+    \left(\hat P^- \hat P^+ - \hat{\vec{P}}_\perp^2 \right)\ket{\psi} = M^2\ket{\psi}.
+\end{equation}
 
-$$p_k = \frac{2\pi k}{L}; k = 
+In 1 + 1D, there is no transverse momentum, which simplifies this equation. 
+In addition, we take $\ket{\psi}$ to be an eigenstate of $\hat P^+$ with eigenvalue $P^+$.
+Thus, equation \ref{eq:eigenvalue} simplifies to 
+
+\begin{equation}
+    \label{eq:1p1Deigenvalue}
+    \hat P^- \ket{\psi} = \frac{M^2}{P^+}\ket{\psi}.
+\end{equation}
+
+While $P^-$ is frame-dependent (it is simply a component of a four-vector), $P^+ P^-$ is a Lorentz scalar quantity. 
+Thus, we can choose any value of $P^+$ for the total bound state longitudinal momentum of $\ket{\psi}$, diagonalize $\hat P^-$, and expect the same $M^2$ value (this is furthermore true due to boost-invariance in lightfront coordinates).
+
+$\hat P^-$ (equation \ref{eq:yukawa-hamiltonian}) is an integral over all longitudinal partonic momentum. 
+It doesn't know however about the value of $P^+$ assigned to the bound state. 
+To remedy this, $\ket{\psi}$ must be expanded in a basis that explicitly knows about $P^+$.
+This basis is chosen as $$\ket{\psi} = \sum_n \int d[\mu_n] \ket{\mu_n}\braket{\mu_n}{\psi}.$$
+Here, $\{\ket{\mu_n} \}$ is a set of Fock states where $n$ labels the type of Fock state that makes up a given hadron $h$, i.e. in QCD, for a meson, these states would be $\{\ket{q\bar q}, \ket{q \bar qg}, \ket{gg}, \dots \}$
+Furthermore, these Fock states contain information about $p_i^+$ and $\lambda_i$, the continuous partonic momentum and helicity of each parton in the Fock state. 
+The integral over $d[\mu_n]$ ensures every value of momentum is in the Fock state such that the momentum sum for each state is equal to $P^+$.
+
+The only tractable way to solve equation \ref{eq:1p1Deigenvalue} is by discretizing.
+This is done by restricting $x^- \in [-L, L]$ (or placing our fields in a box). 
+By doing this, the fields, which are in the continuum defined as 
+
+\begin{align}
+    \psi(x) &= \sum_\lambda \int_0^\infty \frac{dp^+}{4\pi p^+} \left(b_p u_\lambda(p) e^{-ip^+x^-} + d_p^\dagger v_\lambda(p) e^{ip^+x^-}\right)\\
+    \bar \psi(x) &= \sum_\lambda \int_0^\infty \frac{dp^+}{4\pi p^+} \left(b_p^\dagger \bar u_\lambda(p) e^{ip^+x^-} + d_p \bar v_\lambda(p) e^{-ip^+x^-}\right)\\
+    \phi(x) &= \int_0^\infty \frac{dp^+}{4\pi p^+}\left(a_p e^{-ip^+x^-} + a_p^\dagger e^{ip^+x^-}\right) \\ \nonumber
+\end{align}
+
+will necessarily be altered. 
+Due to boundary conditions that now exist at $\pm L$, the integrals over continuous $p^+$ become sums over discrete $\bar p^+$.
+The discrete fields are now given as \gus{ADD DISCRETE FIELDS}.
+
+The momentum $p^+$ that a parton could take could be any continuous value such that it is $\in (0, P^+)$.
+Now $p^+$ takes on discrete values given by
+\begin{equation}
+    \label{eq:discretemomentum}
+    \bar p^+ = \frac{2\pi k}{L}; k = 
 \begin{cases}
     \frac{1}{2},\frac{3}{2},\frac{5}{2} \dots ; \text{fermions}\\
     1, 2, 3, \dots ; \text{bosons}
-\end{cases}$$
+\end{cases}\end{equation}
+
+The continuum limit is recovered by taking $\pm L \rightarrow \pm \infty$.
+By choosing a finite value of $L$, it necessarily restricts the space of states allowed, while also having the feature that increasing $L$ leads to a better approximation to the continuum limit.
+To see this consider the following example.
+
+Assume there is a hadron with $P^+ = 1$ with only one Fock state: $\ket{f\bar f}$.
+Since the expansion of the bound state $\ket{\psi}$ integrates over all possible combinations of momentum for the fermion and antifermion, say that one basis state has $p_f^+ = 0.1, p_{\bar{f}}^+ = 0.9$.
+To approximate this with some discrete $\bar p_f^+$ and $\bar p_{\bar f}^+$, choose an $L$, say $L = 2\pi$.
+For this value of $L$, the only possible value of $k$ either $f$ or $\bar f$ can take is $\frac{1}{2}$.
+This is because if we include $k = \frac{3}{2}$, then a state with $\bar p_f^+ = \frac{2\pi}{2\pi}\frac{1}{2}$ and $\bar p_{\bar f}^+ = \frac{2\pi}{2\pi}\frac{3}{2}$ has total longitudinal momentum $2$; however, we are in the $P^+ = 1$ sector, so this is not a valid state. 
+Thus, for this value of $L$, the discrete momentum approximation of $p_f^+ = 0.1, p_{\bar{f}}^+ = 0.9$ is $\bar p_f^+ = \frac{2\pi}{2\pi}\frac{1}{2} = \frac{1}{2}$ and $\bar p_{\bar f}^+ = \frac{2\pi}{2\pi}\frac{1}{2} = \frac{1}{2}$, which is a poor approximation to their continuous values. 
+
+Let us now increase $L$ and see how the approximation changes. 
+Now take $L = 4\pi$. 
+The possible values $k$ can take are now $k \in {\frac{1}{2}, \frac{3}{2}}$. 
+Now we can obtain discrete values $\bar p_f^+ = \frac{2\pi}{4\pi}\frac{1}{2} = \frac{1}{4}$ and $\bar p_{\bar f}^+ = \frac{2\pi}{4\pi}\frac{3}{2} = \frac{3}{4}$, which is a slightly better approximation to $0.1$ and $0.9$ respectively. 
+
+If we increase this logic, if we take $L = 10\pi$, then $k \in {\frac{1}{2}, \frac{3}{2}, \frac{5}{2}, \frac{7}{2}, \frac{9}{2}}$, and we can take $\bar p_f^+ = \frac{2\pi}{10\pi}\frac{1}{2} = \frac{1}{10}$ and $\bar p_{\bar f}^+ = \frac{2\pi}{10\pi}\frac{9}{2} = \frac{9}{10}$ which perfectly approximates the continuous values. 
+If the continous values have a more complicated form (such as $p_f^+ = 0.13$, $p_{\bar f}^+ = 0.87$), then an even larger value of $L$ will be needed to better approximate these values. 
+
+To sumarize this procedure, as $L$ is increased by integer multiplies of $2\pi$, this expands the space of states and leads to a better discrete approximation to the continuous partonic momentum. 
+This can be written as taking $L = 2\pi K$, where $K \in \mathbb{Z}^+$. 
+$K$ can be referred to as the \emph{resolution}, because by increasing $K$ leads to a finer momentum grid.
+Thus, the limit $\pm L \rightarrow \pm \infty$ can be traded with a limit $K \rightarrow \infty$. 
+
+
+\subsection{Fourier Transformation of Fields}
+
+The fields are discretized in a 1+1D box of length $x^- \in \{-L, L\}$ which, due to boundary conditions and symmetry requirements for fermions and bosons, leads to discretized momenta, $p_k$ given in equation \ref{eq:discretemomentum}
+
+
 
 For the scalar field, $\phi(x)$, $$\phi(x) = \sum_{k = 1}^\infty \frac{1}{\sqrt{4\pi k}}\left(a_{i_k} e^{-ip_k x} + a_{i_k}^\dagger e^{ip_k x} \right).$$
 Here, the subscript $i_k$ refers to a particular index corresponding to mode $k$. 
