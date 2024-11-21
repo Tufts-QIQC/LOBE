@@ -228,16 +228,7 @@ The goal of \textit{ASP} is to perform the following operation:
 This results in a weighted superposition over the computational basis states of the index register.
 The squared amplitudes of the basis states are equal to the magnitude of the associated coefficients of the Hamiltonian ($\{\tilde{\alpha}_l\}$).
 
-For Hamiltonians that have structure among the coefficients of the terms, implementations of $\textit{ASP}$ can be constructed that leverage this structure.
-In certain cases, this can drastically reduce the cost of $\textit{ASP}$ such as is done for the Fermi-Hubbard model in \cite{babbush2018encoding}.
-When a certain structure cannot be assumed, the Grover-Rudolph algorithm from \cite{grover2002creating} gives a formulaic routine to generate \textit{ASP} circuits.
 
-In Appendix \ref{sec:grover-rudolph}, we discuss Grover-Rudolph and the circuit compilation strategy in more detail.
-Implementing Grover-Rudolph as described in Appendix \ref{sec:grover-rudolph} incurs the following gate counts:
-\begin{equation}
-    C_{GR} = (\sum_{i=0}^{\lceil \log_2{L} \rceil - 1} 2^i, 0, 0)
-\end{equation}
-where $L$ is the number of terms in the Hamiltonian.
 
 \subsection{Select Oracle}
 \label{subsec:select}
