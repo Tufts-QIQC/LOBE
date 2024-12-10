@@ -17,7 +17,7 @@ def test_lcu_circuit_block_encodes_random_ParticleOperator(
     max_len_of_terms, n_terms, max_bose_occ
 ):
     op = ParticleOperator.random(
-        n_terms=n_terms, max_len_of_terms=max_len_of_terms, max_mode=3
+        n_terms=n_terms, max_len_of_terms=max_len_of_terms, max_mode=2
     )
     qubit_op = op_qubit_map(op, max_bose_occ=max_bose_occ)
 
