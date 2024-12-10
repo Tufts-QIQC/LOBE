@@ -55,8 +55,8 @@ In other words, the output state after the block-encoding is applied remains \te
 In the following subsections, we will describe two commonly used frameworks for constructing block-encodings of different operators: the Sparse-Oracle framework and Linear Combination of Unitaries (LCU).
 The Sparse-Oracle framework allows for constructing block-encodings of a more general class of operators, while LCU is restricted to operators described as a linear combination of unitary operators.
 However, LCU block-encodings typically result in lower rescaling factors. 
-In the final subsection, we discuss a framework for constructing block-encodings of linear combinations of operators that uses a similar structure to LCU to give similar rescaling factors.
-
+Then we discuss a lesser-known framework for constructing block-encodings of linear combinations of operators that uses a similar structure to LCU to give similar rescaling factors.
+In the final subsection, we briefly discuss a simple framework for constructing block-encodings of products of operators.
 
 \subsection{Sparse-Oracle Block-Encoding Framework}
 \label{subsec:sparse-be}
@@ -210,8 +210,6 @@ These controls are not present in the constructions given by Liu et. al, but mus
 The controls on the index register for each $U_l$ comprising the $O_c$ oracle ensure that only the $l^\text{th}$ term is applied when the computational basis state is in the $\ket{l}$ state.
 These controls on the index register are present for each term and can be accounted for by the uniformly controlled operation structure discussed in more detail in Appendix \ref{sec:uniformly-controlled-operations}.
 
-
-
 \subsection{Linear Combination of Unitaries}
 \label{subsec:lcu}
 
@@ -322,7 +320,7 @@ Using the construction for \textit{Select} in Eq. \ref{eq:select-naive}, the imp
 As an example, this is the case for when the operator $A$ is decomposed in the Pauli basis as the Paulis are self-inverse. 
 
 \subsection{Linear Combination of Operators}
-\label{subsec:unification}
+\label{subsec:lco}
 
 LCU block-encodings provide better rescaling factors, yet there are clearly parallels between the $O_A$ oracle and the \textit{Prepare} oracle, as well as the $O_c$ oracle and the \textit{Select} oracle.
 Therefore one might ask if we can construct LCU-style block-encodings for a linear combination of \textit{operators} under the assumption that we have access to block-encodings of each operator:
@@ -407,3 +405,39 @@ The construction for \textit{Select} can again leverage the problem structure if
     \text{Select} = \sum_{l=0}^{L-1} \ket{l}\bra{l} \otimes U_l
 \end{equation}
 where the block-encodings for the operators $O_l$ can be constructed using any of the frameworks discussed here.
+
+\subsection{Products of Operators}
+\label{subsec:be-products}
+
+In this subsection, we merely restate an observation by Gilyén et. al \cite{gilyen2019quantum} when the aim is to construct a block-encoding of a product of operators:
+\begin{theorem}
+    \label{th:product}
+    Given a matrix $A$ defined by the product of two operators $B$ and $C$:
+    \begin{equation}
+        \label{eq:product}
+        A \equiv BC
+    \end{equation}
+    
+    Let the unitary operator $U_B$ block-encode the operator $B$:
+    \begin{equation}
+        U_B \ket{\psi}\ket{0}_\text{anc,B} = \bar{B} \ket{\psi} \ket{0}_\text{anc,B} + \beta_{\psi, B} \ket{\perp}
+    \end{equation}
+    with rescaling factor $\lambda_B$.
+    
+    And let the unitary operator $U_C$ block-encode the operator $C$:
+    \begin{equation}
+        U_C \ket{\psi}\ket{0}_\text{anc,C} = \bar{C} \ket{\psi} \ket{0}_\text{anc,C} + \beta_{\psi, C} \ket{\perp}
+    \end{equation}
+    with rescaling factor $\lambda_C$.
+
+    Then a block-encoding for $A$ is given by:
+    \begin{equation}
+        \label{eq:product-be}
+        U_A = U_B U_C
+    \end{equation}
+    with a rescaling factor of $\lambda_A = \lambda_B \lambda_C$.
+\end{theorem}
+Various proofs that $U_A$ block-encodes $A$ under different situations are given in Section 4.4 of Gilyén et. al \cite{gilyen2019quantum}.
+
+To paraphrase, a block-encoding of a product of operators can be constructed by the product of the block-encodings of the individual operators. \ws{Interesting connection to Trotter...}
+It is important to note that, in general, the block-encoding ancillae used for $U_B$ and $U_C$ must be different registers.
