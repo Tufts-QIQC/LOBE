@@ -1,103 +1,73 @@
 \section{Lightfront Hamiltonians}
 \label{subsec:lightfront-hamiltonian}
-\gus{@will/@peter do we need a discussion about lightfront coordinates, or just a citation?}
 
-\gus{CLEAN THIS UP GUS}
+Here, the Yukawa and $\phi^4$ Hamiltonians will be written out in lightfront coordinates in one space ($x^-$) and one time ($x^+$) dimension.
+In the continuum, the Hamiltonian, which is derived from the Lagrangian, can be written as integrals of the relevant fields over longitudinal momentum. 
+In the discrete case, the momentum is discretized, and thus integrals become sums.
+Each model will have a different $\mathcal{H}$, depending on the fields involved and the interaction term.
 
-Here, the explicit discrete form of the Yukawa and $\phi^4$ Hamiltonians will be written out in lightfront coordinates in one space ($x^-$) and one time ($x^+$) dimension.
-The Hamiltonian is written in terms of fields of discrete momenta, confined to a box, with integration of the Hamiltonian density $\mathcal{H}$ over lightfront space $x^-$. Each model will have a different $\mathcal{H}$, depending on the fields involved and the interaction term.
-
-Each model is composed of fields that are discretized into discrete momenta $k \in \{1/2, 3/2, \dots\}$ for fermions or $k \in \{1, 2, 3, \dots\}$ for bosons due to their symmetry properties. 
+Each model is composed of fields with discrete momenta $k \in \{1/2, 3/2, \dots\}$ for fermions or $k \in \{1, 2, 3, \dots\}$ for bosons due to their symmetry properties. 
 The discretized fields are given as:
 
 \begin{equation}
     \label{eq:psi_discrete}
-    \psi(x) = \sum_{k = 1/2}^\infty\frac{b_k u(p_k)e^{-ip_k x} + d_k^\dagger v(p_k)e^{ip_k x}}{\sqrt{4\pi k}}
+    \psi(q) = 2L \frac{\theta(k)u(p_k^+)b_k+ \theta(-k)v(p_{-k}^+)d_{-k}^\dagger}{\sqrt{4\pi \abs{k}}}
 \end{equation}
 \begin{equation}
     \label{eq:psibar_discrete}
-    \bar \psi(x)= \sum_{k = 1/2}^\infty\frac{b_k^\dagger \bar u(p_k)e^{ip_k x} + d_k \bar v(p_k)e^{-ip_k x}}{\sqrt{4\pi k}}
+    \bar \psi(q) = 2L \frac{\theta(k)\bar u(p_k^+)b_k^\dagger + \theta(-k)\bar v(p_{-k}^+)d_{-k}}{\sqrt{4\pi \abs{k}}}
 \end{equation}
 \begin{equation}
     \label{eq:phi_discrete}
-    \phi(x) = \sum_{k = 1}^\infty\frac{a_k e^{-ip_k x} + a_k^\dagger e^{ip_k x}}{\sqrt{4\pi k}}
+    \phi(x) = 2L \frac{\theta(k)a_k + \theta(-k)a_{-k}^\dagger}{\sqrt{4\pi \abs{k}}}
 \end{equation}
-The discretized momentum is given by $p_k = \frac{2\pi k}{L}$. In the discretized Hamiltonians below, the momentum sums run to infinity. To simulate these, we must choose a momentum cutoff, $I$, which is the mode cutoff described throughout the text. 
+The discretized momentum is given by $p_k^+ = \frac{2\pi}{L}k$. 
+In the discretized Hamiltonians below, the momentum sums run to a value $K$, known as the \textit{resolution}.
+This is analogous to the mode cutoff discribed throughout the text. 
+Increasing the resolution $K$ recovers the continuum limit.
+
+The spinors $u, v$ and gamma matrices $\gamma^+$ have the following definitions in 1+1D lightfront coordinates:
+
+\begin{align*}
+    u(p_k^+) = \frac{1}{\sqrt{p_k^+}}\left[\begin{matrix} p^+ \\ m \end{matrix}\right]\\
+    v(p_k^+) = \frac{1}{\sqrt{p_k^+}}\left[\begin{matrix} -p^+ \\ m \end{matrix}\right]\\
+    \gamma^+ = \left[\begin{matrix} 0 & 1 \\ 1 & 0 \end{matrix}\right]
+\end{align*}
 
 
 \subsection{Yukawa}
-\begin{align}
-    \label{eq:yukawa-hamiltonian-fields}
-    H &= H_0 + g\int_{-L}^L dx^- \bar \psi(x) \psi(x) \phi(x)\\ 
-    &+ g^2\int_{-L}^L  dx^- \bar \psi(x) \phi(x) \gamma^+\left(i\partial^+ \right)^{-1}\phi(x) \psi(x) \nonumber
-\end{align}
-
-
-
-
+In the Yukawa model, the discrete Hamiltonian is a sum of three terms: $H = H_0 + H_{\text{3-point}} + H_{\text{inst.}}$.
 The free part of the Hamiltonian is 
 
 \begin{equation}
-    H_0 = \sum_{k = 1/2}^\infty \frac{m_F^2}{p_k^+}\left(b_k^\dagger b_k + d_k^\dagger d_k \right) + \sum_{k = 1}^\infty \frac{m_B^2}{p_k^+}a_k^\dagger a_k 
+    H_0 = \frac{L}{2\pi}\sum_{k = 1/2}^K \frac{m_f^2}{p_k^+}\left(b_k^\dagger b_k + d_k^\dagger d_k \right) + \frac{L}{2\pi}\sum_{k = 1}^K \frac{m_b^2}{p_k^+}a_k^\dagger a_k 
 \end{equation}
 
-Taking a product of the fields and integrating, we get: 
-\begin{align*}
-    \int_{-L}^L dx^- \bar \psi(x) \psi(x) \phi(x)  = \frac{g(2L)^{5/2}}{(4\pi)^{3/2}} \sum_{k_1, k_2  = 1/2; k_3 = 1}^\infty \frac{1}{\sqrt{k_1k_2k_3}}& \left(  b_{k_1}^\dagger b_{k_2}a_{k_3}\bar u(p_{k_1})u(p_{k_2})\delta_{k_1, k_2 + k_3}  \right. \\
-      &\left. + b_{k_1}^\dagger b_{k_2}a^\dagger_{k_3}\bar u(p_{k_1})u(p_{k_2})\delta_{k_1 + k_3, k_2} \right)\\
-      &\left. + b_{k_1}^\dagger d_{k_2}^\dagger a_{k_3} \bar u(p_{k_1})v(p_{k_2})\delta_{k_1 + k_2, k_3} \right)\\
-      &\left. -  b_{k_2}d_{k_1} a^\dagger_{k_3}\bar v(p_{k_1})u(p_{k_2})\delta_{k_3, k_1 + k_2} \right)\\
-      &\left. -d_{k_2}^\dagger d_{k_1}  a_{k_3}\bar v(p_{k_1})v(p_{k_2})\delta_{k_2, k_1 + k_3} \right)\\
-      &\left. -d_{k_2}^\dagger d_{k_1}  a^\dagger_{k_3}\bar v(p_{k_1})v(p_{k_2})\delta_{k_1, k_2 + k_3} \right)
-\end{align*}
+The 3-body interaction piece comes from a sum over the fields $\bar \psi \psi \phi$:
 
-where 
-\begin{align}
-    &\bar u(p_k) u(q_k) = \bar v(p_k) v(q_k) = \sqrt{p_k^+ q_k^+}\left(\frac{m}{p_k^+} + \frac{m}{q_k^+} \right)\\
-    &\bar u(p_k) v(q_k) = \bar v(p_k) u(q_k) = \sqrt{p_k^+ q_k^+}\left(\frac{m}{q_k^+} - \frac{m}{p_k^+} \right)
-\end{align}
+\begin{equation}
+    H_{\text{3-body}} = \frac{2Lg}{(2L)^3}\sum_{\substack{k_1, k_2 \in \mathbb{Z} + \frac{1}{2} \\ k_3 \in \mathbb{Z} \setminus \{0\}}}
+    \delta_{k1, k2 + k3}:\bar \psi(k_1)\psi(k_2)\phi(k_3):.
+\end{equation}
 
+Lastly, the instantaneous interaction, arising from constraints on the spinor fields in lightfront coordinates can be written in terms of fields as:
+\begin{equation}
+    H_{\text{inst.}} = \frac{2Lg^2}{(2L)^4}\sum_{\substack{k_1, k_4 \in \mathbb{Z} + \frac{1}{2} \\ k_2, k_3 \in \mathbb{Z} \setminus \{0\}}}
+    \delta_{k1, k2 + k3 + k4}:\bar \psi(k_1)\phi(k_2)\frac{\gamma^+}{k_3 + k_4}\phi(k_3)\psi(k_4):.
+\end{equation}
 
-
-Lastly, the interaction term unique to lightfront coordinates in equation \ref{eq:yukawa-hamiltonian-fields} can be written as:
-\begin{align*}
-    \int_{-L}^L dx^- \bar \psi(x) \phi(x) \gamma^+ \left(i\partial^+ \right) \phi(x) \psi(x) = \frac{g(2L)^3}{(4\pi)^{2}} \sum_{k_1, k_4 = 1/2; k_2, k_3 = 1}^\infty \frac{1}{\sqrt{k_1k_2k_3k_4}}& \left(  b_{k_1}^\dagger b_{k_4}a_{k_2}a_{k_3}\frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_1, k_2 + k_3 + k_4}  \right. \\
-     & \left.-b_{k_1}^\dagger d_{k_4}^\dagger a_{k_2}a_{k_3}\frac{\bar u(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_1 + k_4, k_2 + k_3} \right.  \\
-     & \left.-b_{k_1}^\dagger b_{k_4} a_{k_2}a_{k_3}^\dagger \frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_1 + k_3, k_2 + k_4} \right.  \\
-     & \left.-b_{k_1}^\dagger d_{k_4}^\dagger a_{k_2}a_{k_3}^\dagger \frac{\bar u(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_2, k_1 + k_4 + k_3} \right.  \\
-     & \left.+b_{k_1}^\dagger b_{k_4} a_{k_2}^\dagger a_{k_3} \frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_1 + k_2,k_3 + k_4} \right.  \\
-     & \left.-b_{k_1}^\dagger d_{k_4}^\dagger a_{k_2}^\dagger a_{k_3} \frac{\bar u(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_3, k_2 + k_1+ k_4} \right.  \\
-     & \left.-b_{k_1}^\dagger b_{k_4} a_{k_2}^\dagger a_{k_3}^\dagger \frac{\bar u(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_4, k_2 + k_3 + k_1} \right.  \\
-     & \left.+d_{k_4}^\dagger d_{k_1} a_{k_2}a_{k_3} \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_4, k_1 + k_2 + k_3} \right.  \\
-     & \left. +b_{k_4} d_{k_1} a_{k_2}a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_3, k_1 + k_2 + k_4} \right.  \\
-     & \left. +d_{k_4}^\dagger d_{k_1} a_{k_2}a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_4 + k_3, k_1 + k_2} \right.  \\
-     & \left.-b_{k_4} d_{k_1} a_{k_2}^\dagger a_{k_3} \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_2, k_4 + k_1 + k_3} \right.  \\
-     & \left.+d_{k_4}^\dagger d_{k_1} a_{k_2 }^\dagger a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+v(p_{k_4})}{p_{k_4} - p_{k_3}}\delta_{k_1, k_2 + k_3 + k_4} \right.  \\
-     & \left.-b_{k_4} d_{k_1} a_{k_2}^\dagger a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} - p_{k_4}}\delta_{k_1 + k_4, k_2 + k_3 } \right.  \\
-     & \left.-b_{k_4} d_{k_1} a_{k_2}^\dagger a_{k_3}^\dagger \frac{\bar v(p_{k_1})\gamma^+u(p_{k_4})}{p_{k_3} + p_{k_4}}\delta_{k_1 + k_4, k_2 + k_3}\right)  \\
-\end{align*}
-
-where 
-
-\begin{align}
-    &\bar u(p_k)\gamma^+ u(q_k) = \bar v(p_k)\gamma^+ v(q_k) = 2\sqrt{p_k^+ q_k^+}\\
-    &\bar u(p_k)\gamma^+ v(q_k) = \bar v(p_k)\gamma^+ u(q_k) = -2\sqrt{p_k^+ q_k^+}
-\end{align}
+The explicit form of these Hamiltonians written in the manner of equation \ref{eq:lco} can be found by expanding the fields in the forms found above.
 
 \subsection{$\phi^4$}
-The $\phi^4$ Hamiltonian can be written out in lightfront coordinates, similarly to Yukawa theory. Using the same field given in equation \ref{eq:phi_discrete}, and the Hamiltonian 
-\begin{equation}
-    H_{\phi^4} = H_0 + g\int_{-L}^L dx^-\phi^4(x),
-\end{equation}
-we get
+The $\phi^4$ Hamiltonian can be written out in lightfront coordinates, similar to Yukawa theory. Using the same field given in equation \ref{eq:phi_discrete}, the discrete Hamiltonian is
+
 
 \begin{align}
-    H
- = 
-\sum_{k_1 = 1}^{\infty} \frac{m_B^2}{p_{k_1}^+} a_1^\dagger a_1
+    H = 
+\sum_{k_1 = 1}^{K} \frac{m_B^2}{p_{k_1}^+} a_1^\dagger a_1
 &+
 4 g
-\frac{1}{2L} \sum_{k_1, k_2, k_3, k_4 = 1}^{\infty}
+\frac{1}{2L} \sum_{k_1, k_2, k_3, k_4 = 1}^{K}
 \frac{1}{\sqrt{p_{k_1}^+ p_{k_2}^+ p_{k_3}^+ p_{k_4}^+}}
 \delta_{k_1 + k_2 + k_3, k_4}
 \left(
@@ -106,7 +76,7 @@ we get
 \right)
 \\ 
 & +6 g
-\frac{1}{2L} \sum_{k_1, k_2, k_3, k_4 = 1}^{\infty}
+\frac{1}{2L} \sum_{k_1, k_2, k_3, k_4 = 1}^{K}
 \frac{1}{\sqrt{p_{k_1}^+ p_{k_2}^+ p_{k_3}^+ p_{k_4}^+}}
 \delta_{k_1 + k_2, k_3 + k_4}
 a_1^\dagger a_2^\dagger a_3 a_4 \\ \nonumber
