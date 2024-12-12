@@ -22,6 +22,6 @@ def test_lcu_circuit_block_encodes_random_ParticleOperator(
 
         if len(lcu.get_circuit().all_qubits()) >= 14:
             pytest.skip(
-                f"too many qubits {len(lcu.all_qubits())} to explicitly validate"
+                f"too many qubits {len(lcu.get_circuit().all_qubits())} to explicitly validate"
             )
         assert np.allclose(lcu.unitary, qubit_op.to_sparse_matrix.toarray())
