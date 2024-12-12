@@ -1,13 +1,8 @@
 import pytest
-from src.lobe.lcu import *
-
-
-@pytest.mark.parametrize("n_terms", [1, 2, 3, 4, 5])
-@pytest.mark.parametrize("n_qubits", [1, 2, 3, 4, 5])
-def test_lcu_circuit_block_encodes_random_PauliwordOp(n_terms, n_qubits):
-    op = PauliwordOp.random(n_terms=n_terms, n_qubits=n_qubits)
-    lcu = LCU(op)
-    assert np.allclose(lcu.unitary, op.to_sparse_matrix.toarray())
+import numpy as np
+from src.lobe.lcu import LCU
+from openparticle import ParticleOperator
+from openparticle.qubit_mappings import op_qubit_map
 
 
 @pytest.mark.parametrize("max_len_of_terms", [1, 2, 3])
@@ -21,5 +16,5 @@ def test_lcu_circuit_block_encodes_random_ParticleOperator(
     )
     qubit_op = op_qubit_map(op, max_bose_occ=max_bose_occ)
 
-    lcu = LCU(qubit_op)
+    lcu = LCU(op, max_bose_occ=max_bose_occ)
     assert np.allclose(lcu.unitary, qubit_op.to_sparse_matrix.toarray())

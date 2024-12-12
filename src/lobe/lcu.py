@@ -60,7 +60,9 @@ GATE_SELECTION = {
 
 class LCU:
 
-    def __init__(self, paulis):
+    def __init__(self, operator: ParticleOperator, max_bose_occ: int):
+
+        paulis = op_qubit_map(operator, max_bose_occ=max_bose_occ)
 
         self.paulis = seperate_real_imag(paulis)
 
