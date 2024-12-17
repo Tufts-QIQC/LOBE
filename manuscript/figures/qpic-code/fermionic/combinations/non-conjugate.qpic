@@ -1,0 +1,21 @@
+ctrl W ctrl
+anc W anc
+i W \psi_i
+j W \psi_j
+k W \psi_k
+c0 W 0 0
+c1 W 0 0
+
+i +c0
+j +c0
+-k -c0 +c1
+ctrl -c1 +anc
+-k -c0 +c1
+j +c0
+i +c0
+
+ctrl -i
+
+i j G $\vec{Z}$ ctrl +k
+i G $\vec{Z}$ ctrl +j
+ctrl +i

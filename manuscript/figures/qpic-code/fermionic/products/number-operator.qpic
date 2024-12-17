@@ -1,0 +1,10 @@
+ctrl W \text{(a) }ctrl
+anc W anc
+i W \psi_i
+j W \psi_j
+k W \psi_k
+
+i / ^{i<j}
+k / ^{k>j}
+ctrl anc i j k LABEL
+-j +anc ctrl

@@ -1,0 +1,14 @@
+ctrl W \text{(b) }ctrl
+index W index
+anc W anc
+i W \omega_i
+
+i / ^{\log_2{\Omega}}
+ctrl anc index i LABEL
+
+index G $H$ 
+i G width=40 $+R-S$ ctrl -index
+anc G:width=65 $R_y(\theta_w, R, S)$ i G:width=20 $In_\omega$ ctrl
+i G width=40 $-R+S$ ctrl index
+index G $H$ 
+
