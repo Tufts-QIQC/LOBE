@@ -424,15 +424,45 @@ Similarly, a block-encoding for the generalized operator $\big((a_i^\dagger)^R (
 This compilation strategy is chosen under the assumption that the cost of implementing the multiplexed rotations exceeds the cost of the incrementer circuit.
 If the inverse were true, a compilation could be constructed where the incrementer circuit is reused for both terms and the multiplexed rotations would be applied twice.  
 
-For these block-encoding circuits, one additional pair of elbows is required to index between the two incrementer circuits.
+For these block-encoding circuits, one additional pair of elbows is required to index between the two controlled incrementer circuits in Figure \ref{fig:lc-bosonic}.
 Therefore, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{R+S/2}$, use two block-encoding ancilla, and require $2\big(\lceil \log_2 \Omega \rceil\big) - 1$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
 
-\subsection{Products of Ladder Operators}
+\subsection{Terms with Fermionic and Bosonic Ladder Operators}
 
-\ws{
-    How do we apply a term?
-    \begin{enumerate}
-        \item Define rescaled term and applying rescaled term with updated coefficient
-        \item Applying term by sequentially applying ladder-op oracles 
-    \end{enumerate}
-}
+In the previous subsections, we discussed strategies for compiling block-encodings of different products and linear combinations of ladder operators acting on either fermionic or bosonic modes.
+In this subsection, we discuss how to generate block-encodings for operators that contain both fermionic and bosonic operators.
+
+\begin{figure}
+    \include{figures/qpic-code/terms/naive-construction}
+    \include{figures/qpic-code/terms/non-naive-construction}
+    \include{figures/qpic-code/terms/non-naive-yukawa}
+    \caption{
+        \textbf{Block-Encoding Terms}
+        In subfigure a, a naive block-encoding for the operator $b_i a_j + a_j^\dagger b_i^\dagger$ is given.
+        In subfigure b, a block-encoding for the operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ is given.
+    }
+    \label{fig:be-term-example}
+\end{figure}
+
+
+As an example, consider the operator: $b_i a_j + a_j^\dagger b_i^\dagger$.
+Using Theorems \ref{th:product} and \ref{th:lco} to construct block-encodings of the individual terms and then combining them together would have a rescaling factor of $\lambda = 2*\sqrt{\Omega}$ and use $3$ block-encoding ancillae.
+Additionally, the non-Clifford gate-cost would be $3$ Toffoli gates, 2 controlled incrementers, and $2*\Omega$ arbitrary rotations.
+A circuit diagram for this construction is given in subfigure \ref{fig:be-term-example}a.
+
+However, we can instead block-encode the entire operator at once by noting the action of the conjoined operator on the different occupation states of the fermionic mode.
+Using the circuit shown in subfigure \ref{fig:be-term-example}b, the occupation of the fermionic mode is used to determine which bosonic operator is applied to the bosonic mode.
+If the fermionic mode is occupied, then the bosonic annihilation operator is applied to apply the term $b_i a_j$.
+If the fermionic mode is unoccupied, then the bosonic creation operator is applied to apply the term $b_i^\dagger a_j^\dagger$.
+This block-encoding will have a rescaling factor of $\lambda = \sqrt{\Omega}$, use $1$ block-encoding ancillae, and require $1$ Toffoli gate, $2$ controlled incrementers, and $\Omega$ arbitrary rotations.
+
+This strategy can be employed for other combinations of bosonic and fermionic ladder operators.
+In the full Yukawa model, the operator $b_i b_j a_k^\dagger + b_j^\dagger b_i^\dagger a_k$ is used to describe the process of a fermion and antifermion being annihilated to form a boson as well as a boson being annihilated to form a fermion and antifermion.
+For this operator, the occupation of either mode can be used to dictate which bosonic operator is applied to the system.
+If both modes are occupied, then the bosonic creation operator should be applied.
+If both modes are unoccupied, then the bosonic annihilation operator should be applied.
+If the occupation of the two modes are not the same, then the state will be zeroed-out and the block-encoding ancilla for the fermionic modes will be flipped outside of the encoded subspace, therefore the action performed on the bosonic state will not matter.
+A circuit diagram for this block-encoding is shown in subfigure \ref{fig:be-term-example}c.
+This block-encoding has a rescaling factor of $\lambda = \sqrt{\Omega}$, uses $2$ block-encoding ancillae, and requires $2$ Toffolis, $2$ controlled incrementers, and $\Omega$ arbitrary rotations.
+
+
