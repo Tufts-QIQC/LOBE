@@ -1,0 +1,26 @@
+c W \text{(b) }ctrl
+a W anc
+i W \psi_i
+j W \psi_j
+k W \psi_k
+l W \psi_l
+m W \psi_m
+n W \psi_n
+c0 W 0 0
+c1 W 0 0
+
+i / ^{i<j}
+k / ^{j<k<l}
+m / ^{l<m<n}
+c a i j k l m n c0 c1 LABEL
+j +c0
+-l +c0
+n -c0 +c1
+c -c1 +a
+n -c0 +c1
+-l +c0
+j +c0
+c -j
+
+i j k G $\vec{Z}$ c +l
+i G $\vec{Z}$ c +j

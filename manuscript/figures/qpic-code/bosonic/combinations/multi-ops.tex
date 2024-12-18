@@ -1,0 +1,67 @@
+\begin{tikzpicture}[scale=1.000000,x=1pt,y=1pt]
+\filldraw[color=white] (0.000000, -7.500000) rectangle (276.000000, 52.500000);
+% Drawing wires
+% Line 1: ctrl W \text{(b) }ctrl
+\draw[color=black] (0.000000,45.000000) -- (276.000000,45.000000);
+\draw[color=black] (0.000000,45.000000) node[left] {$\text{(b) }ctrl$};
+% Line 2: anc W anc
+\draw[color=black] (0.000000,30.000000) -- (276.000000,30.000000);
+\draw[color=black] (0.000000,30.000000) node[left] {$anc$};
+% Line 3: index W index
+\draw[color=black] (0.000000,15.000000) -- (276.000000,15.000000);
+\draw[color=black] (0.000000,15.000000) node[left] {$index$};
+% Line 4: i W \omega_i
+\draw[color=black] (0.000000,0.000000) -- (276.000000,0.000000);
+\draw[color=black] (0.000000,0.000000) node[left] {$\omega_i$};
+% Done with wires; drawing gates
+% Line 6: i / ^{\log_2{\Omega}}
+\draw (6.000000, -6.000000) -- (14.000000, 6.000000);
+\draw (12.000000, 3.000000) node[right] {$\scriptstyle{^{\log_2{\Omega}}}$};
+% Line 7: ctrl anc index i LABEL
+% Line 9: index G $H$
+\begin{scope}
+\draw[fill=white] (59.000000, 15.000000) +(-45.000000:8.485281pt and 8.485281pt) -- +(45.000000:8.485281pt and 8.485281pt) -- +(135.000000:8.485281pt and 8.485281pt) -- +(225.000000:8.485281pt and 8.485281pt) -- cycle;
+\clip (59.000000, 15.000000) +(-45.000000:8.485281pt and 8.485281pt) -- +(45.000000:8.485281pt and 8.485281pt) -- +(135.000000:8.485281pt and 8.485281pt) -- +(225.000000:8.485281pt and 8.485281pt) -- cycle;
+\draw (59.000000, 15.000000) node {$H$};
+\end{scope}
+% Line 10: i G width=40 $+R-S$ ctrl -index
+\draw (97.000000,45.000000) -- (97.000000,0.000000);
+\begin{scope}
+\draw[fill=white] (97.000000, -0.000000) +(-45.000000:28.284271pt and 8.485281pt) -- +(45.000000:28.284271pt and 8.485281pt) -- +(135.000000:28.284271pt and 8.485281pt) -- +(225.000000:28.284271pt and 8.485281pt) -- cycle;
+\clip (97.000000, -0.000000) +(-45.000000:28.284271pt and 8.485281pt) -- +(45.000000:28.284271pt and 8.485281pt) -- +(135.000000:28.284271pt and 8.485281pt) -- +(225.000000:28.284271pt and 8.485281pt) -- cycle;
+\draw (97.000000, -0.000000) node {$+R-S$};
+\end{scope}
+\filldraw (97.000000, 45.000000) circle(1.500000pt);
+\draw[fill=white] (97.000000, 15.000000) circle(2.250000pt);
+% Line 11: anc G:width=65 $R_y(\theta_w, R, S)$ i G:width=20 $In_\omega$ ctrl
+\draw (161.500000,45.000000) -- (161.500000,0.000000);
+\begin{scope}
+\draw[fill=white] (161.500000, 30.000000) +(-45.000000:45.961941pt and 8.485281pt) -- +(45.000000:45.961941pt and 8.485281pt) -- +(135.000000:45.961941pt and 8.485281pt) -- +(225.000000:45.961941pt and 8.485281pt) -- cycle;
+\clip (161.500000, 30.000000) +(-45.000000:45.961941pt and 8.485281pt) -- +(45.000000:45.961941pt and 8.485281pt) -- +(135.000000:45.961941pt and 8.485281pt) -- +(225.000000:45.961941pt and 8.485281pt) -- cycle;
+\draw (161.500000, 30.000000) node {$R_y(\theta_w, R, S)$};
+\end{scope}
+\begin{scope}
+\draw[fill=white] (161.500000, -0.000000) +(-45.000000:14.142136pt and 8.485281pt) -- +(45.000000:14.142136pt and 8.485281pt) -- +(135.000000:14.142136pt and 8.485281pt) -- +(225.000000:14.142136pt and 8.485281pt) -- cycle;
+\clip (161.500000, -0.000000) +(-45.000000:14.142136pt and 8.485281pt) -- +(45.000000:14.142136pt and 8.485281pt) -- +(135.000000:14.142136pt and 8.485281pt) -- +(225.000000:14.142136pt and 8.485281pt) -- cycle;
+\draw (161.500000, -0.000000) node {$In_\omega$};
+\end{scope}
+\filldraw (161.500000, 45.000000) circle(1.500000pt);
+% Line 12: i G width=40 $-R+S$ ctrl index
+\draw (226.000000,45.000000) -- (226.000000,0.000000);
+\begin{scope}
+\draw[fill=white] (226.000000, -0.000000) +(-45.000000:28.284271pt and 8.485281pt) -- +(45.000000:28.284271pt and 8.485281pt) -- +(135.000000:28.284271pt and 8.485281pt) -- +(225.000000:28.284271pt and 8.485281pt) -- cycle;
+\clip (226.000000, -0.000000) +(-45.000000:28.284271pt and 8.485281pt) -- +(45.000000:28.284271pt and 8.485281pt) -- +(135.000000:28.284271pt and 8.485281pt) -- +(225.000000:28.284271pt and 8.485281pt) -- cycle;
+\draw (226.000000, -0.000000) node {$-R+S$};
+\end{scope}
+\filldraw (226.000000, 45.000000) circle(1.500000pt);
+\filldraw (226.000000, 15.000000) circle(1.500000pt);
+% Line 13: index G $H$
+\begin{scope}
+\draw[fill=white] (264.000000, 15.000000) +(-45.000000:8.485281pt and 8.485281pt) -- +(45.000000:8.485281pt and 8.485281pt) -- +(135.000000:8.485281pt and 8.485281pt) -- +(225.000000:8.485281pt and 8.485281pt) -- cycle;
+\clip (264.000000, 15.000000) +(-45.000000:8.485281pt and 8.485281pt) -- +(45.000000:8.485281pt and 8.485281pt) -- +(135.000000:8.485281pt and 8.485281pt) -- +(225.000000:8.485281pt and 8.485281pt) -- cycle;
+\draw (264.000000, 15.000000) node {$H$};
+\end{scope}
+% Done with gates; drawing ending labels
+% Done with ending labels; drawing cut lines and comments
+% Done with comments
+\end{tikzpicture}

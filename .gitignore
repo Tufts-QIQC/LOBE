@@ -13,5 +13,5 @@ manuscript/*.log
 manuscript/*.out
 manuscript/*.synctex.gz
 manuscript/*Notes.bib
-
+manuscript/figures/qpic-code/**/*.aux
 

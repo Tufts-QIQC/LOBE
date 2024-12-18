@@ -1,0 +1,26 @@
+ctrl W \text{(c) }ctrl
+i W b_i
+j W b_j
+anc_b W anc_b
+anc_a W anc_{a_k}
+k W \omega_k
+c0 W 0 0
+
+k / ^{\log_2{\Omega}}
+ctrl i j anc_b anc_a k c0 LABEL width=1
+
+i +c0
+k G width=20 $+1$ ctrl c0 
+anc_a G:width=35 $R_y(\theta_w)$ k G:width=20 $In_\omega$ ctrl
+k G width=20 $+1$ ctrl -c0 
+j +c0
+
+ctrl c0 +anc_b
+j +c0
+i +c0
+
+ctrl i
+
+j G width=20 $\vec{Z}X_j$ ctrl
+i G width=20 $\vec{Z}X_i$ ctrl
+

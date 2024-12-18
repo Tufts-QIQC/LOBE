@@ -1,0 +1,43 @@
+PREAMBLE \definecolor{tblue}{RGB}{61,142,221}
+PREAMBLE \definecolor{torange}{RGB}{253,143,41}
+
+ctrl W ctrl
+anc W anc
+a W \psi_i
+b W \psi_j
+c W \vdots
+f W \psi_m
+c0 W 0 0
+c1 W 0 0
+c2 W 0 0
+1 W \vdots
+c3 W 0 0
+
+a +c0
+b +c0
+f c0 c1 c2 c3 TOUCH
+b +c1
+c +c1
+f c0 c1 c2 c3 TOUCH
+c +c2
+f +c2
+
+-c0 -c1 -c2 -1 +c3
+ctrl -c3 +anc
+-c0 -c1 -c2 -1 +c3
+f +c2
+c +c2
+f c0 c1 c2 c3 TOUCH
+c +c1
+b +c1
+f c0 c1 c2 c3 TOUCH
+b +c0
+a +c0
+
+ctrl -a color=torange
+
+a b c G $\vec{Z}$ ctrl +f
+ctrl a b c LABEL ...
+a b G $\vec{Z}$ ctrl +c
+a G $\vec{Z}$ ctrl +b
+ctrl +a
