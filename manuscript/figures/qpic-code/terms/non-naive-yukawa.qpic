@@ -21,6 +21,6 @@ i +c0
 
 ctrl i
 
-j G width=20 $\vec{Z}X_j$ ctrl
+i j G width=20 $\vec{Z}X_j$ ctrl
 i G width=20 $\vec{Z}X_i$ ctrl
 
