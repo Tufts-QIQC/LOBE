@@ -3,11 +3,14 @@ import numpy as np
 import cirq
 from src.lobe.system import System
 from src.lobe._utils import get_basis_of_full_system
+from src.lobe.fermionic import fermionic_plus_hc_block_encoding
 import pytest
 import math
 
 
-def _validate_block_encoding(operator, block_encoding_function):
+def _validate_block_encoding(
+    operator, active_indices, operator_types, block_encoding_function
+):
     number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
@@ -22,9 +25,7 @@ def _validate_block_encoding(operator, block_encoding_function):
         number_of_modes=number_of_modes,
         maximum_occupation_number=1,
         number_of_used_qubits=2 + number_of_clean_ancillae,
-        has_fermions=operator.has_fermions,
-        has_antifermions=operator.has_antifermions,
-        has_bosons=operator.has_bosons,
+        has_fermions=True,
     )
     circuit.append(
         cirq.I.on_each(
@@ -40,9 +41,15 @@ def _validate_block_encoding(operator, block_encoding_function):
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
     # Generate full Block-Encoding circuit
-    circuit += block_encoding_function(
-        operator, system, block_encoding_ancilla, clean_ancillae, ctrls=([control], [1])
+    gates, metrics = block_encoding_function(
+        system,
+        block_encoding_ancilla,
+        active_indices,
+        operator_types,
+        clean_ancillae=clean_ancillae,
+        ctrls=([control], [1]),
     )
+    circuit += gates
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
 
@@ -109,7 +116,9 @@ def _validate_block_encoding(operator, block_encoding_function):
         assert np.allclose(upper_left_block, matrix)
 
 
-def _validate_clean_ancillae_are_cleaned(operator, block_encoding_function):
+def _validate_clean_ancillae_are_cleaned(
+    operator, active_indices, operator_types, block_encoding_function
+):
     number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
@@ -142,9 +151,15 @@ def _validate_clean_ancillae_are_cleaned(operator, block_encoding_function):
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
     # Generate full Block-Encoding circuit
-    circuit += block_encoding_function(
-        operator, system, block_encoding_ancilla, clean_ancillae, ctrls=([control], [1])
+    gates, metrics = block_encoding_function(
+        system,
+        block_encoding_ancilla,
+        active_indices,
+        operator_types,
+        clean_ancillae=clean_ancillae,
+        ctrls=([control], [1]),
     )
+    circuit += gates
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
 
@@ -198,7 +213,7 @@ def _validate_clean_ancillae_are_cleaned(operator, block_encoding_function):
 
 
 def _validate_block_encoding_does_nothing_when_control_is_off(
-    operator, block_encoding_function
+    operator, active_indices, operator_types, block_encoding_function
 ):
     number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
 
@@ -230,9 +245,15 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
 
     # Generate full Block-Encoding circuit
-    circuit += block_encoding_function(
-        operator, system, block_encoding_ancilla, clean_ancillae, ctrls=([control], [1])
+    gates, metrics = block_encoding_function(
+        system,
+        block_encoding_ancilla,
+        active_indices,
+        operator_types,
+        clean_ancillae=clean_ancillae,
+        ctrls=([control], [1]),
     )
+    circuit += gates
 
     if len(circuit.all_qubits()) >= 20:
         pytest.skip(f"too many qubits to validate: {len(circuit.all_qubits())}")
@@ -267,8 +288,60 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         assert np.allclose(random_system_state, final_state, atol=1e-6)
 
 
-MAX_MODES = 8
-MAX_ACTIVE_MODES = 2
+def _check_numerics_plus_hc(
+    operator, active_indices, operator_types, block_encoding_function
+):
+    number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
+
+    number_of_clean_ancillae = 100
+
+    # Declare Qubits
+    circuit = cirq.Circuit()
+    control = cirq.LineQubit(0)
+    block_encoding_ancilla = cirq.LineQubit(1)
+
+    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
+    system = System(
+        number_of_modes=number_of_modes,
+        maximum_occupation_number=1,
+        number_of_used_qubits=2 + number_of_clean_ancillae,
+        has_fermions=True,
+    )
+    circuit.append(
+        cirq.I.on_each(
+            control,
+            block_encoding_ancilla,
+            *system.fermionic_register,
+        )
+    )
+
+    if len(circuit.all_qubits()) >= 32:
+        pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
+
+    # Generate full Block-Encoding circuit
+    _, metrics = block_encoding_function(
+        system,
+        block_encoding_ancilla,
+        active_indices,
+        operator_types,
+        clean_ancillae=clean_ancillae,
+        ctrls=([control], [1]),
+    )
+
+    number_of_number_ops = operator_types.count(2)
+
+    assert metrics.number_of_elbows == len(active_indices) - 1
+    assert metrics.clean_ancillae_usage[-1] == 0
+    assert (
+        max(metrics.clean_ancillae_usage)
+        == (len(active_indices) - number_of_number_ops - 1)  # parity qubits
+        + (len(active_indices) - 2)  # elbows for qbool
+        + 1  # elbow to apply toff that flips ancilla
+    )
+
+
+MAX_MODES = 7
+MAX_ACTIVE_MODES = 7
 MIN_ACTIVE_MODES = 2
 
 
@@ -280,132 +353,59 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
     active_modes = np.random.choice(
         range(MAX_MODES + 1), size=number_of_active_modes, replace=False
     )
-    daggers = np.random.choice([True, False], size=number_of_active_modes, replace=True)
-    daggers = daggers[:number_of_active_modes]
-    daggers = list(daggers)
+    operator_types_reversed = np.random.choice(
+        [2, 1, 0], size=number_of_active_modes, replace=True
+    )
+    while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
+        operator_types_reversed = np.random.choice(
+            [2, 1, 0], size=number_of_active_modes, replace=True
+        )
+    operator_types_reversed = operator_types_reversed[:number_of_active_modes]
+    operator_types_reversed = list(operator_types_reversed)
 
     operator_string = ""
-    for mode, dagger in zip(active_modes, daggers):
-        operator_string += f" b{mode}"
-        if dagger:
-            operator_string += "^"
+    for mode, operator_type in zip(active_modes, operator_types_reversed):
+        if operator_type == 0:
+            operator_string += f" b{mode}"
+        if operator_type == 1:
+            operator_string += f" b{mode}^"
+        if operator_type == 2:
+            operator_string += f" b{mode}^ b{mode}"
 
     conjugate_operator_string = ""
-    for mode, dagger in zip(active_modes[::-1], daggers[::-1]):
-        conjugate_operator_string += f" b{mode}"
-        if not dagger:
-            conjugate_operator_string += "^"
+    for mode, operator_type in zip(active_modes[::-1], operator_types_reversed[::-1]):
+        if operator_type == 0:
+            conjugate_operator_string += f" b{mode}^"
+        if operator_type == 1:
+            conjugate_operator_string += f" b{mode}"
+        if operator_type == 2:
+            conjugate_operator_string += f" b{mode}^ b{mode}"
 
     operator = ParticleOperator(operator_string) + ParticleOperator(
         conjugate_operator_string
     )
 
-    def arbitrary_fermionic_operator_with_hc_block_encoding(
-        operator, system, block_encoding_ancilla, clean_ancillae=[], ctrls=([], [])
-    ):
-        assert len(ctrls[0]) == 1
-        assert ctrls[1] == [1]
-        gates = []
-        active_modes = []
-        dagger_values = [None] * len(system.fermionic_register)
-        for op in list(operator.op_dict.keys())[0]:
-            active_modes.append(op[1])
-            dagger_values[op[1]] = op[2]
-
-        temporary_computations = []
-        parity_qubits = clean_ancillae[: len(active_modes) - 1]
-        for i, active_mode in enumerate(active_modes[:-1]):
-            parity_qubit = parity_qubits[i]
-            temporary_computations.append(
-                cirq.Moment(
-                    cirq.X.on(parity_qubit).controlled_by(
-                        system.fermionic_register[active_mode],
-                        control_values=[not dagger_values[active_mode]],
-                    )
-                )
-            )
-            temporary_computations.append(
-                cirq.Moment(
-                    cirq.X.on(parity_qubit).controlled_by(
-                        system.fermionic_register[active_modes[i + 1]],
-                        control_values=[not dagger_values[active_modes[i + 1]]],
-                    )
-                )
-            )
-
-        # Use left-elbow to store temporary logical AND of parity qubits and control
-        temporary_qbool = clean_ancillae[len(active_modes) - 1]
-        temporary_computations.append(
-            cirq.Moment(
-                cirq.X.on(temporary_qbool).controlled_by(
-                    *parity_qubits,
-                    *ctrls[0],
-                    control_values=([0] * len(parity_qubits)) + ctrls[1],
-                )
-            )
-        )
-        gates += temporary_computations
-
-        # Flip block-encoding ancilla
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(block_encoding_ancilla).controlled_by(
-                    temporary_qbool, control_values=[0]
-                )
-            )
-        )
-
-        # Reset clean ancillae
-        gates += temporary_computations[::-1]
-
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(block_encoding_ancilla).controlled_by(
-                    *ctrls[0], control_values=[0]
-                )
-            )
-        )
-
-        # Update system
-        active_qubits = [
-            system.fermionic_register[active_mode] for active_mode in active_modes
-        ]
-        number_of_swaps = math.comb(number_of_active_modes, 2)
-        if number_of_swaps % 2:
-            gates.append(
-                cirq.Moment(
-                    cirq.Z.on(ctrls[0][0]).controlled_by(
-                        active_qubits[0],
-                        control_values=[dagger_values[active_modes[0]]],
-                    )
-                )
-            )
-
-        for active_mode in active_modes[::-1]:
-            for system_qubit in system.fermionic_register[:active_mode]:
-                gates.append(
-                    cirq.Moment(
-                        cirq.Z.on(system_qubit).controlled_by(
-                            *ctrls[0], control_values=ctrls[1]
-                        )
-                    )
-                )
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(system.fermionic_register[active_mode]).controlled_by(
-                        *ctrls[0], control_values=ctrls[1]
-                    )
-                )
-            )
-
-        return gates
-
     _validate_clean_ancillae_are_cleaned(
-        operator, arbitrary_fermionic_operator_with_hc_block_encoding
-    )
-    _validate_block_encoding(
-        operator, arbitrary_fermionic_operator_with_hc_block_encoding
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_plus_hc_block_encoding,
     )
     _validate_block_encoding_does_nothing_when_control_is_off(
-        operator, arbitrary_fermionic_operator_with_hc_block_encoding
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_plus_hc_block_encoding,
+    )
+    _validate_block_encoding(
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_plus_hc_block_encoding,
+    )
+    _check_numerics_plus_hc(
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_plus_hc_block_encoding,
     )
