@@ -291,6 +291,55 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         assert np.allclose(random_system_state, final_state, atol=1e-6)
 
 
+def _check_numerics(operator, active_indices, operator_types, block_encoding_function):
+    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
+
+    number_of_clean_ancillae = 100
+
+    # Declare Qubits
+    circuit = cirq.Circuit()
+    control = cirq.LineQubit(0)
+    block_encoding_ancilla = cirq.LineQubit(1)
+
+    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
+    system = System(
+        number_of_modes=number_of_modes,
+        maximum_occupation_number=1,
+        number_of_used_qubits=2 + number_of_clean_ancillae,
+        has_fermions=True,
+    )
+    circuit.append(
+        cirq.I.on_each(
+            control,
+            block_encoding_ancilla,
+            *system.fermionic_register,
+        )
+    )
+
+    if len(circuit.all_qubits()) >= 32:
+        pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
+
+    # Generate full Block-Encoding circuit
+    _, metrics = block_encoding_function(
+        system,
+        block_encoding_ancilla,
+        active_indices,
+        operator_types,
+        clean_ancillae=clean_ancillae,
+        ctrls=([control], [1]),
+    )
+
+    number_of_number_ops = operator_types.count(2)
+
+    assert metrics.number_of_elbows == len(active_indices) - 1
+    assert metrics.clean_ancillae_usage[-1] == 0
+    assert (
+        max(metrics.clean_ancillae_usage)
+        == (len(active_indices) - 2)  # elbows for qbool
+        + 1  # elbow to apply toff that flips ancilla
+    )
+
+
 def _check_numerics_plus_hc(
     operator, active_indices, operator_types, block_encoding_function
 ):
@@ -461,7 +510,7 @@ def test_arbitrary_fermionic_product(trial):
         operator_types_reversed[::-1],
         fermionic_product_block_encoding,
     )
-    _check_numerics_plus_hc(
+    _check_numerics(
         operator,
         active_modes[::-1],
         operator_types_reversed[::-1],

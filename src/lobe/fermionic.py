@@ -29,7 +29,89 @@ def fermionic_product_block_encoding(
         - List of cirq operations representing the gates to be applied in the circuit
         - CircuitMetrics object representing cost of block-encoding circuit
     """
-    pass
+    assert len(ctrls[0]) == 1
+    assert ctrls[1] == [1]
+    block_encoding_metrics = CircuitMetrics()
+
+    gates = []
+
+    temporary_computations = []
+    clean_ancillae_index = 0
+
+    non_number_op_indices = []
+    non_number_op_types = []
+    number_op_qubits = []
+    for type, index in zip(operator_types, active_indices):
+        if type != 2:
+            non_number_op_types.append(type)
+            non_number_op_indices.append(index)
+        else:
+            number_op_qubits.append(system.fermionic_register[index])
+
+    # Use left-elbow to store temporary logical AND of parity qubits and control
+    block_encoding_metrics.add_to_clean_ancillae_usage(
+        len(non_number_op_types) - 1 + len(number_op_qubits) - 1
+    )
+    block_encoding_metrics.number_of_elbows += (
+        len(non_number_op_types) - 1 + len(number_op_qubits) - 1
+    )
+
+    temporary_qbool = clean_ancillae[clean_ancillae_index]
+    # for i, active_mode in enumerate(non_number_op_indices):
+
+    clean_ancillae_index += 1
+    temporary_computations.append(
+        cirq.Moment(
+            cirq.X.on(temporary_qbool).controlled_by(
+                *[system.fermionic_register[i] for i in non_number_op_indices],
+                *number_op_qubits,
+                control_values=(
+                    [int(not i) for i in non_number_op_types]
+                )  # controlled by occupancies of the active modes
+                + ([1] * len(number_op_qubits)),
+            )
+        )
+    )
+
+    gates += temporary_computations
+
+    # Flip block-encoding ancilla
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+    block_encoding_metrics.number_of_elbows += 1
+    gates.append(
+        cirq.Moment(
+            cirq.X.on(block_encoding_ancilla).controlled_by(
+                *ctrls[0], temporary_qbool, control_values=ctrls[1] + [0]
+            )
+        )
+    )
+    block_encoding_metrics.add_to_clean_ancillae_usage(
+        -(len(non_number_op_types) - 1 + len(number_op_qubits) - 1)
+    )
+
+    # Reset clean ancillae
+    gates += temporary_computations[::-1]
+
+    # Update system
+    for active_mode in non_number_op_indices:
+        for system_qubit in system.fermionic_register[:active_mode]:
+            gates.append(
+                cirq.Moment(
+                    cirq.Z.on(system_qubit).controlled_by(
+                        *ctrls[0], control_values=ctrls[1]
+                    )
+                )
+            )
+        gates.append(
+            cirq.Moment(
+                cirq.X.on(system.fermionic_register[active_mode]).controlled_by(
+                    *ctrls[0], control_values=ctrls[1]
+                )
+            )
+        )
+
+    return gates, block_encoding_metrics
 
 
 def fermionic_plus_hc_block_encoding(
