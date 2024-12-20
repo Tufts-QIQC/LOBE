@@ -3,7 +3,10 @@ import numpy as np
 import cirq
 from src.lobe.system import System
 from src.lobe._utils import get_basis_of_full_system
-from src.lobe.fermionic import fermionic_plus_hc_block_encoding
+from src.lobe.fermionic import (
+    fermionic_plus_hc_block_encoding,
+    fermionic_product_block_encoding,
+)
 import pytest
 import math
 
@@ -11,7 +14,7 @@ import math
 def _validate_block_encoding(
     operator, active_indices, operator_types, block_encoding_function
 ):
-    number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
+    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
 
@@ -119,7 +122,7 @@ def _validate_block_encoding(
 def _validate_clean_ancillae_are_cleaned(
     operator, active_indices, operator_types, block_encoding_function
 ):
-    number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
+    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
 
@@ -215,7 +218,7 @@ def _validate_clean_ancillae_are_cleaned(
 def _validate_block_encoding_does_nothing_when_control_is_off(
     operator, active_indices, operator_types, block_encoding_function
 ):
-    number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
+    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
 
@@ -291,7 +294,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
 def _check_numerics_plus_hc(
     operator, active_indices, operator_types, block_encoding_function
 ):
-    number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
+    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
 
@@ -408,4 +411,59 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         active_modes[::-1],
         operator_types_reversed[::-1],
         fermionic_plus_hc_block_encoding,
+    )
+
+
+@pytest.mark.parametrize("trial", range(100))
+def test_arbitrary_fermionic_product(trial):
+    number_of_active_modes = np.random.random_integers(
+        MIN_ACTIVE_MODES, MAX_ACTIVE_MODES
+    )
+    active_modes = np.random.choice(
+        range(MAX_MODES + 1), size=number_of_active_modes, replace=False
+    )
+    operator_types_reversed = np.random.choice(
+        [2, 1, 0], size=number_of_active_modes, replace=True
+    )
+    while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
+        operator_types_reversed = np.random.choice(
+            [2, 1, 0], size=number_of_active_modes, replace=True
+        )
+    operator_types_reversed = operator_types_reversed[:number_of_active_modes]
+    operator_types_reversed = list(operator_types_reversed)
+
+    operator_string = ""
+    for mode, operator_type in zip(active_modes, operator_types_reversed):
+        if operator_type == 0:
+            operator_string += f" b{mode}"
+        if operator_type == 1:
+            operator_string += f" b{mode}^"
+        if operator_type == 2:
+            operator_string += f" b{mode}^ b{mode}"
+
+    operator = ParticleOperator(operator_string)
+
+    _validate_clean_ancillae_are_cleaned(
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_product_block_encoding,
+    )
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_product_block_encoding,
+    )
+    _validate_block_encoding(
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_product_block_encoding,
+    )
+    _check_numerics_plus_hc(
+        operator,
+        active_modes[::-1],
+        operator_types_reversed[::-1],
+        fermionic_product_block_encoding,
     )
