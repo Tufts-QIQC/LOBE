@@ -8,7 +8,6 @@ from src.lobe.fermionic import (
     fermionic_product_block_encoding,
 )
 import pytest
-import math
 
 
 def _validate_block_encoding(
