@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def bosonic_mode_block_encoding(
     system,
     block_encoding_ancilla,
@@ -53,3 +56,41 @@ def bosonic_mode_plus_hc_block_encoding(
         - CircuitMetrics object representing cost of block-encoding circuit
     """
     pass
+
+
+def _get_bosonic_rotation_angles(
+    maximum_occupation_number, creation_exponent, annhilation_exponent
+):
+    """Get the associated Ry rotation angles for an operator of the form: $a_i^\dagger^R a_i^S$
+
+    Args:
+        maximum_occupation_number (int): The maximum allowed bosonic occupation ($\Omega$)
+        creation_exponent (int): The exponent on the creation operator (R)
+        annihilation_exponent (int): The exponent on the annihilation operator (R)
+
+    Returns:
+        - List of floats
+    """
+    intended_coefficients = [1] * (maximum_occupation_number + 1)
+    for omega in range(maximum_occupation_number + 1):
+        if (omega - annhilation_exponent) < 0:
+            intended_coefficients[omega] = 0
+        elif (
+            omega - annhilation_exponent + creation_exponent
+        ) > maximum_occupation_number:
+            intended_coefficients[omega] = 0
+        else:
+            for r in range(creation_exponent):
+                intended_coefficients[omega] *= np.sqrt(
+                    (omega - r) / maximum_occupation_number
+                )
+            for s in range(1, annhilation_exponent + 1):
+                intended_coefficients[omega] *= np.sqrt(
+                    (omega - creation_exponent + s - 1) / maximum_occupation_number
+                )
+
+    rotation_angles = [
+        2 / np.pi * np.arccos(intended_coefficient)
+        for intended_coefficient in intended_coefficients
+    ]
+    return rotation_angles
