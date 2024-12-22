@@ -14,7 +14,7 @@ def _test_helper(
     expected_rescaling_factor,
     block_encoding_function,
 ):
-    number_of_modes = max([term.max_mode() for term in operator.to_list()]) + 1
+    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
     number_of_clean_ancillae = 100
 
@@ -265,11 +265,14 @@ def _add_multi_bosonic_rotations(
                 )
             angles.append(2 * np.arcsin(-1 * intended_coefficient) / np.pi)
 
-    gates += get_decomposed_multiplexed_rotation_circuit(
-        bosonic_mode_register + [rotation_qubit],
+    rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
+        bosonic_mode_register,
+        rotation_qubit,
         angles,
         clean_ancillae=clean_ancillae,
         ctrls=ctrls,
-        numerics=numerics,
     )
+    gates += rotation_gates
+    if numerics is not None:
+        numerics["rotations"] += rotation_metrics.number_of_rotations
     return gates

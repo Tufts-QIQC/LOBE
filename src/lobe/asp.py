@@ -321,13 +321,16 @@ def add_prepare_circuit(
         numerics["angles"].append(np.pi * multiplexing_angles[0][0])
 
     for qubit_index, angles in enumerate(multiplexing_angles[1:]):
-        gates += get_decomposed_multiplexed_rotation_circuit(
-            qubits[: qubit_index + 2],
+        rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
+            qubits[: qubit_index + 1],
+            qubits[qubit_index + 1],
             angles,
-            clean_ancillae=clean_ancillae,
-            numerics=numerics,
             dagger=dagger,
+            clean_ancillae=clean_ancillae,
         )
+        if numerics is not None:
+            numerics["rotations"] += rotation_metrics.number_of_rotations
+        gates += rotation_gates
 
     if dagger:
         gates = gates[::-1]

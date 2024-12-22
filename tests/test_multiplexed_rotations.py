@@ -51,11 +51,14 @@ def _get_decomposed_multiplexed_rotation_circuit(
             counter = 2
     register = [cirq.LineQubit(i + counter) for i in range(number_of_index + 1)]
 
-    circuit.append(
-        get_decomposed_multiplexed_rotation_circuit(
-            register, angles, clean_ancillae=clean_ancillae, ctrls=ctrls
-        )
+    gates, _ = get_decomposed_multiplexed_rotation_circuit(
+        register[:-1],
+        register[-1],
+        angles,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
     )
+    circuit += gates
 
     return circuit
 

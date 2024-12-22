@@ -92,13 +92,15 @@ def yukawa_4point_pair_term_block_encoding(
         rotation_angles = _get_bosonic_rotation_angles(
             system.maximum_occupation_number, 0, 1
         )
-        block_encoding_metrics.number_of_rotations += len(rotation_angles) + 1
-        gates += get_decomposed_multiplexed_rotation_circuit(
-            system.bosonic_system[bosonic_index] + [be_ancilla],
+        rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
+            system.bosonic_system[bosonic_index],
+            be_ancilla,
             rotation_angles,
             clean_ancillae=clean_ancillae[1:],
             ctrls=ctrls,
         )
+        gates += rotation_gates
+        block_encoding_metrics += rotation_metrics
 
         block_encoding_metrics.add_to_clean_ancillae_usage(
             2 * len(system.bosonic_system[bosonic_index])
@@ -217,13 +219,15 @@ def yukawa_3point_pair_term_block_encoding(
     rotation_angles = _get_bosonic_rotation_angles(
         system.maximum_occupation_number, 0, 1
     )
-    block_encoding_metrics.number_of_rotations += len(rotation_angles) + 1
-    gates += get_decomposed_multiplexed_rotation_circuit(
-        system.bosonic_system[active_indices[0]] + [block_encoding_ancillae[0]],
+    rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
+        system.bosonic_system[active_indices[0]],
+        block_encoding_ancillae[0],
         rotation_angles,
         clean_ancillae=clean_ancillae[1:],
         ctrls=ctrls,
     )
+    gates += rotation_gates
+    block_encoding_metrics += rotation_metrics
 
     block_encoding_metrics.add_to_clean_ancillae_usage(
         2 * len(system.bosonic_system[active_indices[0]])

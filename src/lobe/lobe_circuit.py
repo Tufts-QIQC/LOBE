@@ -47,7 +47,7 @@ def lobe_circuit(
         terms, max_bose_occ
     )
 
-    number_of_modes = max([term.max_mode() for term in terms]) + 1
+    number_of_modes = max([term.max_mode for term in terms]) + 1
 
     number_of_ancillae = (
         1000  # Some arbitrary large number with most ancilla disregarded
