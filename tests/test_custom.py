@@ -3,15 +3,21 @@ import numpy as np
 import cirq
 from src.lobe.system import System
 from src.lobe._utils import get_basis_of_full_system
-from src.lobe.fermionic import (
-    fermionic_plus_hc_block_encoding,
-    fermionic_product_block_encoding,
+from src.lobe.custom import (
+    yukawa_3point_pair_term_block_encoding,
+    yukawa_4point_pair_term_block_encoding,
 )
 import pytest
+import math
 
 
 def _validate_block_encoding(
-    operator, active_indices, operator_types, block_encoding_function
+    expected_rescaling_factor,
+    operator,
+    number_of_block_encoding_ancillae,
+    maximum_occupation_number,
+    active_indices,
+    block_encoding_function,
 ):
     number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
@@ -20,22 +26,32 @@ def _validate_block_encoding(
     # Declare Qubits
     circuit = cirq.Circuit()
     control = cirq.LineQubit(0)
-    block_encoding_ancilla = cirq.LineQubit(1)
+    block_encoding_ancillae = [
+        cirq.LineQubit(i + 1) for i in range(number_of_block_encoding_ancillae)
+    ]
 
-    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
+    clean_ancillae = [
+        cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
+        for i in range(number_of_clean_ancillae)
+    ]
     system = System(
         number_of_modes=number_of_modes,
-        maximum_occupation_number=1,
-        number_of_used_qubits=2 + number_of_clean_ancillae,
-        has_fermions=True,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=1
+        + number_of_block_encoding_ancillae
+        + number_of_clean_ancillae,
+        has_fermions=operator.has_fermions,
+        has_bosons=operator.has_bosons,
     )
     circuit.append(
         cirq.I.on_each(
             control,
-            block_encoding_ancilla,
+            *block_encoding_ancillae,
             *system.fermionic_register,
         )
     )
+    for bosonic_reg in system.bosonic_system:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
 
     if len(circuit.all_qubits()) >= 32:
         pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
@@ -45,9 +61,8 @@ def _validate_block_encoding(
     # Generate full Block-Encoding circuit
     gates, metrics = block_encoding_function(
         system,
-        block_encoding_ancilla,
+        block_encoding_ancillae,
         active_indices,
-        operator_types,
         clean_ancillae=clean_ancillae,
         ctrls=([control], [1]),
     )
@@ -68,12 +83,21 @@ def _validate_block_encoding(
         )
         random_system_state = random_system_state / np.linalg.norm(random_system_state)
         zero_state = np.zeros(
-            1 << (len(circuit.all_qubits()) - system.number_of_system_qubits - 2),
+            1
+            << (
+                len(circuit.all_qubits())
+                - system.number_of_system_qubits
+                - 1
+                - number_of_block_encoding_ancillae
+            ),
             dtype=complex,
         )
         zero_state[0] = 1
         initial_control_state = [1, 0]
-        initial_block_encoding_ancilla_state = [1, 0]
+        initial_block_encoding_ancilla_state = np.zeros(
+            1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state[0] = 1
         initial_state = np.kron(
             np.kron(
                 np.kron(initial_control_state, initial_block_encoding_ancilla_state),
@@ -87,7 +111,7 @@ def _validate_block_encoding(
         final_state = output_state[: 1 << system.number_of_system_qubits]
         full_fock_basis = get_basis_of_full_system(
             number_of_modes,
-            1,
+            maximum_occupation_number,
             has_fermions=operator.has_fermions,
             has_antifermions=operator.has_antifermions,
             has_bosons=operator.has_bosons,
@@ -104,7 +128,7 @@ def _validate_block_encoding(
     else:
         full_fock_basis = get_basis_of_full_system(
             number_of_modes,
-            1,
+            maximum_occupation_number,
             has_fermions=operator.has_fermions,
             has_antifermions=operator.has_antifermions,
             has_bosons=operator.has_bosons,
@@ -115,11 +139,15 @@ def _validate_block_encoding(
             : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
         ]
 
-        assert np.allclose(upper_left_block, matrix)
+        assert np.allclose(expected_rescaling_factor * upper_left_block, matrix)
 
 
 def _validate_clean_ancillae_are_cleaned(
-    operator, active_indices, operator_types, block_encoding_function
+    operator,
+    number_of_block_encoding_ancillae,
+    maximum_occupation_number,
+    active_indices,
+    block_encoding_function,
 ):
     number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
@@ -128,24 +156,32 @@ def _validate_clean_ancillae_are_cleaned(
     # Declare Qubits
     circuit = cirq.Circuit()
     control = cirq.LineQubit(0)
-    block_encoding_ancilla = cirq.LineQubit(1)
+    block_encoding_ancillae = [
+        cirq.LineQubit(i + 1) for i in range(number_of_block_encoding_ancillae)
+    ]
 
-    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
+    clean_ancillae = [
+        cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
+        for i in range(number_of_clean_ancillae)
+    ]
     system = System(
         number_of_modes=number_of_modes,
-        maximum_occupation_number=1,
-        number_of_used_qubits=2 + number_of_clean_ancillae,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=1
+        + number_of_block_encoding_ancillae
+        + number_of_clean_ancillae,
         has_fermions=operator.has_fermions,
-        has_antifermions=operator.has_antifermions,
         has_bosons=operator.has_bosons,
     )
     circuit.append(
         cirq.I.on_each(
             control,
-            block_encoding_ancilla,
+            *block_encoding_ancillae,
             *system.fermionic_register,
         )
     )
+    for bosonic_reg in system.bosonic_system:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
 
     if len(circuit.all_qubits()) >= 32:
         pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
@@ -155,9 +191,8 @@ def _validate_clean_ancillae_are_cleaned(
     # Generate full Block-Encoding circuit
     gates, metrics = block_encoding_function(
         system,
-        block_encoding_ancilla,
+        block_encoding_ancillae,
         active_indices,
-        operator_types,
         clean_ancillae=clean_ancillae,
         ctrls=([control], [1]),
     )
@@ -179,7 +214,13 @@ def _validate_clean_ancillae_are_cleaned(
         )
         random_system_state = random_system_state / np.linalg.norm(random_system_state)
         zero_state = np.zeros(
-            1 << (len(circuit.all_qubits()) - system.number_of_system_qubits - 2),
+            1
+            << (
+                len(circuit.all_qubits())
+                - system.number_of_system_qubits
+                - 1
+                - number_of_block_encoding_ancillae
+            ),
             dtype=complex,
         )
         zero_state[0] = 1
@@ -189,8 +230,12 @@ def _validate_clean_ancillae_are_cleaned(
         initial_control_state = initial_control_state / np.linalg.norm(
             initial_control_state
         )
-        initial_block_encoding_ancilla_state = 1j * np.random.uniform(-1, 1, 2)
-        initial_block_encoding_ancilla_state += np.random.uniform(-1, 1, 2)
+        initial_block_encoding_ancilla_state = 1j * np.random.uniform(
+            -1, 1, 1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state += np.random.uniform(
+            -1, 1, 1 << number_of_block_encoding_ancillae
+        )
         initial_block_encoding_ancilla_state = (
             initial_block_encoding_ancilla_state
             / np.linalg.norm(initial_block_encoding_ancilla_state)
@@ -209,13 +254,19 @@ def _validate_clean_ancillae_are_cleaned(
         indices = final_state.nonzero()[0]
         for index in indices:
             bitstring = format(index, f"0{2+len(circuit.all_qubits())}b")[2:]
-            for bit in bitstring[2 : -system.number_of_system_qubits]:
+            for bit in bitstring[
+                1 + number_of_block_encoding_ancillae : -system.number_of_system_qubits
+            ]:
                 if bit == "1":
                     assert False
 
 
 def _validate_block_encoding_does_nothing_when_control_is_off(
-    operator, active_indices, operator_types, block_encoding_function
+    operator,
+    number_of_block_encoding_ancillae,
+    maximum_occupation_number,
+    active_indices,
+    block_encoding_function,
 ):
     number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
@@ -224,24 +275,32 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     # Declare Qubits
     circuit = cirq.Circuit()
     control = cirq.LineQubit(0)
-    block_encoding_ancilla = cirq.LineQubit(1)
+    block_encoding_ancillae = [
+        cirq.LineQubit(i + 1) for i in range(number_of_block_encoding_ancillae)
+    ]
 
-    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
+    clean_ancillae = [
+        cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
+        for i in range(number_of_clean_ancillae)
+    ]
     system = System(
         number_of_modes=number_of_modes,
-        maximum_occupation_number=1,
-        number_of_used_qubits=2 + number_of_clean_ancillae,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=1
+        + number_of_block_encoding_ancillae
+        + number_of_clean_ancillae,
         has_fermions=operator.has_fermions,
-        has_antifermions=operator.has_antifermions,
         has_bosons=operator.has_bosons,
     )
     circuit.append(
         cirq.I.on_each(
             control,
-            block_encoding_ancilla,
+            *block_encoding_ancillae,
             *system.fermionic_register,
         )
     )
+    for bosonic_reg in system.bosonic_system:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
 
     if len(circuit.all_qubits()) >= 32:
         pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
@@ -249,9 +308,8 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     # Generate full Block-Encoding circuit
     gates, metrics = block_encoding_function(
         system,
-        block_encoding_ancilla,
+        block_encoding_ancillae,
         active_indices,
-        operator_types,
         clean_ancillae=clean_ancillae,
         ctrls=([control], [1]),
     )
@@ -269,12 +327,21 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         )
         random_system_state = random_system_state / np.linalg.norm(random_system_state)
         zero_state = np.zeros(
-            1 << (len(circuit.all_qubits()) - system.number_of_system_qubits - 2),
+            1
+            << (
+                len(circuit.all_qubits())
+                - system.number_of_system_qubits
+                - 1
+                - number_of_block_encoding_ancillae
+            ),
             dtype=complex,
         )
         zero_state[0] = 1
         initial_control_state = [1, 0]
-        initial_block_encoding_ancilla_state = [1, 0]
+        initial_block_encoding_ancilla_state = np.zeros(
+            1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state[0] = 1
         initial_state = np.kron(
             np.kron(
                 np.kron(initial_control_state, initial_block_encoding_ancilla_state),
@@ -290,57 +357,11 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         assert np.allclose(random_system_state, final_state, atol=1e-6)
 
 
-def _check_numerics(operator, active_indices, operator_types, block_encoding_function):
-    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
-
-    number_of_clean_ancillae = 100
-
-    # Declare Qubits
-    circuit = cirq.Circuit()
-    control = cirq.LineQubit(0)
-    block_encoding_ancilla = cirq.LineQubit(1)
-
-    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
-    system = System(
-        number_of_modes=number_of_modes,
-        maximum_occupation_number=1,
-        number_of_used_qubits=2 + number_of_clean_ancillae,
-        has_fermions=True,
-    )
-    circuit.append(
-        cirq.I.on_each(
-            control,
-            block_encoding_ancilla,
-            *system.fermionic_register,
-        )
-    )
-
-    if len(circuit.all_qubits()) >= 32:
-        pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
-
-    # Generate full Block-Encoding circuit
-    _, metrics = block_encoding_function(
-        system,
-        block_encoding_ancilla,
-        active_indices,
-        operator_types,
-        clean_ancillae=clean_ancillae,
-        ctrls=([control], [1]),
-    )
-
-    number_of_number_ops = operator_types.count(2)
-
-    assert metrics.number_of_elbows == len(active_indices) - 1
-    assert metrics.clean_ancillae_usage[-1] == 0
-    assert (
-        max(metrics.clean_ancillae_usage)
-        == (len(active_indices) - 2)  # elbows for qbool
-        + 1  # elbow to apply toff that flips ancilla
-    )
-
-
-def _check_numerics_plus_hc(
-    operator, active_indices, operator_types, block_encoding_function
+def _check_metrics_yukawa_3point(
+    operator,
+    maximum_occupation_number,
+    active_indices,
+    block_encoding_function,
 ):
     number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
 
@@ -349,22 +370,25 @@ def _check_numerics_plus_hc(
     # Declare Qubits
     circuit = cirq.Circuit()
     control = cirq.LineQubit(0)
-    block_encoding_ancilla = cirq.LineQubit(1)
+    block_encoding_ancillae = [cirq.LineQubit(1), cirq.LineQubit(2)]
 
-    clean_ancillae = [cirq.LineQubit(i + 2) for i in range(number_of_clean_ancillae)]
+    clean_ancillae = [cirq.LineQubit(i + 3) for i in range(number_of_clean_ancillae)]
     system = System(
         number_of_modes=number_of_modes,
-        maximum_occupation_number=1,
-        number_of_used_qubits=2 + number_of_clean_ancillae,
-        has_fermions=True,
+        maximum_occupation_number=maximum_occupation_number,
+        number_of_used_qubits=3 + number_of_clean_ancillae,
+        has_fermions=operator.has_fermions,
+        has_bosons=operator.has_bosons,
     )
     circuit.append(
         cirq.I.on_each(
             control,
-            block_encoding_ancilla,
+            *block_encoding_ancillae,
             *system.fermionic_register,
         )
     )
+    for bosonic_reg in system.bosonic_system:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
 
     if len(circuit.all_qubits()) >= 32:
         pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
@@ -372,146 +396,111 @@ def _check_numerics_plus_hc(
     # Generate full Block-Encoding circuit
     _, metrics = block_encoding_function(
         system,
-        block_encoding_ancilla,
+        block_encoding_ancillae,
         active_indices,
-        operator_types,
         clean_ancillae=clean_ancillae,
         ctrls=([control], [1]),
     )
 
-    number_of_number_ops = operator_types.count(2)
 
-    assert metrics.number_of_elbows == len(active_indices) - 1
-    assert metrics.clean_ancillae_usage[-1] == 0
-    assert (
-        max(metrics.clean_ancillae_usage)
-        == (len(active_indices) - number_of_number_ops - 1)  # parity qubits
-        + (len(active_indices) - 2)  # elbows for qbool
-        + 1  # elbow to apply toff that flips ancilla
-    )
-
-
-MAX_MODES = 7
-MAX_ACTIVE_MODES = 7
-MIN_ACTIVE_MODES = 2
+MAX_NUMBER_OF_BOSONIC_MODES = 3
+MAX_NUMBER_OF_FERMIONIC_MODES = 5
+POSSIBLE_MAX_OCCUPATION_NUMBERS = [1, 3, 7]
 
 
 @pytest.mark.parametrize("trial", range(100))
-def test_arbitrary_fermionic_operator_with_hc(trial):
-    number_of_active_modes = np.random.random_integers(
-        MIN_ACTIVE_MODES, MAX_ACTIVE_MODES
+def test_yukawa_3point(trial):
+    maximum_occupation_number = int(
+        np.random.choice(POSSIBLE_MAX_OCCUPATION_NUMBERS, size=1)
     )
-    active_modes = np.random.choice(
-        range(MAX_MODES + 1), size=number_of_active_modes, replace=False
+    number_of_bosonic_modes = np.random.random_integers(1, MAX_NUMBER_OF_BOSONIC_MODES)
+    number_of_fermionic_modes = np.random.random_integers(
+        2, MAX_NUMBER_OF_FERMIONIC_MODES
     )
-    operator_types_reversed = np.random.choice(
-        [2, 1, 0], size=number_of_active_modes, replace=True
-    )
-    while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
-        operator_types_reversed = np.random.choice(
-            [2, 1, 0], size=number_of_active_modes, replace=True
-        )
-    operator_types_reversed = operator_types_reversed[:number_of_active_modes]
-    operator_types_reversed = list(operator_types_reversed)
-
-    operator_string = ""
-    for mode, operator_type in zip(active_modes, operator_types_reversed):
-        if operator_type == 0:
-            operator_string += f" b{mode}"
-        if operator_type == 1:
-            operator_string += f" b{mode}^"
-        if operator_type == 2:
-            operator_string += f" b{mode}^ b{mode}"
-
-    conjugate_operator_string = ""
-    for mode, operator_type in zip(active_modes[::-1], operator_types_reversed[::-1]):
-        if operator_type == 0:
-            conjugate_operator_string += f" b{mode}^"
-        if operator_type == 1:
-            conjugate_operator_string += f" b{mode}"
-        if operator_type == 2:
-            conjugate_operator_string += f" b{mode}^ b{mode}"
-
-    operator = ParticleOperator(operator_string) + ParticleOperator(
-        conjugate_operator_string
+    bosonic_index = list(np.random.choice(range(number_of_bosonic_modes), size=1))
+    fermionic_indices = list(
+        np.random.choice(range(number_of_fermionic_modes), size=2, replace=False)
     )
 
-    _validate_clean_ancillae_are_cleaned(
-        operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_plus_hc_block_encoding,
+    operator_string = (
+        f"b{fermionic_indices[1]} b{fermionic_indices[0]} a{bosonic_index[0]}^"
     )
-    _validate_block_encoding_does_nothing_when_control_is_off(
-        operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_plus_hc_block_encoding,
-    )
-    _validate_block_encoding(
-        operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_plus_hc_block_encoding,
-    )
-    _check_numerics_plus_hc(
-        operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_plus_hc_block_encoding,
-    )
-
-
-@pytest.mark.parametrize("trial", range(100))
-def test_arbitrary_fermionic_product(trial):
-    number_of_active_modes = np.random.random_integers(
-        MIN_ACTIVE_MODES, MAX_ACTIVE_MODES
-    )
-    active_modes = np.random.choice(
-        range(MAX_MODES + 1), size=number_of_active_modes, replace=False
-    )
-    operator_types_reversed = np.random.choice(
-        [2, 1, 0], size=number_of_active_modes, replace=True
-    )
-    while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
-        operator_types_reversed = np.random.choice(
-            [2, 1, 0], size=number_of_active_modes, replace=True
-        )
-    operator_types_reversed = operator_types_reversed[:number_of_active_modes]
-    operator_types_reversed = list(operator_types_reversed)
-
-    operator_string = ""
-    for mode, operator_type in zip(active_modes, operator_types_reversed):
-        if operator_type == 0:
-            operator_string += f" b{mode}"
-        if operator_type == 1:
-            operator_string += f" b{mode}^"
-        if operator_type == 2:
-            operator_string += f" b{mode}^ b{mode}"
-
     operator = ParticleOperator(operator_string)
+    conjugate_string = (
+        f"b{fermionic_indices[0]}^ b{fermionic_indices[1]}^ a{bosonic_index[0]}"
+    )
+    operator += ParticleOperator(conjugate_string)
 
     _validate_clean_ancillae_are_cleaned(
         operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_product_block_encoding,
+        2,
+        maximum_occupation_number,
+        bosonic_index + fermionic_indices,
+        yukawa_3point_pair_term_block_encoding,
     )
     _validate_block_encoding_does_nothing_when_control_is_off(
         operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_product_block_encoding,
+        2,
+        maximum_occupation_number,
+        bosonic_index + fermionic_indices,
+        yukawa_3point_pair_term_block_encoding,
     )
     _validate_block_encoding(
+        np.sqrt(maximum_occupation_number),
         operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_product_block_encoding,
+        2,
+        maximum_occupation_number,
+        bosonic_index + fermionic_indices,
+        yukawa_3point_pair_term_block_encoding,
     )
-    _check_numerics(
+    _check_metrics_yukawa_3point(
         operator,
-        active_modes[::-1],
-        operator_types_reversed[::-1],
-        fermionic_product_block_encoding,
+        maximum_occupation_number,
+        bosonic_index + fermionic_indices,
+        yukawa_3point_pair_term_block_encoding,
+    )
+
+
+@pytest.mark.parametrize("trial", range(100))
+def test_yukawa_4point(trial):
+    maximum_occupation_number = int(
+        np.random.choice(POSSIBLE_MAX_OCCUPATION_NUMBERS, size=1)
+    )
+    number_of_bosonic_modes = np.random.random_integers(2, MAX_NUMBER_OF_BOSONIC_MODES)
+    number_of_fermionic_modes = np.random.random_integers(
+        2, MAX_NUMBER_OF_FERMIONIC_MODES
+    )
+    bosonic_indices = list(
+        np.random.choice(range(number_of_bosonic_modes), size=2, replace=False)
+    )
+    fermionic_indices = list(
+        np.random.choice(range(number_of_fermionic_modes), size=2, replace=False)
+    )
+
+    operator_string = f"b{fermionic_indices[1]} b{fermionic_indices[0]} a{bosonic_indices[1]}^ a{bosonic_indices[0]}^"
+    operator = ParticleOperator(operator_string)
+    conjugate_string = f"b{fermionic_indices[0]}^ b{fermionic_indices[1]}^ a{bosonic_indices[1]} a{bosonic_indices[0]}"
+    operator += ParticleOperator(conjugate_string)
+
+    _validate_clean_ancillae_are_cleaned(
+        operator,
+        3,
+        maximum_occupation_number,
+        bosonic_indices + fermionic_indices,
+        yukawa_4point_pair_term_block_encoding,
+    )
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        operator,
+        3,
+        maximum_occupation_number,
+        bosonic_indices + fermionic_indices,
+        yukawa_4point_pair_term_block_encoding,
+    )
+    _validate_block_encoding(
+        maximum_occupation_number,
+        operator,
+        3,
+        maximum_occupation_number,
+        bosonic_indices + fermionic_indices,
+        yukawa_4point_pair_term_block_encoding,
     )

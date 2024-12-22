@@ -95,21 +95,11 @@ def fermionic_product_block_encoding(
 
     # Update system
     for active_mode in non_number_op_indices:
-        for system_qubit in system.fermionic_register[:active_mode]:
-            gates.append(
-                cirq.Moment(
-                    cirq.Z.on(system_qubit).controlled_by(
-                        *ctrls[0], control_values=ctrls[1]
-                    )
-                )
-            )
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(system.fermionic_register[active_mode]).controlled_by(
-                    *ctrls[0], control_values=ctrls[1]
-                )
-            )
+        op_gates, op_metrics = _apply_fermionic_ladder_op(
+            system, active_mode, ctrls=ctrls
         )
+        gates += op_gates
+        block_encoding_metrics += op_metrics
 
     return gates, block_encoding_metrics
 
@@ -247,20 +237,45 @@ def fermionic_plus_hc_block_encoding(
             gates.append(cirq.Moment(cirq.X.on(sign_qubit)))
 
     for active_mode in non_number_op_indices[::-1]:
-        for system_qubit in system.fermionic_register[:active_mode]:
-            gates.append(
-                cirq.Moment(
-                    cirq.Z.on(system_qubit).controlled_by(
-                        *ctrls[0], control_values=ctrls[1]
-                    )
-                )
-            )
+        op_gates, op_metrics = _apply_fermionic_ladder_op(
+            system, active_mode, ctrls=ctrls
+        )
+        gates += op_gates
+        block_encoding_metrics += op_metrics
+
+    return gates, block_encoding_metrics
+
+
+def _apply_fermionic_ladder_op(system, index, ctrls=([], [])):
+    """Apply the controlled $\\vec{Z}X$ operator to apply a fermionic ladder operator to the system.
+
+    Args:
+        system (lobe.system.System): The system object holding the system registers
+        index (int): The mode index upon which the ladder operator acts
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
+    """
+    operator_metrics = CircuitMetrics()
+    gates = []
+
+    for system_qubit in system.fermionic_register[:index]:
         gates.append(
             cirq.Moment(
-                cirq.X.on(system.fermionic_register[active_mode]).controlled_by(
+                cirq.Z.on(system_qubit).controlled_by(
                     *ctrls[0], control_values=ctrls[1]
                 )
             )
         )
+    gates.append(
+        cirq.Moment(
+            cirq.X.on(system.fermionic_register[index]).controlled_by(
+                *ctrls[0], control_values=ctrls[1]
+            )
+        )
+    )
 
-    return gates, block_encoding_metrics
+    return gates, operator_metrics
