@@ -98,12 +98,13 @@ def test_single_bosonic_operator(
         gates.append(cirq.H.on(block_encoding_ancillae[0]))
 
         adder_controls = (ctrls[0] + [block_encoding_ancillae[0]], ctrls[1] + [0])
-        gates += add_classical_value_gate_efficient(
+        adder_gates, _ = add_classical_value_gate_efficient(
             system.bosonic_system[active_mode],
             exponent,
             clean_ancillae=clean_ancillae,
             ctrls=adder_controls,
         )
+        gates += adder_gates
 
         gates += _add_bosonic_rotations(
             block_encoding_ancillae[1],
@@ -115,12 +116,13 @@ def test_single_bosonic_operator(
         )
 
         adder_controls = (ctrls[0] + [block_encoding_ancillae[0]], ctrls[1] + [1])
-        gates += add_classical_value_gate_efficient(
+        adder_gates, _ = add_classical_value_gate_efficient(
             system.bosonic_system[active_mode],
             -exponent,
             clean_ancillae=clean_ancillae,
             ctrls=adder_controls,
         )
+        gates += adder_gates
 
         gates.append(cirq.H.on(block_encoding_ancillae[0]))
         return gates
@@ -165,12 +167,13 @@ def test_two_bosonic_operators(
         gates.append(cirq.H.on(block_encoding_ancillae[0]))
 
         adder_controls = (ctrls[0] + [block_encoding_ancillae[0]], ctrls[1] + [0])
-        gates += add_classical_value_gate_efficient(
+        adder_gates, _ = add_classical_value_gate_efficient(
             system.bosonic_system[active_mode],
             R - S,
             clean_ancillae=clean_ancillae,
             ctrls=adder_controls,
         )
+        gates += adder_gates
 
         gates += _add_multi_bosonic_rotations(
             block_encoding_ancillae[1],
@@ -182,12 +185,13 @@ def test_two_bosonic_operators(
         )
 
         adder_controls = (ctrls[0] + [block_encoding_ancillae[0]], ctrls[1] + [1])
-        gates += add_classical_value_gate_efficient(
+        adder_gates, _ = add_classical_value_gate_efficient(
             system.bosonic_system[active_mode],
             -R + S,
             clean_ancillae=clean_ancillae,
             ctrls=adder_controls,
         )
+        gates += adder_gates
 
         gates.append(cirq.H.on(block_encoding_ancillae[0]))
         return gates

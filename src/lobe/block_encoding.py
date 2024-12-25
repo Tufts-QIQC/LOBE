@@ -255,12 +255,13 @@ def _apply_term(
                 numerics=numerics,
             )
             bosonic_counter += 1
-            gates += add_classical_value_incrementers(
+            adder_gates, _ = add_classical_value_incrementers(
                 system.bosonic_system[mode],
                 creation_exponent - annihilation_exponent,
                 clean_ancillae,
                 ctrls=ctrls,
             )
+            gates += adder_gates
             p_val = _get_p_val(
                 creation_exponent - annihilation_exponent,
                 len(system.bosonic_system[mode]),

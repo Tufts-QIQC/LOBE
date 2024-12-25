@@ -79,18 +79,20 @@ def yukawa_4point_pair_term_block_encoding(
         block_encoding_metrics.number_of_elbows += len(
             system.bosonic_system[bosonic_index]
         )
-        gates += add_classical_value_gate_efficient(
+        adder_gates, adder_metrics = add_classical_value_gate_efficient(
             system.bosonic_system[bosonic_index],
             1,
             clean_ancillae=clean_ancillae[1:],
             ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [1]),
         )
+        gates += adder_gates
+        block_encoding_metrics += adder_metrics
         block_encoding_metrics.add_to_clean_ancillae_usage(
             -(2 * len(system.bosonic_system[bosonic_index]))
         )
 
         rotation_angles = _get_bosonic_rotation_angles(
-            system.maximum_occupation_number, 0, 1
+            system.maximum_occupation_number, 1, 0
         )
         rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
             system.bosonic_system[bosonic_index],
@@ -108,12 +110,14 @@ def yukawa_4point_pair_term_block_encoding(
         block_encoding_metrics.number_of_elbows += len(
             system.bosonic_system[bosonic_index]
         )
-        gates += add_classical_value_gate_efficient(
+        adder_gates, adder_metrics = add_classical_value_gate_efficient(
             system.bosonic_system[bosonic_index],
             -1,
             clean_ancillae=clean_ancillae[1:],
             ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [0]),
         )
+        gates += adder_gates
+        block_encoding_metrics += adder_metrics
         block_encoding_metrics.add_to_clean_ancillae_usage(
             -(2 * len(system.bosonic_system[bosonic_index]))
         )
@@ -206,18 +210,20 @@ def yukawa_3point_pair_term_block_encoding(
     block_encoding_metrics.number_of_elbows += len(
         system.bosonic_system[active_indices[0]]
     )
-    gates += add_classical_value_gate_efficient(
+    adder_gates, adder_metrics = add_classical_value_gate_efficient(
         system.bosonic_system[active_indices[0]],
         1,
         clean_ancillae=clean_ancillae[1:],
         ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [1]),
     )
+    gates += adder_gates
+    block_encoding_metrics += adder_metrics
     block_encoding_metrics.add_to_clean_ancillae_usage(
         -(2 * len(system.bosonic_system[active_indices[0]]))
     )
 
     rotation_angles = _get_bosonic_rotation_angles(
-        system.maximum_occupation_number, 0, 1
+        system.maximum_occupation_number, 1, 0
     )
     rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
         system.bosonic_system[active_indices[0]],
@@ -235,12 +241,14 @@ def yukawa_3point_pair_term_block_encoding(
     block_encoding_metrics.number_of_elbows += len(
         system.bosonic_system[active_indices[0]]
     )
-    gates += add_classical_value_gate_efficient(
+    adder_gates, adder_metrics = add_classical_value_gate_efficient(
         system.bosonic_system[active_indices[0]],
         -1,
         clean_ancillae=clean_ancillae[1:],
         ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [0]),
     )
+    gates += adder_gates
+    block_encoding_metrics += adder_metrics
     block_encoding_metrics.add_to_clean_ancillae_usage(
         -(2 * len(system.bosonic_system[active_indices[0]]))
     )

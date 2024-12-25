@@ -115,9 +115,7 @@ def _validate_block_encoding_bosonic(
         )
         matrix = generate_matrix(operator, full_fock_basis)
 
-        expected_rescaling = (np.sqrt(maximum_occupation_number + 1)) ** (
-            (sum(exponents))
-        )
+        expected_rescaling = (np.sqrt(maximum_occupation_number)) ** ((sum(exponents)))
         upper_left_block = (
             expected_rescaling
             * circuit.unitary(dtype=complex)[

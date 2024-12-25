@@ -201,7 +201,8 @@ def test_add_classical_value_on_basis_state(
     circuit.append(cirq.I.on_each(*ctrls[0]))
     circuit.append(cirq.I.on_each(*qubits))
     # circuit.append(cirq.I.on_each(*ancilla))
-    circuit += add_classical_value(qubits, classical_value, ancilla, ctrls=ctrls)
+    gates, _ = add_classical_value(qubits, classical_value, ancilla, ctrls=ctrls)
+    circuit += gates
 
     initial_state = np.zeros(1 << number_of_qubits)
     initial_state[integer] = 1

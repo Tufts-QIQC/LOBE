@@ -1,5 +1,6 @@
 import cirq
 import numpy as np
+from .metrics import CircuitMetrics
 
 
 def add_classical_value_incrementers(
@@ -8,7 +9,7 @@ def add_classical_value_incrementers(
     classical_value = classical_value % (1 << len(register))
 
     if classical_value == 0:
-        return []
+        return [], CircuitMetrics()
 
     options = [(classical_value, False), ((1 << len(register)) - classical_value, True)]
 
@@ -46,8 +47,8 @@ def add_classical_value_incrementers(
         costs.append(num_toffs)
 
     if len(outcomes[1]) < len(outcomes[0]):
-        return outcomes[1]
-    return outcomes[0]
+        return outcomes[1], CircuitMetrics()
+    return outcomes[0], CircuitMetrics()
 
 
 def add_incrementer(
@@ -283,16 +284,17 @@ def add_classical_value_gate_efficient(
     register, classical_value, clean_ancillae, ctrls=([], [])
 ):
     gates = []
+    adder_metrics = CircuitMetrics()
 
     modded_value = classical_value % (1 << len(register))
     if modded_value == 0:
-        return gates
+        return gates, adder_metrics
 
     bitstring = format(modded_value, f"0{2+len(register)}b")[2:][::-1]
     p_val = _get_p_val(modded_value, len(register))
 
     if p_val == len(register):
-        return gates
+        return gates, adder_metrics
 
     p_val = min(p_val, len(register) - 1)
 
@@ -301,13 +303,19 @@ def add_classical_value_gate_efficient(
 
     classical_value_register = clean_ancillae[: len(reduced_register)]
 
+    adder_metrics.add_to_clean_ancillae_usage(len(classical_value_register))
     gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
+
+    adder_metrics.add_to_clean_ancillae_usage(len(classical_value_register) - 1)
+    adder_metrics.number_of_elbows += len(classical_value_register) - 1
     gates += _quantum_addtion(
         reduced_register[::-1],
         classical_value_register[::-1],
         clean_ancillae[len(classical_value_register) :],
         recursion_level=0,
     )
+    adder_metrics.add_to_clean_ancillae_usage(-(len(classical_value_register) - 1))
     gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
+    adder_metrics.add_to_clean_ancillae_usage(-len(classical_value_register))
 
-    return gates
+    return gates, adder_metrics
