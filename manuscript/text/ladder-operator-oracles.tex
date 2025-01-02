@@ -390,7 +390,7 @@ The function to determine the rotation angles is given by:
 Incrementing a quantum register by a classical value can be implemented in multiple ways with different compilations having different space-time tradeoffs.
 In this work, we often choose decompositions that reduce the number of non-Clifford operations at the expense or requiring more temporary ancillae, therefore we opt for the compilation given in Figure \ref{fig:addition-gate-efficient}.
 This circuit requires, at most, $\lceil \log_2 \Omega \rceil - 1$ pairs of left and right elbows.
-These block-encoding circuits have a rescaling factor of $\lambda = \Omega^{R+S/2}$, require one block-encoding ancilla, and use \textit{at most} $\lceil \log_2 \Omega \rceil - 1$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
+These block-encoding circuits have a rescaling factor of $\lambda = \Omega^{R+S/2}$, require one block-encoding ancilla, and use \textit{at most} $\Omega + \lceil \log_2 \Omega \rceil$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
 
 
 \subsection{Linear Combinations of Bosonic Ladder Operators}
@@ -425,7 +425,7 @@ This compilation strategy is chosen under the assumption that the cost of implem
 If the inverse were true, a compilation could be constructed where the incrementer circuit is reused for both terms and the multiplexed rotations would be applied twice.  
 
 For these block-encoding circuits, one additional pair of elbows is required to index between the two controlled incrementer circuits in Figure \ref{fig:lc-bosonic}.
-Therefore, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{R+S/2}$, use two block-encoding ancilla, and require $2\big(\lceil \log_2 \Omega \rceil\big) - 1$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
+Therefore, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{R+S/2}$, use two block-encoding ancilla, and require $\Omega + 2\big(\lceil \log_2 \Omega \rceil\big)$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
 
 \subsection{Terms with Fermionic and Bosonic Ladder Operators}
 
