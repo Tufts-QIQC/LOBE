@@ -206,68 +206,87 @@ def _load_m(m_val, m_reg, ctrls=([], [])):
 
 def _qadd_helper_left(n_bit, m_bit, carry_in, carry_out):
     gates = []
+    _metrics = CircuitMetrics()
     gates.append(cirq.Moment(cirq.X.on(m_bit).controlled_by(carry_in)))
     gates.append(cirq.Moment(cirq.X.on(n_bit).controlled_by(carry_in)))
     gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(n_bit, m_bit)))
     gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(carry_in)))
-    return gates
+    _metrics.add_to_clean_ancillae_usage(1)
+    _metrics.number_of_elbows += 1
+    return gates, _metrics
 
 
 def _qadd_helper_right(n_bit, m_bit, carry_in, carry_out):
     gates = []
+    _metrics = CircuitMetrics()
     gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(carry_in)))
     gates.append(cirq.Moment(cirq.X.on(carry_out).controlled_by(n_bit, m_bit)))
     gates.append(cirq.Moment(cirq.X.on(m_bit).controlled_by(carry_in)))
     gates.append(cirq.Moment(cirq.X.on(n_bit).controlled_by(m_bit)))
-    return gates
+    _metrics.add_to_clean_ancillae_usage(-1)
+    return gates, _metrics
 
 
 def _quantum_addtion(n_register, m_register, clean_ancillae, recursion_level=0):
     gates = []
+    addition_metrics = CircuitMetrics()
+
     if len(n_register) == 0:
-        return gates
+        return gates, addition_metrics
     elif len(n_register) == 1:
         return [
             cirq.Moment(cirq.X.on(n_register[0]).controlled_by(clean_ancillae[0])),
             cirq.Moment(cirq.X.on(n_register[0]).controlled_by(m_register[0])),
-        ]
+        ], addition_metrics
 
     if recursion_level == 0:
+        addition_metrics.add_to_clean_ancillae_usage(1)
+        addition_metrics.number_of_elbows += 1
+
         gates.append(
             cirq.Moment(
                 cirq.X.on(clean_ancillae[0]).controlled_by(n_register[0], m_register[0])
             )
         )
-        gates += _quantum_addtion(
+        _gates, _metrics = _quantum_addtion(
             n_register[1:],
             m_register[1:],
             clean_ancillae,
             recursion_level=recursion_level + 1,
         )
-    else:
-        gates += _qadd_helper_left(
-            n_register[0], m_register[0], clean_ancillae[0], clean_ancillae[1]
-        )
-        gates += _quantum_addtion(
-            n_register[1:],
-            m_register[1:],
-            clean_ancillae[1:],
-            recursion_level=recursion_level + 1,
-        )
+        gates += _gates
+        addition_metrics += _metrics
 
-    if recursion_level == 0:
         gates.append(
             cirq.Moment(
                 cirq.X.on(clean_ancillae[0]).controlled_by(n_register[0], m_register[0])
             )
         )
+        addition_metrics.add_to_clean_ancillae_usage(-1)
         gates.append(cirq.Moment(cirq.X.on(n_register[0]).controlled_by(m_register[0])))
     else:
-        gates += _qadd_helper_right(
+        _gates, _metrics = _qadd_helper_left(
             n_register[0], m_register[0], clean_ancillae[0], clean_ancillae[1]
         )
+        gates += _gates
+        addition_metrics += _metrics
 
-    return gates
+        _gates, _metrics = _quantum_addtion(
+            n_register[1:],
+            m_register[1:],
+            clean_ancillae[1:],
+            recursion_level=recursion_level + 1,
+        )
+        gates += _gates
+        addition_metrics += _metrics
+
+        _gates, _metrics = _qadd_helper_right(
+            n_register[0], m_register[0], clean_ancillae[0], clean_ancillae[1]
+        )
+        gates += _gates
+        addition_metrics += _metrics
+
+    return gates, addition_metrics
 
 
 def _get_p_val(classical_value, number_of_bits):
@@ -306,15 +325,15 @@ def add_classical_value_gate_efficient(
     adder_metrics.add_to_clean_ancillae_usage(len(classical_value_register))
     gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
 
-    adder_metrics.add_to_clean_ancillae_usage(len(classical_value_register) - 1)
-    adder_metrics.number_of_elbows += len(classical_value_register) - 1
-    gates += _quantum_addtion(
+    _gates, _metrics = _quantum_addtion(
         reduced_register[::-1],
         classical_value_register[::-1],
         clean_ancillae[len(classical_value_register) :],
         recursion_level=0,
     )
-    adder_metrics.add_to_clean_ancillae_usage(-(len(classical_value_register) - 1))
+    gates += _gates
+    adder_metrics += _metrics
+
     gates += _load_m(reduced_classical_value, classical_value_register, ctrls=ctrls)
     adder_metrics.add_to_clean_ancillae_usage(-len(classical_value_register))
 

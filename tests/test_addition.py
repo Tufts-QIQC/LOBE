@@ -223,3 +223,31 @@ def test_add_classical_value_on_basis_state(
     ).final_state_vector
 
     assert final_state[expected_integer] == 1
+
+
+@pytest.mark.parametrize("number_of_qubits", range(1, 20))
+@pytest.mark.parametrize("number_of_zero_bits", range(1, 20))
+def test_gate_efficient_adder_numerics(number_of_qubits, number_of_zero_bits):
+    number_of_zero_bits = number_of_zero_bits % (number_of_qubits)
+    number_to_add = 0
+    for i in range(number_of_qubits):
+        if i == number_of_zero_bits:
+            number_to_add += 1 << i
+        elif i >= number_of_zero_bits:
+            if np.random.choice([True, False], 1):
+                number_to_add += 1 << i
+
+    qubits = [cirq.LineQubit(i) for i in range(number_of_qubits)]
+    clean_ancillae = [cirq.LineQubit(i + 100 + number_of_qubits) for i in range(100)]
+    ctrls = ([cirq.LineQubit(200 + number_of_qubits)], [1])
+
+    _, metrics = add_classical_value_gate_efficient(
+        qubits, number_to_add, clean_ancillae, ctrls=ctrls
+    )
+
+    assert metrics.number_of_elbows == number_of_qubits - number_of_zero_bits - 1
+    assert metrics.clean_ancillae_usage[-1] == 0
+    assert (
+        max(metrics.clean_ancillae_usage)
+        == (2 * (number_of_qubits - number_of_zero_bits)) - 1
+    )
