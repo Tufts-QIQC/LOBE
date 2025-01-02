@@ -18,9 +18,10 @@ class CircuitMetrics:
         joined_metrics.number_of_t_gates += (
             self.number_of_t_gates + other.number_of_t_gates
         )
-        joined_metrics.clean_ancillae_usage += (
-            self.clean_ancillae_usage + other.clean_ancillae_usage
-        )
+        for number_of_used_ancillae in other.clean_ancillae_usage:
+            joined_metrics.clean_ancillae_usage.append(
+                self.clean_ancillae_usage[-1] + number_of_used_ancillae
+            )
 
         return joined_metrics
 

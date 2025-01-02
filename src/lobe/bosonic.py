@@ -37,12 +37,11 @@ def bosonic_mode_block_encoding(
 
     R, S = exponents[0], exponents[1]
 
-    adder_controls = (ctrls[0] + [block_encoding_ancilla], ctrls[1] + [0])
     adder_gates, adder_metrics = add_classical_value_gate_efficient(
         system.bosonic_system[active_index],
         R - S,
         clean_ancillae=clean_ancillae,
-        ctrls=adder_controls,
+        ctrls=ctrls,
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
@@ -63,7 +62,7 @@ def bosonic_mode_block_encoding(
 
 def bosonic_mode_plus_hc_block_encoding(
     system,
-    block_encoding_ancilla,
+    block_encoding_ancillae,
     active_index,
     exponents,
     clean_ancillae=[],
@@ -87,7 +86,50 @@ def bosonic_mode_plus_hc_block_encoding(
         - List of cirq operations representing the gates to be applied in the circuit
         - CircuitMetrics object representing cost of block-encoding circuit
     """
-    pass
+    gates = []
+    block_encoding_metrics = CircuitMetrics()
+    index = block_encoding_ancillae[0]
+
+    gates.append(cirq.H.on(index))
+
+    adder_controls = (ctrls[0] + [index], ctrls[1] + [0])
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+    block_encoding_metrics.number_of_elbows += 1
+    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+        system.bosonic_system[active_index],
+        exponents[0] - exponents[1],
+        clean_ancillae=clean_ancillae,
+        ctrls=adder_controls,
+    )
+    gates += adder_gates
+    block_encoding_metrics += adder_metrics
+
+    rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
+        block_encoding_ancillae[1],
+        system.bosonic_system[active_index],
+        exponents[0],
+        exponents[1],
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    gates += rotation_gates
+    block_encoding_metrics += rotation_metrics
+
+    adder_controls = (ctrls[0] + [index], ctrls[1] + [1])
+    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+        system.bosonic_system[active_index],
+        -exponents[0] + exponents[1],
+        clean_ancillae=clean_ancillae,
+        ctrls=adder_controls,
+    )
+    gates += adder_gates
+    block_encoding_metrics += adder_metrics
+
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
+    gates.append(cirq.H.on(index))
+
+    return gates, block_encoding_metrics
 
 
 def _add_multi_bosonic_rotations(
