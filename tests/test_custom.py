@@ -4,6 +4,7 @@ from src.lobe.custom import (
     yukawa_3point_pair_term_block_encoding,
     yukawa_4point_pair_term_block_encoding,
     _custom_fermionic_plus_nonhc_block_encoding,
+    _custom_term_block_encoding,
 )
 import pytest
 from functools import partial
@@ -125,7 +126,6 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
     number_of_fermionic_modes = np.random.random_integers(
         3, MAX_NUMBER_OF_FERMIONIC_MODES
     )
-    number_of_fermionic_modes = 3
     fermionic_indices = list(
         np.random.choice(range(number_of_fermionic_modes), size=3, replace=False)
     )
@@ -163,4 +163,61 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
         operator,
         number_of_block_encoding_ancillae,
         maximum_occupation_number,
+    )
+
+
+@pytest.mark.parametrize("trial", range(100))
+def test_custom_term_block_encoding(trial):
+    maximum_occupation_number = np.random.choice([1, 3, 7], size=1)[0]
+    expected_rescaling_factor = np.sqrt(maximum_occupation_number)
+    number_of_fermionic_modes = np.random.random_integers(1, 1)
+    active_fermionic_index = np.random.choice(range(number_of_fermionic_modes), size=1)[
+        0
+    ]
+    number_of_bosonic_modes = np.random.random_integers(1, 1)
+    active_bosonic_index = np.random.choice(range(number_of_bosonic_modes), size=1)[0]
+
+    operator_string = f"b{active_fermionic_index} a{active_bosonic_index}"
+    operator = ParticleOperator(operator_string)
+    conjugate_string = f"b{active_fermionic_index}^ a{active_bosonic_index}^"
+    operator += ParticleOperator(conjugate_string)
+
+    number_of_block_encoding_ancillae = 1
+    circuit, metrics, system = _setup(
+        number_of_block_encoding_ancillae,
+        operator,
+        maximum_occupation_number,
+        partial(
+            _custom_term_block_encoding,
+            active_indices=[active_bosonic_index, active_fermionic_index],
+        ),
+    )
+
+    _validate_clean_ancillae_are_cleaned(
+        circuit, system, number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        circuit, system, number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding(
+        circuit,
+        system,
+        expected_rescaling_factor,
+        operator,
+        number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )
+
+    assert (
+        metrics.number_of_elbows
+        == 1  # elbow for controls of adders
+        + (
+            2 * (len(system.bosonic_system[active_bosonic_index]) - 1)
+        )  # elbows for adders
+        + maximum_occupation_number
+        + 1  # elbows for rotation gadget
+    )
+    assert metrics.number_of_rotations <= (maximum_occupation_number + 3)
+    assert max(metrics.clean_ancillae_usage) == 2 + (
+        len(system.bosonic_system[active_bosonic_index]) - 1
     )

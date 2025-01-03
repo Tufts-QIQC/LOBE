@@ -425,4 +425,58 @@ def _custom_term_block_encoding(
         - List of cirq operations representing the gates to be applied in the circuit
         - CircuitMetrics object representing cost of block-encoding circuit
     """
-    pass
+    assert len(ctrls[0]) == 1
+    assert ctrls[1] == [1]
+    gates = []
+    block_encoding_metrics = CircuitMetrics()
+
+    block_encoding_metrics.number_of_elbows += 1
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+
+    _gates, _metrics = add_classical_value_gate_efficient(
+        system.bosonic_system[active_indices[0]],
+        1,
+        clean_ancillae=clean_ancillae,
+        ctrls=(
+            ctrls[0] + [system.fermionic_register[active_indices[1]]],
+            ctrls[1] + [0],
+        ),
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+    import pdb
+
+    pdb.set_trace()
+
+    rotation_angles = _get_bosonic_rotation_angles(
+        system.maximum_occupation_number, 1, 0
+    )
+    _gates, _metrics = get_decomposed_multiplexed_rotation_circuit(
+        system.bosonic_system[active_indices[0]],
+        block_encoding_ancilla,
+        rotation_angles,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+
+    _gates, _metrics = add_classical_value_gate_efficient(
+        system.bosonic_system[active_indices[0]],
+        -1,
+        clean_ancillae=clean_ancillae,
+        ctrls=(
+            ctrls[0] + [system.fermionic_register[active_indices[1]]],
+            ctrls[1] + [1],
+        ),
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
+    _gates, _metrics = _apply_fermionic_ladder_op(
+        system, active_indices[1], ctrls=ctrls
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+    return gates, block_encoding_metrics

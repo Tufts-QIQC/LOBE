@@ -14,7 +14,7 @@ ctrl -c1 +anc
 j +c0
 i +c0
 
-ctrl -i
+ctrl i
 
 i j G $\vec{Z}$ ctrl +k
 i G $\vec{Z}$ ctrl +j
