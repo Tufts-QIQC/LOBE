@@ -321,7 +321,84 @@ def _custom_fermionic_plus_nonhc_block_encoding(
         - List of cirq operations representing the gates to be applied in the circuit
         - CircuitMetrics object representing cost of block-encoding circuit
     """
-    pass
+    assert len(ctrls[0]) == 1
+    assert ctrls[1] == [1]
+    gates = []
+    block_encoding_metrics = CircuitMetrics()
+
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(
+            system.fermionic_register[active_indices[2]]
+        )
+    )
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(
+            system.fermionic_register[active_indices[1]]
+        )
+    )
+
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+    block_encoding_metrics.number_of_elbows += 1
+    gates.append(
+        cirq.X.on(clean_ancillae[1]).controlled_by(
+            system.fermionic_register[active_indices[0]],
+            clean_ancillae[0],
+            control_values=[0, 0],
+        )
+    )
+
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+    block_encoding_metrics.number_of_elbows += 1
+    gates.append(
+        cirq.X.on(block_encoding_ancilla).controlled_by(
+            clean_ancillae[1], *ctrls[0], control_values=[0] + ctrls[1]
+        )
+    )
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
+    gates.append(
+        cirq.X.on(clean_ancillae[1]).controlled_by(
+            system.fermionic_register[active_indices[0]],
+            clean_ancillae[0],
+            control_values=[0, 0],
+        )
+    )
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(
+            system.fermionic_register[active_indices[1]]
+        )
+    )
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(
+            system.fermionic_register[active_indices[2]]
+        )
+    )
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
+    gates.append(
+        cirq.Z.on(ctrls[0][0]).controlled_by(
+            system.fermionic_register[active_indices[2]], control_values=[1]
+        )
+    )
+    op_gates, op_metrics = _apply_fermionic_ladder_op(
+        system, active_indices[2], ctrls=ctrls
+    )
+    gates += op_gates
+    block_encoding_metrics += op_metrics
+    op_gates, op_metrics = _apply_fermionic_ladder_op(
+        system, active_indices[1], ctrls=ctrls
+    )
+    gates += op_gates
+    block_encoding_metrics += op_metrics
+    op_gates, op_metrics = _apply_fermionic_ladder_op(
+        system, active_indices[0], ctrls=ctrls
+    )
+    gates += op_gates
+    block_encoding_metrics += op_metrics
+    return gates, block_encoding_metrics
 
 
 def _custom_term_block_encoding(

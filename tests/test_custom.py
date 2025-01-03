@@ -3,6 +3,7 @@ import numpy as np
 from src.lobe.custom import (
     yukawa_3point_pair_term_block_encoding,
     yukawa_4point_pair_term_block_encoding,
+    _custom_fermionic_plus_nonhc_block_encoding,
 )
 import pytest
 from functools import partial
@@ -111,6 +112,54 @@ def test_yukawa_4point(trial):
         circuit,
         system,
         maximum_occupation_number,
+        operator,
+        number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )
+
+
+@pytest.mark.parametrize("trial", range(100))
+def test_custom_fermionic_plus_nonhc_block_encoding(trial):
+    maximum_occupation_number = 1
+    expected_rescaling_factor = 1
+    number_of_fermionic_modes = np.random.random_integers(
+        3, MAX_NUMBER_OF_FERMIONIC_MODES
+    )
+    number_of_fermionic_modes = 3
+    fermionic_indices = list(
+        np.random.choice(range(number_of_fermionic_modes), size=3, replace=False)
+    )
+
+    operator_string = (
+        f"b{fermionic_indices[2]} b{fermionic_indices[1]} b{fermionic_indices[0]}^"
+    )
+    operator = ParticleOperator(operator_string)
+    conjugate_string = (
+        f"b{fermionic_indices[1]}^ b{fermionic_indices[2]}^ b{fermionic_indices[0]}^"
+    )
+    operator += ParticleOperator(conjugate_string)
+
+    number_of_block_encoding_ancillae = 1
+    circuit, metrics, system = _setup(
+        number_of_block_encoding_ancillae,
+        operator,
+        maximum_occupation_number,
+        partial(
+            _custom_fermionic_plus_nonhc_block_encoding,
+            active_indices=fermionic_indices,
+        ),
+    )
+
+    _validate_clean_ancillae_are_cleaned(
+        circuit, system, number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        circuit, system, number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding(
+        circuit,
+        system,
+        expected_rescaling_factor,
         operator,
         number_of_block_encoding_ancillae,
         maximum_occupation_number,
