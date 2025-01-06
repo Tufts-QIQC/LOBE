@@ -1,0 +1,50 @@
+\subsubsection{$\mathcal{O}(g^2)$ Solution}
+\label{sec:second-order}
+
+At second order in $g$, the RGPEP equation is
+
+\begin{equation}
+    \label{eq:second-order}
+    \frac{dH^{(2)}(t)}{dt} = \left[\left[H_0, H^{(2)}(t)\right], H_0\right] + \left[\left[H_0, H^{(1)}(t)\right],H^{(1)}(t)\right].
+\end{equation}
+This equation is more involved than the first order equation; however, looking at the parts of the sum on the right-hand side individually is insightful.
+
+First, look at $\left[\mathcal{G}^{(1)}(t),H^{(1)}(t)\right],$ where the substitution $\mathcal{G}^{(1)}(t) = \left[H_0, H^{(1)}(t)\right]$ was made.
+
+\begin{align*}
+    \left[\mathcal{G}^{(1)}(t),H^{(1)}(t)\right] &= \left(-\mathcal{Q}^- H^{(1)}(t)\right)H^{(1)}(t) - H^{(1)}(t)\left(-\mathcal{Q}^- H^{(1)}(t)\right)\\
+    &= :\left(-\mathcal{Q}^- H^{(1)}(t)\right)H^{(1)}(t): + :C\left[\left(-\mathcal{Q}^- H^{(1)}(t)\right)H^{(1)}(t)\right]:\\
+    & - :H^{(1)}(t)\left(-\mathcal{Q}^- H^{(1)}(t)\right): - :C\left[H^{(1)}(t)\left(-\mathcal{Q}^- H^{(1)}(t)\right)\right]:\\
+    &= :C\left[\left(-\mathcal{Q}^- H^{(1)}(t)\right)H^{(1)}(t)\right]: - :C\left[H^{(1)}(t)\left(-\mathcal{Q}^- H^{(1)}(t)\right)\right]:.
+\end{align*}
+
+The last line of this equality is true because there are an equal number of fermions and antifermions, thus their normal orderings cancel.
+This difference in contractions can be simplified to the following expression:
+
+\begin{equation}
+    \label{eq:GH-comm}
+    \left[\mathcal{G}^{(1)}(t),H^{(1)}(t)\right] = \int\limits_{\substack{q_1, q_2, q_3 \\ q_1', q_2', q_3'}} \delta \left(q_1^+ + q_2^+ + q_3^+ \right)\delta \left(q_1'^+ + q_2'^+ + q_3'^+ \right)A(t):C\left[H^{(1)}(t)H^{'(1)}(t) \right]:
+\end{equation}
+where $$A(t) = \left[-\left(q_1^+ + q_2^+ + q_3^+ \right) + \left(q_1'^+ + q_2'^+ + q_3'^+ \right)\right]f(t) f'(t).$$
+A pictorial proof of equation \ref{eq:GH-comm} will be given in the appendix.
+
+To determine the first commutator in equation \ref{eq:second-order}, $H^{(2)}(t)$ must be parameterized similar to the $\mathcal{O}(g)$ solution. 
+$H^{(2)}(t)$ will not only contain the $\mathcal{O}(g^2)$ instantaneous terms that exist in the canonical Hamiltonian even when $t = 0$, but will also include second order terms that arise from the contraction of two first order interaction vertices. 
+Thus, the parameterization is
+
+\begin{align}
+    H^{(2)}(t) &= 2\pi g^2 \int\limits_{\substack{q_1, q_2\\ q_3, q_4}} \delta \left(q_1^+ + q_2^+ + q_3^+ + q_4^+ \right) B(t):\bar \psi(-q_1) \phi(q_2)\frac{\gamma^+}{q_3^+ + q_4^+} \phi(q_3) \psi(q_4): \\ \nonumber
+    &+ g^2 \int\limits_{\substack{q_1, q_2, q_3\\ q_1', q_2', q_3'}} \delta \left(q_1^+ + q_2^+ + q_3^+ \right) \delta \left(q_1'^+ + q_2'^+ + q_3'^+ \right)B(t):C\left[\bar \psi(-q_1)\psi(q_2)\phi(q_3)\bar \psi(-q_1')\psi(q_2')\phi(q_3') \right]:.
+\end{align}
+
+Each second order interaction term has its own solution to equation \ref{eq:second-order}. 
+The easiest interaction terms to solve are the instantaneous interaction terms. 
+These can be solved in the same way the first order terms are solved, that is they pick up a form factor:
+
+$$
+H^{(2)}_{\text{inst.}}(t) = 2\pi g^2 \int\limits_{\substack{q_1, q_2\\ q_3, q_4}} \delta \left(q_1^+ + q_2^+ + q_3^+ + q_4^+ \right) e^{-t \left(q_1^+ + q_2^+ + q_3^+ + q_4^+ \right)^2}:\bar \psi(-q_1) \phi(q_2)\frac{\gamma^+}{q_3^+ + q_4^+} \phi(q_3) \psi(q_4):.
+$$
+
+The commutator between contracted $\mathcal{O}(g^2)$ terms in $H^{(2)}(t)$ and $H_0$ in equation \ref{eq:second-order} isn't as simple as the instantaneous terms, which follow the same procedure as section \ref{sec:first-order} (i.e. picking up a factor of $-\mathcal{Q}$, the sum of $q_i$'s into the vertices).
+
+$\frac{dy}{dt} = -p(t)y(t) + q(t)$ has the general solution $y(t) = e^{-h(t)}\int e^{h(t)}q(t) + Ce^{-h(t)}$, where $h(t) = \int dt p(t)$

@@ -3,19 +3,52 @@
 We start with the Lagrangian of the Yukawa model:
 \begin{equation}
     \label{eq:yukawa-lagrangian}
-    \mathcal{L}_{Yukawa} = \bar \psi \left(i\gamma^\mu \partial_\mu - m_F \right)\psi + \frac{1}{2}\partial_\mu \phi \partial^\mu \phi - \frac{1}{2}m_B^2\phi^2 - g\bar \psi \psi \phi
+    \mathcal{L}_{Yukawa} = \bar \psi \left(i\gamma^\mu \partial_\mu - m \right)\psi + \frac{1}{2}\partial_\mu \phi \partial^\mu \phi - \frac{1}{2}\mu^2\phi^2 - g\bar \psi \psi \phi
 \end{equation}
 
-\begin{align}
-    \label{eq:yukawa-hamiltonian}
-    H = & \int_0^\infty \frac{dp_n^+}{4\pi p_n^+}\left(\frac{m_F^2}{p_n^+}\right)b_n^\dagger b_n + \int_0^\infty \frac{dp_n^+}{4\pi p_n^+}\left(\frac{m_{\bar{F}}^2}{p_n^+}\right)d_n^\dagger d_n + \int_0^\infty \frac{dp_n^+}{4\pi p_n^+}\left(\frac{m_B^2}{p_n^+} \right)a_n^\dagger a_n\\ \nonumber
-    & +g \int_0^\infty\int_0^\infty\int_0^\infty \frac{dp_i^+dp_j^+dp_k^+}{\left(4\pi \right)^3 p_i^+ p_j^+ p_k^+}\left(4\pi \delta\left(p_i^+ - p_j^+ - p_k^+ \right) \bar u(p_i) u(p_j)b_i^\dagger b_j a_k \right.\\ \nonumber
-    &\left. 4\pi \delta\left(p_i^+ + p_k^+- p_j^+  \right) \bar u(p_i) u(p_j)b_i^\dagger b_j a_k^\dagger + 4\pi \delta\left(p_i^+ - p_j^+ - p_k^+ \right) \bar v(p_j) v(p_i)d_i^\dagger d_j a_k \right. \\ \nonumber
-    &\left.  4\pi \delta\left(p_i^+ + p_k^+ - p_j^+ \right) \bar v(p_j) v(p_i)d_i^\dagger d_j a_k^\dagger + 4\pi \delta\left(p_i^+ + p_j^+ - p_k^+ \right) \bar u(p_i) v(p_j)b_i^\dagger d_j^\dagger a_k \right. \\ \nonumber
-    & \left.  4\pi \delta\left(p_i^+ + p_j^+ - p_k^+ \right) \bar v(p_j) u(p_i)b_i d_j a_k^\dagger\right)\\ \nonumber
-    & +g^2 \int_0^\infty\int_0^\infty\int_0^\infty \int_0^\infty\frac{dp_i^+dp_j^+dp_k^+ dp_l^+}{\left(4\pi \right)^4 p_i^+ p_j^+ p_k^+p_l^+} \left(\frac{\bar u(p_i) \gamma^+ u(p_j)}{p_l^+ - p_j^+}b_i^\dagger b_j a_k^\dagger a_l + \frac{\bar v(p_j) \gamma^+ v(p_i)}{p_l^+ - p_j^+}d_i^\dagger d_j a_k^\dagger a_l \right)\\ \nonumber
-    & + \text{\gus{2 more inst. diagrams}}
-\end{align}
+where $m$ is the fermion mass, and $\mu$ is the boson mass.
+The Hamiltonian density can be obtained from the Lagrangian by the $+-$ component of $T^{\mu \nu}$, the energy-momentum tensor.
+The Hamiltonian is the integral of the corresponding density, integrated over a volume, which in 1 + 1D lightfront coordinates is:
+
+\begin{equation}
+    H = \int dx^- \mathcal{H}.
+\end{equation}
+
+This leads to a Hamiltonian written as a sum of three terms: 
+
+\begin{equation}
+    \label{eq:Ham-terms}
+    H = H_0 + H_Y + H_I,
+\end{equation}
+where $H_0$ is the free kinetic energy of the particles, $H_Y$ represents the standard Yukawa 3-point interaction vertices, and $H_I$ is the \textit{instantaneous} interaction term, existent in lightfront coordinates, but not instant-time.
+
+Equation \ref{eq:Ham-terms} can be written in a momentum space representation, which leads to easier calculations.
+Explicitly, these Hamiltonian are given below:
+
+
+\begin{equation}
+    \label{eq:H-free}
+    H_0 = \frac{m^2}{2}\int \frac{dq^+}{4\pi} :\bar \psi(q) \frac{\gamma^+}{q^+}\psi(q): + \frac{\mu^2}{2}\int \frac{dq^+}{4\pi} :\phi(-q)\phi(q): 
+\end{equation}
+\begin{equation}
+    \label{eq:H-3}
+    H_Y = 4\pi g\int \frac{dq_1^+ dq_2^+ dq_3^+}{(4\pi)^3}\delta(q_1^+ + q_2^+ +q_3^+):\bar \psi(-q_1) \psi(q_2) \phi(q_3):
+\end{equation}
+\begin{equation}
+    \label{eq:H-4}
+    H_I = 2\pi g^2\int \frac{dq_1^+ dq_2^+ dq_3^+ dq_4^+}{(4\pi)^4}\delta(q_1^+ + q_2^+ +q_3^+ + q_4^+):\bar \psi(-q_1) \phi(q_2)\frac{\gamma^+}{q_3^+ + q_4^+} \phi(q_3) \psi(q_4):
+\end{equation}
+The continuous momentum space fields are:
+
+\begin{equation}
+    \label{eq:phi}
+    \phi(q) = \frac{\theta(q^+)a_q + \theta(-q^+)a_{-q}^\dagger}{|q^+|}
+\end{equation}
+\begin{equation}
+    \label{eq:psi}
+    \psi(q) = \frac{\theta(q^+)u(q)b_q + \theta(-q^+)v(-q)d_{-q}^\dagger}{|q^+|}\\
+\end{equation}
+
 
 The discretization procedure used for this Hamiltonian is Discretized Lightcone Quantization (DLCQ) \cite{}. 
 The procedure is explained in detail in appendex \ref{sec:dlcq}.

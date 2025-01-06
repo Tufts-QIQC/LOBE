@@ -1,6 +1,7 @@
 \section{Renormalization Group Procedure for Effective Particles (RGPEP)}
 \label{sec:rgpep}
 
+\subsection{Overview}
 Divergences appering in Hamiltonian quantum field theories come from far off-diagonal matrix elements. 
 These matrix elements arise from interactions between particles of vastly different energy scales. \cite{}
 The similarity renormalization group \cite{} applies a unitary transformation $U(\lambda)$ to a matrix $H$, where $\lambda$ is interpretted as an energy scale. 
@@ -26,7 +27,7 @@ Thus, the RGPEP equation is given as
     \frac{dH(t)}{dt} = \left[\mathcal{G}(t), H(t) \right]
 \end{equation}
 
-This equation holds true for any matrix; however, in quantum field theories, the Hamiltonians are written as integrals of creation and annihilation operators. 
+This equation holds true for any matrix; however, in quantum field theories, the Hamiltonians are written as integrals of fields, built out of ladder operators. 
 Given a set of Fock states, one could construct a matrix, and solve equation \ref{eq:rgpep}; however, the renormalization group procedure for effective particles (RGPEP) \cite{} offers an alternative approach.
 
 RGPEP is based on the similarity renormalization group, but rather than calculating commutators of matrices, it is done by commutators of creation and annihilation operators. 
@@ -48,13 +49,20 @@ Thus,
 
 \begin{align}
     \label{eq:rgpep-order-by-order}
-    &\mathcal{O}(g^0): \dot{H}_0 = 0\\ \nonumber
-    &\mathcal{O}(g^1): g\dot{H}^{(1)}(t) = \left[\left[H_0, gH^{(1)}(t)\right], H_0\right] \\\nonumber
-    &\mathcal{O}(g^2): g^2\dot{H}^{(2)}(t) = \left[\left[H_0, g^2H^{(2)}(t)\right], H_0\right] + \left[\left[H_0, gH^{(1)}(t)\right],gH^{(1)}(t)\right] \\ \nonumber
+    &\mathcal{O}(g^0): \frac{H_0}{dt} = 0\\ \nonumber
+    &\mathcal{O}(g^1): g\frac{H^{(1)}(t)}{dt} = \left[\left[H_0, gH^{(1)}(t)\right], H_0\right] \\\nonumber
+    &\mathcal{O}(g^2): g^2\frac{H^{(2)}(t)}{dt} = \left[\left[H_0, g^2H^{(2)}(t)\right], H_0\right] + \left[\left[H_0, gH^{(1)}(t)\right],gH^{(1)}(t)\right] \\ \nonumber
     &\vdots
 \end{align}
 
 The first equation is trivial, with solution $H_0(t) = H_0$. 
 Higher order solutions, however, are not as simple to solve.
-Appendix \ref{sec:first-order} describes the procedure to solve equations \ref{eq:rgpep-order-by-order} up to $\mathcal{O}(g^2)$, and gives the explicit forms of $H^{(1)}(t)$ and $H^{(2)}(t)$.
+In order to solve these equations, explicit dependence on $t$ must be built in via some parameterized constant.
+For example, $H^{(1)}(t)$ can be written exactly the same as $H_Y$ but with $t-$dependence given by:
+
+\begin{equation}
+    H^{(1)}(t) = 4\pi g\int \frac{dq_1^+ dq_2^+ dq_3^+}{(4\pi)^3}\delta(q_1^+ + q_2^+ +q_3^+)C_{q_1,q_2,q_3}(t):\bar \psi(-q_1) \psi(q_2) \phi(q_3):.
+\end{equation}
+
+This parameterization allows the differential equation \ref{eq:rgpep} to be solved, giving the explicit form of $C_{q_1, q_2, q_3}(t)$ (at first order).
 
