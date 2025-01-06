@@ -46,18 +46,8 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         if operator_type == 2:
             operator_string += f" b{mode}^ b{mode}"
 
-    conjugate_operator_string = ""
-    for mode, operator_type in zip(active_modes[::-1], operator_types_reversed[::-1]):
-        if operator_type == 0:
-            conjugate_operator_string += f" b{mode}^"
-        if operator_type == 1:
-            conjugate_operator_string += f" b{mode}"
-        if operator_type == 2:
-            conjugate_operator_string += f" b{mode}^ b{mode}"
-
-    operator = ParticleOperator(operator_string) + ParticleOperator(
-        conjugate_operator_string
-    )
+    operator = ParticleOperator(operator_string)
+    operator += operator.dagger()
 
     circuit, metrics, system = _setup(
         1,

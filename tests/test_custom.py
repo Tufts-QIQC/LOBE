@@ -134,10 +134,10 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
         f"b{fermionic_indices[2]} b{fermionic_indices[1]} b{fermionic_indices[0]}^"
     )
     operator = ParticleOperator(operator_string)
-    conjugate_string = (
+    nonconjugate_string = (
         f"b{fermionic_indices[1]}^ b{fermionic_indices[2]}^ b{fermionic_indices[0]}^"
     )
-    operator += ParticleOperator(conjugate_string)
+    operator += ParticleOperator(nonconjugate_string)
 
     number_of_block_encoding_ancillae = 1
     circuit, metrics, system = _setup(

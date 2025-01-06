@@ -78,9 +78,7 @@ def test_bosonic_mode_plus_hc_block_encoding(
     active_mode = active_mode % number_of_modes
     operator = ParticleOperator(f"a{active_mode}^") ** R
     operator *= ParticleOperator(f"a{active_mode}") ** S
-    hc_operator = ParticleOperator(f"a{active_mode}^") ** S
-    hc_operator *= ParticleOperator(f"a{active_mode}") ** R
-    operator += hc_operator
+    operator += operator.dagger()
     expected_rescaling_factor = 2 * np.sqrt(maximum_occupation_number) ** (R + S)
 
     number_of_block_encoding_ancillae = 2
