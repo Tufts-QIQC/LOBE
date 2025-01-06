@@ -21,7 +21,7 @@ def index_over_terms(
         - CircuitMetrics object representing cost of block-encoding circuit
     """
     assert len(ctrls[0]) <= 1
-    if len(ctrls) > 0:
+    if len(ctrls[0]) > 0:
         assert ctrls[1] == [1]
     gates = []
     block_encoding_metrics = CircuitMetrics()
@@ -40,19 +40,19 @@ def index_over_terms(
         ]
         # Set index control
         _gates, _ = decompose_controls_left(
-            (index_register + ctrls[0], index_register_control_values + [1]),
+            (index_register + ctrls[0], index_register_control_values + ctrls[1]),
             index_ancilla,
         )
         gates += _gates
 
         # Apply block-encoding function
-        _gates, _metrics = block_encoding_functions[index](([index_ancilla], [1]))
+        _gates, _metrics = block_encoding_functions[index](ctrls=([index_ancilla], [1]))
         gates += _gates
         block_encoding_metrics += _metrics
 
         # Release index control
         _gates, _ = decompose_controls_right(
-            (index_register + ctrls[0], index_register_control_values + [1]),
+            (index_register + ctrls[0], index_register_control_values + ctrls[1]),
             index_ancilla,
         )
         gates += _gates

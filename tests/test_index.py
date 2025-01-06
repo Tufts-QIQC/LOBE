@@ -118,3 +118,63 @@ def test_index_lcu():
     assert np.allclose(upper_left_block, expected_block_encoding)
 
     _validate_clean_ancillae_are_cleaned(circuit, system, 2)
+
+
+def test_index_controlled():
+    ctrls = ([cirq.LineQubit(0)], [1])
+    index_register = [cirq.LineQubit(1)]
+    clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
+    system = System(1, 1, 300, True, False, False)
+
+    def _apply_X(ctrls=([], [])):
+        _gates = [
+            cirq.X.on(system.fermionic_register[0]).controlled_by(
+                *ctrls[0], control_values=ctrls[1]
+            )
+        ]
+        return _gates, CircuitMetrics()
+
+    circuit = cirq.Circuit()
+    circuit.append(cirq.H.on_each(*index_register))
+    gates, _ = index_over_terms(
+        index_register,
+        [_apply_X],
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    circuit += gates
+    circuit.append(cirq.H.on_each(*index_register))
+
+    expected_block_encoding = np.eye(2)
+    upper_left_block = circuit.unitary()[:2, :2]
+
+    assert np.allclose(upper_left_block, expected_block_encoding)
+
+
+def test_index_no_controls():
+    index_register = [cirq.LineQubit(1)]
+    clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
+    system = System(1, 1, 300, True, False, False)
+
+    def _apply_X(ctrls=([], [])):
+        _gates = [
+            cirq.X.on(system.fermionic_register[0]).controlled_by(
+                *ctrls[0], control_values=ctrls[1]
+            )
+        ]
+        return _gates, CircuitMetrics()
+
+    circuit = cirq.Circuit()
+    circuit.append(cirq.H.on_each(*index_register))
+    gates, _ = index_over_terms(
+        index_register,
+        [_apply_X],
+        clean_ancillae=clean_ancillae,
+    )
+    circuit += gates
+    circuit.append(cirq.H.on_each(*index_register))
+
+    expected_block_encoding = (1 / 2) * np.asarray([[1, 1], [1, 1]])
+    upper_left_block = circuit.unitary()[:2, :2]
+
+    assert np.allclose(upper_left_block, expected_block_encoding)
