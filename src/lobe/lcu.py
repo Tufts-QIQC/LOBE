@@ -7,8 +7,7 @@ from symmer.operators.utils import symplectic_to_string
 
 import sys, os
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), ".."))
-from src.lobe.asp import get_target_state, add_prepare_circuit
+from .asp import get_target_state, add_prepare_circuit
 
 
 def seperate_real_imag(Pop: PauliwordOp) -> PauliwordOp:
