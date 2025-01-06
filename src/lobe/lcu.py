@@ -95,20 +95,26 @@ class LCU:
         self.circuit = cirq.Circuit()
         self.circuit_metrics = CircuitMetrics()
 
-        self.circuit += add_prepare_circuit(
+        _gates, _metrics = add_prepare_circuit(
             self.index_register, target_state=self.target_state
         )
+        self.circuit.append(_gates)
+        self.circuit_metrics += _metrics
 
-        self.circuit += self.add_select_oracle(
+        _gates, _metrics = self.add_select_oracle(
             self.index_register,
             self.paulis,
             system_register=self.system_register,
             clean_ancillae=self.clean_ancillae,
         )
+        self.circuit.append(_gates)
+        self.circuit_metrics += _metrics
 
-        self.circuit += add_prepare_circuit(
+        _gates, _metrics = add_prepare_circuit(
             self.index_register, target_state=self.target_state, dagger=True
         )
+        self.circuit.append(_gates)
+        self.circuit_metrics += _metrics
 
         return self.circuit
 
@@ -142,7 +148,7 @@ class LCU:
 
             return gates, CircuitMetrics()
 
-        _gates, _metrics = index_over_terms(
+        _gates, metrics = index_over_terms(
             index_register,
             [
                 partial(_apply_term, term=term, coeff=coeff)
@@ -152,7 +158,7 @@ class LCU:
             ctrls=ctrls,
         )
         gates += _gates
-        return gates
+        return gates, metrics
 
     @property
     def unitary(self):

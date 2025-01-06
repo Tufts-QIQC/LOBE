@@ -10,7 +10,7 @@ from src.lobe._grover_rudolph import _ZERO
 
 @pytest.mark.parametrize("number_of_qubits", range(1, 10))
 @pytest.mark.parametrize(
-    "number_of_terms", np.random.random_integers(2, 1 << 10, size=20)
+    "number_of_terms", np.random.randint(2, (1 << 10) + 1, size=20)
 )
 @pytest.mark.parametrize("asp_func", [add_prepare_circuit])
 def test_asp(number_of_qubits, number_of_terms, asp_func):

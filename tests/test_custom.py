@@ -26,10 +26,8 @@ def test_yukawa_3point(trial):
     maximum_occupation_number = int(
         np.random.choice(POSSIBLE_MAX_OCCUPATION_NUMBERS, size=1)
     )
-    number_of_bosonic_modes = np.random.random_integers(1, MAX_NUMBER_OF_BOSONIC_MODES)
-    number_of_fermionic_modes = np.random.random_integers(
-        2, MAX_NUMBER_OF_FERMIONIC_MODES
-    )
+    number_of_bosonic_modes = np.random.randint(1, MAX_NUMBER_OF_BOSONIC_MODES + 1)
+    number_of_fermionic_modes = np.random.randint(2, MAX_NUMBER_OF_FERMIONIC_MODES + 1)
     bosonic_index = list(np.random.choice(range(number_of_bosonic_modes), size=1))
     fermionic_indices = list(
         np.random.choice(range(number_of_fermionic_modes), size=2, replace=False)
@@ -76,10 +74,8 @@ def test_yukawa_4point(trial):
     maximum_occupation_number = int(
         np.random.choice(POSSIBLE_MAX_OCCUPATION_NUMBERS, size=1)
     )
-    number_of_bosonic_modes = np.random.random_integers(2, MAX_NUMBER_OF_BOSONIC_MODES)
-    number_of_fermionic_modes = np.random.random_integers(
-        2, MAX_NUMBER_OF_FERMIONIC_MODES
-    )
+    number_of_bosonic_modes = np.random.randint(2, MAX_NUMBER_OF_BOSONIC_MODES + 1)
+    number_of_fermionic_modes = np.random.randint(2, MAX_NUMBER_OF_FERMIONIC_MODES + 1)
     bosonic_indices = list(
         np.random.choice(range(number_of_bosonic_modes), size=2, replace=False)
     )
@@ -123,9 +119,7 @@ def test_yukawa_4point(trial):
 def test_custom_fermionic_plus_nonhc_block_encoding(trial):
     maximum_occupation_number = 1
     expected_rescaling_factor = 1
-    number_of_fermionic_modes = np.random.random_integers(
-        3, MAX_NUMBER_OF_FERMIONIC_MODES
-    )
+    number_of_fermionic_modes = np.random.randint(3, MAX_NUMBER_OF_FERMIONIC_MODES + 1)
     fermionic_indices = list(
         np.random.choice(range(number_of_fermionic_modes), size=3, replace=False)
     )
@@ -170,11 +164,11 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
 def test_custom_term_block_encoding(trial):
     maximum_occupation_number = np.random.choice([1, 3, 7], size=1)[0]
     expected_rescaling_factor = np.sqrt(maximum_occupation_number)
-    number_of_fermionic_modes = np.random.random_integers(1, 1)
+    number_of_fermionic_modes = np.random.randint(1, 1 + 1)
     active_fermionic_index = np.random.choice(range(number_of_fermionic_modes), size=1)[
         0
     ]
-    number_of_bosonic_modes = np.random.random_integers(1, 1)
+    number_of_bosonic_modes = np.random.randint(1, 1 + 1)
     active_bosonic_index = np.random.choice(range(number_of_bosonic_modes), size=1)[0]
 
     operator_string = f"b{active_fermionic_index} a{active_bosonic_index}"

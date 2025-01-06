@@ -21,9 +21,7 @@ MIN_ACTIVE_MODES = 2
 
 @pytest.mark.parametrize("trial", range(100))
 def test_arbitrary_fermionic_operator_with_hc(trial):
-    number_of_active_modes = np.random.random_integers(
-        MIN_ACTIVE_MODES, MAX_ACTIVE_MODES
-    )
+    number_of_active_modes = np.random.randint(MIN_ACTIVE_MODES, MAX_ACTIVE_MODES + 1)
     active_modes = np.random.choice(
         range(MAX_MODES + 1), size=number_of_active_modes, replace=False
     )
@@ -92,9 +90,7 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
 
 @pytest.mark.parametrize("trial", range(100))
 def test_arbitrary_fermionic_product(trial):
-    number_of_active_modes = np.random.random_integers(
-        MIN_ACTIVE_MODES, MAX_ACTIVE_MODES
-    )
+    number_of_active_modes = np.random.randint(MIN_ACTIVE_MODES, MAX_ACTIVE_MODES + 1)
     active_modes = np.random.choice(
         range(MAX_MODES + 1), size=number_of_active_modes, replace=False
     )

@@ -7,7 +7,7 @@ from src.lobe.index import index_over_terms
 from _utils import _validate_clean_ancillae_are_cleaned
 
 
-@pytest.mark.parametrize("number_of_terms", np.random.random_integers(1 << 10, size=20))
+@pytest.mark.parametrize("number_of_terms", np.random.randint((1 << 10) + 1, size=20))
 def test_index_over_terms_metrics(number_of_terms):
     def _block_encoding_func(ctrls=([], [])):
         return [], CircuitMetrics()

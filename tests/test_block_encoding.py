@@ -308,7 +308,8 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
 
     # Generate full Block-Encoding circuit
     circuit.append(cirq.X.on(validation))
-    circuit += add_prepare_circuit(index_register, target_state=target_state)
+    gates, _ = add_prepare_circuit(index_register, target_state=target_state)
+    circuit.append(gates)
     circuit += add_lobe_oracle(
         rescaled_terms,
         validation,
@@ -318,9 +319,10 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
         clean_ancillae,
         perform_coefficient_oracle=False,
     )
-    circuit += add_prepare_circuit(
+    gates, _ = add_prepare_circuit(
         index_register, target_state=target_state, dagger=True
     )
+    circuit.append(gates)
 
     upper_left_block = circuit.unitary(dtype=complex)[
         : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
