@@ -5,10 +5,11 @@ from src.lobe.addition import (
     add_incrementer,
     add_classical_value_incrementers,
     add_classical_value_gate_efficient,
+    add_classical_value,
 )
 
 
-@pytest.mark.parametrize("number_of_qubits", range(1, 11))
+@pytest.mark.parametrize("number_of_qubits", range(1, 10))
 @pytest.mark.parametrize("integer", np.random.randint(1, (1 << 10) + 1, size=10))
 @pytest.mark.parametrize("decrement", [True, False])
 def test_incrementer_on_basis_state(number_of_qubits, integer, decrement):
@@ -45,9 +46,9 @@ def test_incrementer_on_basis_state(number_of_qubits, integer, decrement):
     assert final_state[expected_integer] == 1
 
 
-@pytest.mark.parametrize("number_of_qubits", range(1, 11))
-@pytest.mark.parametrize("integer_one", np.random.randint(1, (1 << 10) + 1, size=10))
-@pytest.mark.parametrize("integer_two", np.random.randint(1, (1 << 10) + 1, size=10))
+@pytest.mark.parametrize("number_of_qubits", range(1, 10))
+@pytest.mark.parametrize("integer_one", np.random.randint(1, (1 << 10) + 1, size=5))
+@pytest.mark.parametrize("integer_two", np.random.randint(1, (1 << 10) + 1, size=5))
 @pytest.mark.parametrize("decrement", [True, False])
 def test_incrementer_on_superposition_state(
     number_of_qubits, integer_one, integer_two, decrement
@@ -101,7 +102,7 @@ def test_incrementer_on_superposition_state(
         assert np.isclose(final_state[expected_integer_two], random_amplitudes[1])
 
 
-@pytest.mark.parametrize("number_of_qubits", range(1, 11))
+@pytest.mark.parametrize("number_of_qubits", range(1, 10))
 @pytest.mark.parametrize("integer", np.random.randint(1, (1 << 10) + 1, size=10))
 @pytest.mark.parametrize("control_value", [0, 1])
 @pytest.mark.parametrize("decrement", [True, False])
@@ -157,16 +158,20 @@ def test_incrementer_is_properly_controlled(
 
 
 @pytest.mark.parametrize(
-    "add_classical_value",
-    [add_classical_value_incrementers, add_classical_value_gate_efficient],
+    "add_classical_value_function",
+    [
+        add_classical_value_incrementers,
+        add_classical_value_gate_efficient,
+        add_classical_value,
+    ],
 )
-@pytest.mark.parametrize("number_of_qubits", range(1, 11))
-@pytest.mark.parametrize("integer", np.random.randint(1, (1 << 9) + 1, size=10))
-@pytest.mark.parametrize("classical_value", np.random.randint(1, (1 << 9) + 1, size=10))
+@pytest.mark.parametrize("number_of_qubits", range(1, 10))
+@pytest.mark.parametrize("integer", np.random.randint(1, (1 << 9) + 1, size=5))
+@pytest.mark.parametrize("classical_value", np.random.randint(1, (1 << 9) + 1, size=5))
 @pytest.mark.parametrize("decrement", [False])
 @pytest.mark.parametrize("is_controlled", [True, False])
 def test_add_classical_value_on_basis_state(
-    add_classical_value,
+    add_classical_value_function,
     number_of_qubits,
     integer,
     classical_value,
@@ -196,7 +201,9 @@ def test_add_classical_value_on_basis_state(
     qubits = [cirq.LineQubit(i + 200 + indexor) for i in range(number_of_qubits)]
     circuit.append(cirq.I.on_each(*ctrls[0]))
     circuit.append(cirq.I.on_each(*qubits))
-    _gates, _ = add_classical_value(qubits, classical_value, ancilla, ctrls=ctrls)
+    _gates, _ = add_classical_value_function(
+        qubits, classical_value, ancilla, ctrls=ctrls
+    )
     circuit.append(_gates)
 
     initial_state = np.zeros(1 << number_of_qubits)

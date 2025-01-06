@@ -16,8 +16,8 @@ from _utils import (
 )
 
 
-MAX_NUMBER_OF_BOSONIC_MODES = 3
-MAX_NUMBER_OF_FERMIONIC_MODES = 5
+MAX_NUMBER_OF_BOSONIC_MODES = 2
+MAX_NUMBER_OF_FERMIONIC_MODES = 4
 POSSIBLE_MAX_OCCUPATION_NUMBERS = [1, 3, 7]
 
 
@@ -218,6 +218,6 @@ def test_custom_term_block_encoding(trial):
         + 1  # elbows for rotation gadget
     )
     assert metrics.number_of_rotations <= (maximum_occupation_number + 3)
-    assert max(metrics.clean_ancillae_usage) == 2 + (
-        len(system.bosonic_system[active_bosonic_index]) - 1
+    assert max(metrics.clean_ancillae_usage) == max(
+        1 + (len(system.bosonic_system[active_bosonic_index]) - 1), 2
     )

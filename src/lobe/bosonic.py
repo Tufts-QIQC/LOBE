@@ -1,8 +1,8 @@
 from src.lobe.metrics import CircuitMetrics
-from src.lobe.addition import add_classical_value_gate_efficient
+from src.lobe.addition import add_classical_value
 import numpy as np
 import cirq
-
+from .decompose import decompose_controls_left, decompose_controls_right
 from src.lobe.multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 
 
@@ -37,7 +37,7 @@ def bosonic_mode_block_encoding(
 
     R, S = exponents[0], exponents[1]
 
-    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+    adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_index],
         R - S,
         clean_ancillae=clean_ancillae,
@@ -92,14 +92,18 @@ def bosonic_mode_plus_hc_block_encoding(
 
     gates.append(cirq.H.on(index))
 
-    adder_controls = (ctrls[0] + [index], ctrls[1] + [0])
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
-    block_encoding_metrics.number_of_elbows += 1
-    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+    _gates, _metrics = decompose_controls_left(
+        (ctrls[0] + [index], ctrls[1] + [0]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+
+    adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_index],
         exponents[0] - exponents[1],
-        clean_ancillae=clean_ancillae,
-        ctrls=adder_controls,
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
@@ -109,22 +113,29 @@ def bosonic_mode_plus_hc_block_encoding(
         system.bosonic_system[active_index],
         exponents[0],
         exponents[1],
-        clean_ancillae=clean_ancillae,
+        clean_ancillae=clean_ancillae[1:],
         ctrls=ctrls,
     )
     gates += rotation_gates
     block_encoding_metrics += rotation_metrics
 
-    adder_controls = (ctrls[0] + [index], ctrls[1] + [1])
-    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_index],
         -exponents[0] + exponents[1],
-        clean_ancillae=clean_ancillae,
-        ctrls=adder_controls,
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
 
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [index], ctrls[1] + [1]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
     block_encoding_metrics.add_to_clean_ancillae_usage(-1)
 
     gates.append(cirq.H.on(index))

@@ -3,6 +3,20 @@ import numpy as np
 from .metrics import CircuitMetrics
 
 
+def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], [])):
+    incrementers_circuit, incrementers_metrics = add_classical_value_incrementers(
+        register, classical_value, clean_ancillae, ctrls=ctrls
+    )
+    gate_efficient_circuit, gate_efficient_metrics = add_classical_value_incrementers(
+        register, classical_value, clean_ancillae, ctrls=ctrls
+    )
+
+    if gate_efficient_metrics.number_of_elbows < incrementers_metrics.number_of_elbows:
+        return gate_efficient_circuit, gate_efficient_metrics
+    else:
+        return incrementers_circuit, incrementers_metrics
+
+
 def add_classical_value_incrementers(
     register, classical_value, clean_ancillae, ctrls=([], [])
 ):

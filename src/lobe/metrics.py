@@ -35,3 +35,9 @@ class CircuitMetrics:
             self.clean_ancillae_usage.append(change)
         else:
             self.clean_ancillae_usage.append(self.clean_ancillae_usage[-1] + change)
+
+    def ancillae_highwater(self):
+        if len(self.clean_ancillae_usage) != 0:
+            return max(self.clean_ancillae_usage)
+        else:
+            return 0

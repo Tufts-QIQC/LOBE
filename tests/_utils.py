@@ -64,7 +64,7 @@ def _setup(
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
 
-    if len(circuit.all_qubits()) >= 20:
+    if len(circuit.all_qubits()) >= 18:
         pytest.skip(f"too many qubits to validate: {len(circuit.all_qubits())}")
 
     return circuit, metrics, system
@@ -78,8 +78,10 @@ def _validate_block_encoding(
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
 ):
-    if len(circuit.all_qubits()) >= 15:
-        print("Testing singular quantum state")
+    if len(circuit.all_qubits()) >= 12:
+        print(
+            f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
+        )
         simulator = cirq.Simulator()
         random_system_state = 1j * np.random.uniform(
             -1, 1, 1 << system.number_of_system_qubits

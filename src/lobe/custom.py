@@ -1,8 +1,9 @@
 from .metrics import CircuitMetrics
-from .addition import add_classical_value_gate_efficient
+from .addition import add_classical_value
 from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 from .bosonic import _get_bosonic_rotation_angles
 from .fermionic import _apply_fermionic_ladder_op
+from .decompose import decompose_controls_left, decompose_controls_right
 import cirq
 import numpy as np
 
@@ -73,23 +74,19 @@ def yukawa_4point_pair_term_block_encoding(
     for be_ancilla, bosonic_index in zip(
         block_encoding_ancillae[:2], active_indices[:2]
     ):
-        block_encoding_metrics.add_to_clean_ancillae_usage(
-            2 * len(system.bosonic_system[bosonic_index])
+        _gates, _metrics = decompose_controls_left(
+            (ctrls[0] + [temporary_qbool], ctrls[1] + [1]), clean_ancillae[1]
         )
-        block_encoding_metrics.number_of_elbows += len(
-            system.bosonic_system[bosonic_index]
-        )
-        adder_gates, adder_metrics = add_classical_value_gate_efficient(
+        gates += _gates
+        block_encoding_metrics += _metrics
+        adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[bosonic_index],
             1,
-            clean_ancillae=clean_ancillae[1:],
-            ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [1]),
+            clean_ancillae=clean_ancillae[2:],
+            ctrls=([clean_ancillae[1]], [1]),
         )
         gates += adder_gates
         block_encoding_metrics += adder_metrics
-        block_encoding_metrics.add_to_clean_ancillae_usage(
-            -(2 * len(system.bosonic_system[bosonic_index]))
-        )
 
         rotation_angles = _get_bosonic_rotation_angles(
             system.maximum_occupation_number, 1, 0
@@ -98,29 +95,31 @@ def yukawa_4point_pair_term_block_encoding(
             system.bosonic_system[bosonic_index],
             be_ancilla,
             rotation_angles,
-            clean_ancillae=clean_ancillae[1:],
+            clean_ancillae=clean_ancillae[2:],
             ctrls=ctrls,
         )
         gates += rotation_gates
         block_encoding_metrics += rotation_metrics
 
-        block_encoding_metrics.add_to_clean_ancillae_usage(
-            2 * len(system.bosonic_system[bosonic_index])
+        gates.append(
+            cirq.X.on(clean_ancillae[1]).controlled_by(
+                *ctrls[0], control_values=ctrls[1]
+            )
         )
-        block_encoding_metrics.number_of_elbows += len(
-            system.bosonic_system[bosonic_index]
-        )
-        adder_gates, adder_metrics = add_classical_value_gate_efficient(
+        adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[bosonic_index],
             -1,
-            clean_ancillae=clean_ancillae[1:],
-            ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [0]),
+            clean_ancillae=clean_ancillae[2:],
+            ctrls=([clean_ancillae[1]], [1]),
         )
         gates += adder_gates
         block_encoding_metrics += adder_metrics
-        block_encoding_metrics.add_to_clean_ancillae_usage(
-            -(2 * len(system.bosonic_system[bosonic_index]))
+
+        _gates, _metrics = decompose_controls_right(
+            (ctrls[0] + [temporary_qbool], ctrls[1] + [0]), clean_ancillae[1]
         )
+        gates += _gates
+        block_encoding_metrics += _metrics
 
     gates.append(
         cirq.X.on(temporary_qbool).controlled_by(
@@ -204,23 +203,20 @@ def yukawa_3point_pair_term_block_encoding(
         )
     )
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(
-        2 * len(system.bosonic_system[active_indices[0]])
+    _gates, _metrics = decompose_controls_left(
+        (ctrls[0] + [temporary_qbool], ctrls[1] + [1]), clean_ancillae[1]
     )
-    block_encoding_metrics.number_of_elbows += len(
-        system.bosonic_system[active_indices[0]]
-    )
-    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+    gates += _gates
+    block_encoding_metrics += _metrics
+
+    adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_indices[0]],
         1,
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [1]),
+        clean_ancillae=clean_ancillae[2:],
+        ctrls=([clean_ancillae[1]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
-    block_encoding_metrics.add_to_clean_ancillae_usage(
-        -(2 * len(system.bosonic_system[active_indices[0]]))
-    )
 
     rotation_angles = _get_bosonic_rotation_angles(
         system.maximum_occupation_number, 1, 0
@@ -229,29 +225,29 @@ def yukawa_3point_pair_term_block_encoding(
         system.bosonic_system[active_indices[0]],
         block_encoding_ancillae[0],
         rotation_angles,
-        clean_ancillae=clean_ancillae[1:],
+        clean_ancillae=clean_ancillae[2:],
         ctrls=ctrls,
     )
     gates += rotation_gates
     block_encoding_metrics += rotation_metrics
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(
-        2 * len(system.bosonic_system[active_indices[0]])
+    gates.append(
+        cirq.X.on(clean_ancillae[1]).controlled_by(*ctrls[0], control_values=ctrls[1])
     )
-    block_encoding_metrics.number_of_elbows += len(
-        system.bosonic_system[active_indices[0]]
-    )
-    adder_gates, adder_metrics = add_classical_value_gate_efficient(
+    adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_indices[0]],
         -1,
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=(ctrls[0] + [temporary_qbool], ctrls[1] + [0]),
+        clean_ancillae=clean_ancillae[2:],
+        ctrls=([clean_ancillae[1]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
-    block_encoding_metrics.add_to_clean_ancillae_usage(
-        -(2 * len(system.bosonic_system[active_indices[0]]))
+
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [temporary_qbool], ctrls[1] + [0]), clean_ancillae[1]
     )
+    gates += _gates
+    block_encoding_metrics += _metrics
 
     gates.append(
         cirq.X.on(temporary_qbool).controlled_by(
@@ -430,23 +426,21 @@ def _custom_term_block_encoding(
     gates = []
     block_encoding_metrics = CircuitMetrics()
 
-    block_encoding_metrics.number_of_elbows += 1
-    block_encoding_metrics.add_to_clean_ancillae_usage(1)
-
-    _gates, _metrics = add_classical_value_gate_efficient(
-        system.bosonic_system[active_indices[0]],
-        1,
-        clean_ancillae=clean_ancillae,
-        ctrls=(
-            ctrls[0] + [system.fermionic_register[active_indices[1]]],
-            ctrls[1] + [0],
-        ),
+    _gates, _metrics = decompose_controls_left(
+        (ctrls[0] + [system.fermionic_register[active_indices[1]]], ctrls[1] + [0]),
+        clean_ancillae[0],
     )
     gates += _gates
     block_encoding_metrics += _metrics
-    import pdb
 
-    pdb.set_trace()
+    _gates, _metrics = add_classical_value(
+        system.bosonic_system[active_indices[0]],
+        1,
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
 
     rotation_angles = _get_bosonic_rotation_angles(
         system.maximum_occupation_number, 1, 0
@@ -455,24 +449,30 @@ def _custom_term_block_encoding(
         system.bosonic_system[active_indices[0]],
         block_encoding_ancilla,
         rotation_angles,
-        clean_ancillae=clean_ancillae,
+        clean_ancillae=clean_ancillae[1:],
         ctrls=ctrls,
     )
     gates += _gates
     block_encoding_metrics += _metrics
 
-    _gates, _metrics = add_classical_value_gate_efficient(
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    _gates, _metrics = add_classical_value(
         system.bosonic_system[active_indices[0]],
         -1,
-        clean_ancillae=clean_ancillae,
-        ctrls=(
-            ctrls[0] + [system.fermionic_register[active_indices[1]]],
-            ctrls[1] + [1],
-        ),
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += _gates
     block_encoding_metrics += _metrics
-    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [system.fermionic_register[active_indices[1]]], ctrls[1] + [1]),
+        clean_ancillae[0],
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
 
     _gates, _metrics = _apply_fermionic_ladder_op(
         system, active_indices[1], ctrls=ctrls
