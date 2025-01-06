@@ -1,13 +1,12 @@
 from openparticle import ParticleOperator
-from openparticle.utils import generate_matrix, get_fock_basis
 import numpy as np
 import cirq
 from symmer import PauliwordOp
 from symmer.operators.utils import symplectic_to_string
-
-import sys, os
-
+from .metrics import CircuitMetrics
 from .asp import get_target_state, add_prepare_circuit
+from .index import index_over_terms
+from functools import partial
 
 
 def seperate_real_imag(Pop: PauliwordOp) -> PauliwordOp:
@@ -78,6 +77,7 @@ class LCU:
             for i in range(self.paulis.n_qubits)
         ]
         self.number_of_system_qubits = len(self.system_register)
+        self.clean_ancillae = [cirq.LineQubit(-1 - i) for i in range(100)]
 
     @staticmethod
     def get_prep_vector(coeff_vector):
@@ -93,13 +93,17 @@ class LCU:
 
     def get_circuit(self):
         self.circuit = cirq.Circuit()
+        self.circuit_metrics = CircuitMetrics()
 
         self.circuit += add_prepare_circuit(
             self.index_register, target_state=self.target_state
         )
 
         self.circuit += self.add_select_oracle(
-            self.index_register, self.paulis, system_register=self.system_register
+            self.index_register,
+            self.paulis,
+            system_register=self.system_register,
+            clean_ancillae=self.clean_ancillae,
         )
 
         self.circuit += add_prepare_circuit(
@@ -109,31 +113,45 @@ class LCU:
         return self.circuit
 
     @classmethod
-    def add_select_oracle(cls, index_register, paulis, system_register):
+    def add_select_oracle(
+        cls, index_register, paulis, system_register, clean_ancillae=[], ctrls=([], [])
+    ):
         gates = []
 
-        n_index_qubits = len(index_register)
         terms = [symplectic_to_string(row) for row in paulis.symp_matrix]
-        n_terms = len(terms)
         coeffs = paulis.coeff_vec  # list(paulis.to_dictionary.values())
         n_system_qubits = paulis.n_qubits
 
-        for i in range(n_terms):
-            ctrl = f"{i:0{n_index_qubits}b}"
+        def _apply_term(term, coeff, ctrls=([], [])):
+            gates = []
             for n in range(n_system_qubits):
-                term = terms[i][n]
+                operator = term[n]
                 if n == 0:
                     # Check for +-1j or -1 coeff only needed for one term in tensor product
-                    key = (term, cls.map_complex_to_key(coeffs[i]))
-                    gate = GATE_SELECTION[key]
+                    key = (operator, cls.map_complex_to_key(coeff))
+                    operations = GATE_SELECTION[key]
                 else:
-                    gate = GATE_SELECTION[(term, 1)]
-                for mapped_gates in gate:
+                    operations = GATE_SELECTION[(operator, 1)]
+
+                for operation in operations:
                     gates.append(
-                        mapped_gates.on(system_register[n]).controlled_by(
-                            *index_register, control_values=[int(char) for char in ctrl]
+                        operation.on(system_register[n]).controlled_by(
+                            *ctrls[0], control_values=ctrls[1]
                         )
                     )  # TODO: remove controlled outer gates in -X = ZXZ, -Y = ZYZ, -Z = XZX
+
+            return gates, CircuitMetrics()
+
+        _gates, _metrics = index_over_terms(
+            index_register,
+            [
+                partial(_apply_term, term=term, coeff=coeff)
+                for term, coeff in zip(terms, coeffs)
+            ],
+            clean_ancillae=clean_ancillae,
+            ctrls=ctrls,
+        )
+        gates += _gates
         return gates
 
     @property
