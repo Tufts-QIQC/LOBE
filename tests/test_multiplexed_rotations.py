@@ -87,3 +87,28 @@ def test_multiplexed_rotation_circuit(number_of_angles, is_controlled, with_anci
         )
     else:
         assert np.allclose(undecomposed_circuit.unitary(), decomposed_circuit.unitary())
+
+
+def test_get_decomposed_multiplexed_rotation_circuit_only_counts_nonclifford_rotations():
+    angles = [
+        0,
+        0.5,
+        0.125,
+        0.375,
+    ]  # should result in one rotation by 0 rads and three nonClifford rotations
+
+    number_of_index = max(int(np.ceil(np.log2(len(angles)))), 1)
+    ctrls = ([], [])
+    clean_ancillae = []
+    counter = 0
+    register = [cirq.LineQubit(i + counter) for i in range(number_of_index + 1)]
+
+    _, metrics = get_decomposed_multiplexed_rotation_circuit(
+        register[:-1],
+        register[-1],
+        angles,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+
+    assert metrics.number_of_rotations == 3

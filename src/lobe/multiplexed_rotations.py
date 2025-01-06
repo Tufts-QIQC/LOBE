@@ -42,7 +42,7 @@ def get_decomposed_multiplexed_rotation_circuit(
         rotation_gadget_metrics.add_to_clean_ancillae_usage(len(ctrls[0]) - 1)
 
     for angle in processed_angles:
-        if np.any(
+        if not np.any(
             [
                 np.isclose((angle) % (4 * np.pi), clifford_angle)
                 for clifford_angle in CLIFFORD_ROTATION_ANGLES
@@ -94,7 +94,7 @@ def get_decomposed_multiplexed_rotation_circuit(
 
     if len(ctrls[0]) > 0:
         angle = -np.pi * sum(processed_angles)
-        if np.any(
+        if not np.any(
             [
                 np.isclose((angle / 2) % (4 * np.pi), clifford_angle)
                 for clifford_angle in CLIFFORD_ROTATION_ANGLES
