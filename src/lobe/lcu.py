@@ -1,4 +1,3 @@
-from openparticle.qubit_mappings import op_qubit_map, fock_qubit_state_mapping
 from openparticle import ParticleOperator
 from openparticle.utils import generate_matrix, get_fock_basis
 import numpy as np
@@ -62,7 +61,7 @@ class LCU:
 
     def __init__(self, operator: ParticleOperator, max_bose_occ: int):
 
-        paulis = op_qubit_map(operator, max_bose_occ=max_bose_occ)
+        paulis = operator.to_paulis(max_bose_occ=max_bose_occ)
 
         self.paulis = seperate_real_imag(paulis)
 

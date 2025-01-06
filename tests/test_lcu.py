@@ -2,7 +2,6 @@ import pytest
 import numpy as np
 from src.lobe.lcu import LCU
 from openparticle import ParticleOperator
-from openparticle.qubit_mappings import op_qubit_map
 
 
 @pytest.mark.parametrize("max_len_of_terms", [1, 2, 3])
@@ -16,7 +15,7 @@ def test_lcu_circuit_block_encodes_random_ParticleOperator(
     )
 
     if () not in list(op.op_dict.keys()):
-        qubit_op = op_qubit_map(op, max_bose_occ=max_bose_occ)
+        qubit_op = op.to_paulis(max_bose_occ=max_bose_occ)
 
         lcu = LCU(op, max_bose_occ=max_bose_occ)
 
