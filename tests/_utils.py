@@ -83,13 +83,27 @@ def _validate_block_encoding(
             f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
         simulator = cirq.Simulator()
-        random_system_state = 1j * np.random.uniform(
-            -1, 1, 1 << system.number_of_system_qubits
+
+        full_fock_basis = get_basis_of_full_system(
+            system.number_of_modes,
+            maximum_occupation_number,
+            has_fermions=operator.has_fermions,
+            has_antifermions=operator.has_antifermions,
+            has_bosons=operator.has_bosons,
         )
-        random_system_state += np.random.uniform(
-            -1, 1, 1 << system.number_of_system_qubits
-        )
-        random_system_state = random_system_state / np.linalg.norm(random_system_state)
+        matrix = generate_matrix(operator, full_fock_basis)
+
+        random_system_state = np.zeros(1 << system.number_of_system_qubits)
+        while np.isclose(np.linalg.norm(matrix @ random_system_state), 0):
+            random_system_state = 1j * np.random.uniform(
+                -1, 1, 1 << system.number_of_system_qubits
+            )
+            random_system_state += np.random.uniform(
+                -1, 1, 1 << system.number_of_system_qubits
+            )
+            random_system_state = random_system_state / np.linalg.norm(
+                random_system_state
+            )
         zero_state = np.zeros(
             1
             << (
@@ -117,22 +131,13 @@ def _validate_block_encoding(
             circuit, initial_state=initial_state
         ).final_state_vector
         final_state = output_state[: 1 << system.number_of_system_qubits]
-        full_fock_basis = get_basis_of_full_system(
-            system.number_of_modes,
-            maximum_occupation_number,
-            has_fermions=operator.has_fermions,
-            has_antifermions=operator.has_antifermions,
-            has_bosons=operator.has_bosons,
-        )
-        matrix = generate_matrix(operator, full_fock_basis)
 
         expected_final_state = matrix @ random_system_state
         expected_final_state = expected_final_state / np.linalg.norm(
             expected_final_state
         )
-        assert np.allclose(
-            expected_final_state, final_state / np.linalg.norm(final_state), atol=1e-6
-        )
+        normalized_final_state = final_state / np.linalg.norm(final_state)
+        assert np.allclose(expected_final_state, normalized_final_state, atol=1e-6)
     else:
         full_fock_basis = get_basis_of_full_system(
             system.number_of_modes,
@@ -147,7 +152,8 @@ def _validate_block_encoding(
             : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
         ]
 
-        assert np.allclose(expected_rescaling_factor * upper_left_block, matrix)
+        rescaled_upper_left_block = expected_rescaling_factor * upper_left_block
+        assert np.allclose(rescaled_upper_left_block, matrix)
 
 
 def _validate_clean_ancillae_are_cleaned(
