@@ -73,7 +73,7 @@ class LCU:
             cirq.LineQubit(i) for i in range(self.number_of_index_qubits)
         ]
         self.system_register = [
-            cirq.LineQubit(self.number_of_index_qubits + i)
+            cirq.LineQubit(1000 + i + self.number_of_index_qubits)
             for i in range(self.paulis.n_qubits)
         ]
         self.number_of_system_qubits = len(self.system_register)
