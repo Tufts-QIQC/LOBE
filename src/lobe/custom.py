@@ -1,36 +1,11 @@
 from .metrics import CircuitMetrics
 from .addition import add_classical_value
 from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
-from .bosonic import _get_bosonic_rotation_angles
+from .bosonic import _get_bosonic_rotation_angles, _add_multi_bosonic_rotations
 from .fermionic import _apply_fermionic_ladder_op
 from .decompose import decompose_controls_left, decompose_controls_right
 import cirq
 import numpy as np
-
-
-def phi4_interaction_term_block_encoding(
-    system,
-    block_encoding_ancillae,
-    active_indices,
-    clean_ancillae=[],
-    ctrls=([], []),
-):
-    """Add a block-encoding circuit for the phi4 interaction term
-
-    Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
-            of which operators are applied (right to left).
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
-            the control qubits and values.
-
-    Returns:
-        - List of cirq operations representing the gates to be applied in the circuit
-        - CircuitMetrics object representing cost of block-encoding circuit
-    """
-    pass
 
 
 def yukawa_4point_pair_term_block_encoding(
