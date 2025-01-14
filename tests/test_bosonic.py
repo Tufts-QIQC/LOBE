@@ -56,9 +56,9 @@ def test_bosonic_mode_block_encoding(
     _validate_block_encoding_does_nothing_when_control_is_off(
         circuit, system, number_of_block_encoding_ancillae
     )
-    assert metrics.number_of_elbows <= maximum_occupation_number + 1 + max(
-        int(np.log2(maximum_occupation_number + 1)) - 1, 0
-    )
+    assert metrics.number_of_elbows <= np.ceil(
+        np.log2(maximum_occupation_number + 1)
+    ) + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
     assert metrics.number_of_rotations <= maximum_occupation_number + 2
     assert metrics.clean_ancillae_usage[-1] == 0
 
@@ -139,8 +139,7 @@ def test_bosonic_modes_block_encoding(
         circuit, system, number_of_block_encoding_ancillae
     )
     assert metrics.number_of_elbows <= (number_of_active_modes) * (
-        maximum_occupation_number
-        + 1
+        np.ceil(np.log2(maximum_occupation_number + 1))
         + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
     )
     assert metrics.number_of_rotations <= number_of_active_modes * (
@@ -196,7 +195,7 @@ def test_bosonic_mode_plus_hc_block_encoding(
         circuit, system, number_of_block_encoding_ancillae
     )
     assert metrics.number_of_elbows <= max(
-        maximum_occupation_number + (2 * int(np.log2(maximum_occupation_number + 1))), 0
+        3 * int(np.log2(maximum_occupation_number + 1)), 0
     )
     assert metrics.number_of_rotations <= maximum_occupation_number + 2
     assert metrics.clean_ancillae_usage[-1] == 0

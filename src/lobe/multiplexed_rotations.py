@@ -29,6 +29,7 @@ def get_decomposed_multiplexed_rotation_circuit(
         - CircuitMetrics object representing cost of block-encoding circuit
     """
     assert len(ctrls[0]) <= 1
+    gates = []
     rotation_gadget_metrics = CircuitMetrics()
     angles = np.concatenate(
         [angles, np.zeros((1 << len(indexing_register)) - len(angles))]
@@ -37,9 +38,22 @@ def get_decomposed_multiplexed_rotation_circuit(
     if dagger:
         processed_angles *= -1
 
+    ancilla = []
     if len(ctrls[0]) > 0:
         rotation_gadget_metrics.number_of_elbows += len(ctrls[0]) - 1
         rotation_gadget_metrics.add_to_clean_ancillae_usage(len(ctrls[0]) - 1)
+
+        for index_qubit in indexing_register:
+            rotation_gadget_metrics.add_to_clean_ancillae_usage(1)
+            rotation_gadget_metrics.number_of_elbows += 1
+            gates.append(
+                cirq.Moment(
+                    cirq.X.on(clean_ancillae[len(ancilla)]).controlled_by(
+                        *ctrls[0], index_qubit, control_values=ctrls[1] + [1]
+                    )
+                )
+            )
+            ancilla.append(clean_ancillae[len(ancilla)])
 
     for angle in processed_angles:
         if not np.any(
@@ -51,43 +65,36 @@ def get_decomposed_multiplexed_rotation_circuit(
             # Count only nonClifford rotations
             rotation_gadget_metrics.number_of_rotations += 1
 
-    gates, recursion_metrics = _recursive_helper(
+    _gates, recursion_metrics = _recursive_helper(
         indexing_register,
         rotation_qubit,
         processed_angles,
         0,
         len(indexing_register),
-        clean_ancillae=clean_ancillae,
+        ancilla=ancilla,
+        clean_ancillae=clean_ancillae[len(ancilla) :],
         ctrls=ctrls,
     )
+    gates += _gates
     rotation_gadget_metrics += recursion_metrics
 
-    if (len(ctrls[0]) > 0) and (len(clean_ancillae) > 0):
-        rotation_gadget_metrics.number_of_elbows += 1
-        rotation_gadget_metrics.add_to_clean_ancillae_usage(1)
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(clean_ancillae[0]).controlled_by(
-                    indexing_register[0], *ctrls[0], control_values=[1] + ctrls[1]
-                )
-            )
-        )
-        gates.append(
-            cirq.Moment(cirq.X.on(rotation_qubit).controlled_by(clean_ancillae[0]))
-        )
-        gates.append(
-            cirq.Moment(
-                cirq.X.on(clean_ancillae[0]).controlled_by(
-                    indexing_register[0], *ctrls[0], control_values=[1] + ctrls[1]
-                )
-            )
-        )
-        rotation_gadget_metrics.add_to_clean_ancillae_usage(-1)
+    if len(ctrls[0]) > 0:
+        gates.append(cirq.Moment(cirq.X.on(rotation_qubit).controlled_by(ancilla[0])))
     else:
         gates.append(
             cirq.Moment(
                 cirq.X.on(rotation_qubit).controlled_by(
                     indexing_register[0], *ctrls[0], control_values=[1] + ctrls[1]
+                )
+            )
+        )
+
+    for index_qubit, anc in zip(indexing_register[::-1], ancilla[::-1]):
+        rotation_gadget_metrics.add_to_clean_ancillae_usage(-1)
+        gates.append(
+            cirq.Moment(
+                cirq.X.on(anc).controlled_by(
+                    *ctrls[0], index_qubit, control_values=ctrls[1] + [1]
                 )
             )
         )
@@ -115,6 +122,84 @@ def get_decomposed_multiplexed_rotation_circuit(
         rotation_gadget_metrics.add_to_clean_ancillae_usage(-(len(ctrls[0]) - 1))
 
     return gates, rotation_gadget_metrics
+
+
+def _recursive_helper(
+    indexing_register,
+    rotation_qubit,
+    angles,
+    rotation_index,
+    level,
+    ancilla=[],
+    clean_ancillae=[],
+    ctrls=([], []),
+):
+    if ctrls != ([], []):
+        assert len(ancilla) == len(indexing_register)
+    recursion_metrics = CircuitMetrics()
+    gates = []
+
+    if level == 1:
+        gates.append(
+            cirq.Moment(cirq.ry(np.pi * angles[rotation_index]).on(rotation_qubit))
+        )
+
+        if len(ctrls[0]) > 0:
+            gates.append(
+                cirq.Moment(cirq.X.on(rotation_qubit).controlled_by(ancilla[-1]))
+            )
+        else:
+            gates.append(
+                cirq.Moment(
+                    cirq.X.on(rotation_qubit)
+                    .controlled_by(indexing_register[-1])
+                    .controlled_by(*ctrls[0], control_values=ctrls[1])
+                )
+            )
+        gates.append(
+            cirq.Moment(cirq.ry(np.pi * angles[rotation_index + 1]).on(rotation_qubit))
+        )
+
+    else:
+        additional_gates, additonal_metrics = _recursive_helper(
+            indexing_register,
+            rotation_qubit,
+            angles,
+            rotation_index,
+            level - 1,
+            ancilla=ancilla,
+            clean_ancillae=clean_ancillae,
+            ctrls=ctrls,
+        )
+        gates += additional_gates
+        recursion_metrics += additonal_metrics
+
+        if len(ctrls[0]) > 0:
+            gates.append(
+                cirq.Moment(cirq.X.on(rotation_qubit).controlled_by(ancilla[-level]))
+            )
+        else:
+            gates.append(
+                cirq.Moment(
+                    cirq.X.on(rotation_qubit)
+                    .controlled_by(indexing_register[-level])
+                    .controlled_by(*ctrls[0], control_values=ctrls[1])
+                )
+            )
+        additional_gates, additonal_metrics = _recursive_helper(
+            indexing_register,
+            rotation_qubit,
+            angles,
+            rotation_index + (1 << (level - 1)),
+            level - 1,
+            ancilla=ancilla,
+            clean_ancillae=clean_ancillae,
+            ctrls=ctrls,
+        )
+        gates += additional_gates
+        recursion_metrics += additonal_metrics
+
+    return gates, recursion_metrics
 
 
 def _binary_to_gray(n):
@@ -156,114 +241,3 @@ def _generate_m_matrix(dimension):
 def _process_rotation_angles(angles):
     transformation = _generate_m_matrix(1 << int(np.ceil(np.log2(len(angles)))))
     return transformation @ angles
-
-
-def _recursive_helper(
-    indexing_register,
-    rotation_qubit,
-    angles,
-    rotation_index,
-    level,
-    clean_ancillae=[],
-    ctrls=([], []),
-):
-    recursion_metrics = CircuitMetrics()
-    gates = []
-
-    if level == 1:
-        gates.append(
-            cirq.Moment(cirq.ry(np.pi * angles[rotation_index]).on(rotation_qubit))
-        )
-
-        if (len(ctrls[0]) > 0) and (len(clean_ancillae) > 0):
-            recursion_metrics.number_of_elbows += 1
-            recursion_metrics.add_to_clean_ancillae_usage(1)
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(clean_ancillae[0]).controlled_by(
-                        indexing_register[-1], *ctrls[0], control_values=[1] + ctrls[1]
-                    )
-                )
-            )
-            gates.append(
-                cirq.Moment(cirq.X.on(rotation_qubit).controlled_by(clean_ancillae[0]))
-            )
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(clean_ancillae[0]).controlled_by(
-                        indexing_register[-1], *ctrls[0], control_values=[1] + ctrls[1]
-                    )
-                )
-            )
-            recursion_metrics.add_to_clean_ancillae_usage(-1)
-        else:
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(rotation_qubit)
-                    .controlled_by(indexing_register[-1])
-                    .controlled_by(*ctrls[0], control_values=ctrls[1])
-                )
-            )
-        gates.append(
-            cirq.Moment(cirq.ry(np.pi * angles[rotation_index + 1]).on(rotation_qubit))
-        )
-
-    else:
-        additional_gates, additonal_metrics = _recursive_helper(
-            indexing_register,
-            rotation_qubit,
-            angles,
-            rotation_index,
-            level - 1,
-            clean_ancillae=clean_ancillae,
-            ctrls=ctrls,
-        )
-        gates += additional_gates
-        recursion_metrics += additonal_metrics
-
-        if (len(ctrls[0]) > 0) and (len(clean_ancillae) > 0):
-            recursion_metrics.number_of_elbows += 1
-            recursion_metrics.add_to_clean_ancillae_usage(1)
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(clean_ancillae[0]).controlled_by(
-                        indexing_register[-level],
-                        *ctrls[0],
-                        control_values=[1] + ctrls[1],
-                    )
-                )
-            )
-            gates.append(
-                cirq.Moment(cirq.X.on(rotation_qubit).controlled_by(clean_ancillae[0]))
-            )
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(clean_ancillae[0]).controlled_by(
-                        indexing_register[-level],
-                        *ctrls[0],
-                        control_values=[1] + ctrls[1],
-                    )
-                )
-            )
-            recursion_metrics.add_to_clean_ancillae_usage(-1)
-        else:
-            gates.append(
-                cirq.Moment(
-                    cirq.X.on(rotation_qubit)
-                    .controlled_by(indexing_register[-level])
-                    .controlled_by(*ctrls[0], control_values=ctrls[1])
-                )
-            )
-        additional_gates, additonal_metrics = _recursive_helper(
-            indexing_register,
-            rotation_qubit,
-            angles,
-            rotation_index + (1 << (level - 1)),
-            level - 1,
-            clean_ancillae=clean_ancillae,
-            ctrls=ctrls,
-        )
-        gates += additional_gates
-        recursion_metrics += additonal_metrics
-
-    return gates, recursion_metrics

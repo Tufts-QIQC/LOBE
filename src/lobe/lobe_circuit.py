@@ -97,7 +97,9 @@ def lobe_circuit(
         norm = sum(np.abs(coefficients))
         target_state = get_target_state(coefficients)
         gates, _ = add_prepare_circuit(
-            index_register, target_state=target_state, numerics=NUMERICS
+            index_register,
+            target_state=target_state,
+            clean_ancillae=clean_ancillae,
         )
         circuit.append(gates)
         perform_coefficient_oracle = False
@@ -116,7 +118,9 @@ def lobe_circuit(
         circuit += add_naive_usp(index_register)
     elif state_prep_protocol == "asp":
         gates, _ = add_prepare_circuit(
-            index_register, target_state=target_state, numerics=NUMERICS
+            index_register,
+            target_state=target_state,
+            clean_ancillae=clean_ancillae,
         )
         circuit.append(gates)
 

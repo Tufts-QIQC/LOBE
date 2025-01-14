@@ -9,7 +9,7 @@ from .index import index_over_terms
 from functools import partial
 
 
-def seperate_real_imag(Pop: PauliwordOp) -> PauliwordOp:
+def seperate_real_imag(Pop: PauliwordOp, zero_threshold: float = 1e-15) -> PauliwordOp:
     """
     seperate the real and imaginary part of a PauliwordOp into seperate terms!
     This is useful for block encodings when ops have real and imag coeffs.
@@ -19,14 +19,16 @@ def seperate_real_imag(Pop: PauliwordOp) -> PauliwordOp:
 
     Args:
         Pop (PauliwordOp): op to split into real and imag parts. Input is assumed to be cleaned up.
+        zero_threshold (float): The cutoff on the magnitude of the coefficients. Terms will smaller coefficients will
+            be removed.
     Returns
         A PauliwordOp that has real and imaginary coefficients on seperate Pauli terms
 
     """
 
-    op_real = Pop[np.abs(Pop.coeff_vec.real) > 0]
+    op_real = Pop[np.abs(Pop.coeff_vec.real) > zero_threshold]
     op_real.coeff_vec = op_real.coeff_vec.real
-    op_imag = Pop[np.abs(Pop.coeff_vec.imag) > 0]
+    op_imag = Pop[np.abs(Pop.coeff_vec.imag) > zero_threshold]
     op_imag.coeff_vec = op_imag.coeff_vec.imag * 1j
 
     return PauliwordOp(
@@ -57,11 +59,19 @@ GATE_SELECTION = {
 
 class LCU:
 
-    def __init__(self, operator: ParticleOperator, max_bose_occ: int):
+    def __init__(
+        self,
+        operator: ParticleOperator,
+        max_bose_occ: int,
+        zero_threshold: float = 1e-15,
+    ):
+        self.operator = operator
+        self.zero_threshold = zero_threshold
+        paulis = operator.to_paulis(
+            max_bose_occ=max_bose_occ, zero_threshold=zero_threshold
+        )
 
-        paulis = operator.to_paulis(max_bose_occ=max_bose_occ)
-
-        self.paulis = seperate_real_imag(paulis)
+        self.paulis = seperate_real_imag(paulis, zero_threshold=zero_threshold)
 
         self.coeffs = self.paulis.coeff_vec
 
@@ -96,7 +106,9 @@ class LCU:
         self.circuit_metrics = CircuitMetrics()
 
         _gates, _metrics = add_prepare_circuit(
-            self.index_register, target_state=self.target_state
+            self.index_register,
+            target_state=self.target_state,
+            clean_ancillae=self.clean_ancillae,
         )
         self.circuit.append(_gates)
         self.circuit_metrics += _metrics
@@ -111,7 +123,10 @@ class LCU:
         self.circuit_metrics += _metrics
 
         _gates, _metrics = add_prepare_circuit(
-            self.index_register, target_state=self.target_state, dagger=True
+            self.index_register,
+            target_state=self.target_state,
+            dagger=True,
+            clean_ancillae=self.clean_ancillae,
         )
         self.circuit.append(_gates)
         self.circuit_metrics += _metrics

@@ -184,16 +184,19 @@ def _validate_clean_ancillae_are_cleaned(
     initial_control_state = initial_control_state / np.linalg.norm(
         initial_control_state
     )
-    initial_block_encoding_ancilla_state = 1j * np.random.uniform(
-        -1, 1, 1 << number_of_block_encoding_ancillae
-    )
-    initial_block_encoding_ancilla_state += np.random.uniform(
-        -1, 1, 1 << number_of_block_encoding_ancillae
-    )
-    initial_block_encoding_ancilla_state = (
-        initial_block_encoding_ancilla_state
-        / np.linalg.norm(initial_block_encoding_ancilla_state)
-    )
+    if number_of_block_encoding_ancillae == 0:
+        initial_block_encoding_ancilla_state = [1]
+    else:
+        initial_block_encoding_ancilla_state = 1j * np.random.uniform(
+            -1, 1, 1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state += np.random.uniform(
+            -1, 1, 1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state = (
+            initial_block_encoding_ancilla_state
+            / np.linalg.norm(initial_block_encoding_ancilla_state)
+        )
     initial_state = np.kron(
         np.kron(
             np.kron(initial_control_state, initial_block_encoding_ancilla_state),

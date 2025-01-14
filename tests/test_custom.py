@@ -202,16 +202,12 @@ def test_custom_term_block_encoding(trial):
         maximum_occupation_number,
     )
 
-    assert (
-        metrics.number_of_elbows
-        == 1  # elbow for controls of adders
-        + (
-            2 * (len(system.bosonic_system[active_bosonic_index]) - 1)
-        )  # elbows for adders
-        + maximum_occupation_number
-        + 1  # elbows for rotation gadget
-    )
+    assert metrics.number_of_elbows == 1 + (  # elbow for controls of adders
+        2 * (len(system.bosonic_system[active_bosonic_index]) - 1)
+    ) + np.ceil(  # elbows for adders
+        np.log2(maximum_occupation_number + 1)
+    )  # elbows for rotation gadget
     assert metrics.number_of_rotations <= (maximum_occupation_number + 3)
     assert max(metrics.clean_ancillae_usage) == max(
-        1 + (len(system.bosonic_system[active_bosonic_index]) - 1), 2
+        1 + (len(system.bosonic_system[active_bosonic_index])), 2
     )
