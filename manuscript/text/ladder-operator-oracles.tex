@@ -1,10 +1,9 @@
-\section{Constructing Ladder Operator Block-Encodings}
+\section{Compiling Ladder Operator Block-Encodings}
 \label{sec:ladder-op-oracles}
 
 In this work, we focus on generating block-encodings for second-quantized Hamiltonians that include both fermionic and bosonic ladder operators.
-In the previous sections, we discussed different methods to block-encode operators that are described as a product or linear combination of other operators.
-In this section, we provide a framework for efficiently block-encoding individual ladder operators, products of ladder operators, and particular linear combinations of ladder operators.
-We choose to explicitly include control qubits in our constructions since most use-cases of block-encodings require them to be controlled and controlling operations typically increases the cost of the operation.
+In this section, we provide a framework and explicit compilations for controlled block-encodings of various operators that are described by products and linear combinations of ladder operators.
+For our compilations, we primarily reduce the number of non-Clifford operations and secondarily reduce the number of block-encoding ancillae at the expense of temporary, clean ancillae.
 
 \subsection{Encoding}
 \label{subsec:encoding}
