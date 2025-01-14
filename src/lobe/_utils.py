@@ -157,3 +157,30 @@ def get_parsed_dictionary(operator, number_of_modes=None):
                 ladder.mode
             ] += 1
     return parsed_operator_array
+
+
+def get_exponents(operator, number_of_modes=None):
+    if number_of_modes is None:
+        number_of_modes = operator.max_mode() + 1
+    parsed_operator_array = {
+        "fermion": {
+            "creation": np.zeros(number_of_modes, dtype=int),
+            "annihilation": np.zeros(number_of_modes, dtype=int),
+        },
+        "antifermion": {
+            "creation": np.zeros(number_of_modes, dtype=int),
+            "annihilation": np.zeros(number_of_modes, dtype=int),
+        },
+        "boson": {
+            "creation": np.zeros(number_of_modes, dtype=int),
+            "annihilation": np.zeros(number_of_modes, dtype=int),
+        },
+    }
+    for ladder in operator.split():
+        if ladder.creation:
+            parsed_operator_array[ladder.particle_type]["creation"][ladder.mode] += 1
+        else:
+            parsed_operator_array[ladder.particle_type]["annihilation"][
+                ladder.mode
+            ] += 1
+    return parsed_operator_array
