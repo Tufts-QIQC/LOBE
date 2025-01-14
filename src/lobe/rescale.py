@@ -89,16 +89,17 @@ def get_active_bosonic_modes(operator):
     """Get a list of the bosonic modes being acted on.
 
     Args:
-        operator (ParticleOperator): The operator/term in question
+        operator (Optional[ParticleOperator, List[ParticleOperator]]): The operator/term in question
 
     Returns:
         List[int]: A list of active bosonic modes
     """
     active_modes = []
-    for operator in operator.split():
-        if isinstance(operator, BosonOperator):
-            if operator.mode not in active_modes:
-                active_modes.append(operator.mode)
+    for term in operator.to_list():
+        for op in term.split():
+            if isinstance(op, BosonOperator):
+                if op.mode not in active_modes:
+                    active_modes.append(op.mode)
     return active_modes
 
 
