@@ -236,9 +236,8 @@ def bosonic_product_plus_hc_block_encoding(
     gates += _gates
     block_encoding_metrics += _metrics
 
-    for active_index in active_indices:
-        Ri, Si = exponents[active_index][0], exponents[active_index][1]
-
+    for i, active_index in enumerate(active_indices):
+        Ri, Si = exponents[i][0], exponents[i][1]
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[active_index],
             Ri - Si,
@@ -249,7 +248,7 @@ def bosonic_product_plus_hc_block_encoding(
         block_encoding_metrics += adder_metrics
 
         rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
-            block_encoding_ancillae[1],
+            block_encoding_ancillae[1 + i],
             system.bosonic_system[active_index],
             Ri,
             Si,
@@ -259,11 +258,12 @@ def bosonic_product_plus_hc_block_encoding(
         gates += rotation_gates
         block_encoding_metrics += rotation_metrics
 
-        gates.append(
-            cirq.X.on(clean_ancillae[0]).controlled_by(
-                *ctrls[0], control_values=ctrls[1]
-            )
-        )  # right elbow followed by left elbow is a CNOT
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )  # right elbow followed by left elbow is a CNOT
+
+    for i, active_index in enumerate(active_indices):
+        Ri, Si = exponents[i][0], exponents[i][1]
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[active_index],
             -Ri + Si,
@@ -273,14 +273,14 @@ def bosonic_product_plus_hc_block_encoding(
         gates += adder_gates
         block_encoding_metrics += adder_metrics
 
-        _gates, _metrics = decompose_controls_right(
-            (ctrls[0] + [index], ctrls[1] + [1]), clean_ancillae[0]
-        )
-        gates += _gates
-        block_encoding_metrics += _metrics
-        block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [index], ctrls[1] + [1]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
 
-        gates.append(cirq.H.on(index))
+    gates.append(cirq.H.on(index))
 
     return gates, block_encoding_metrics
 
