@@ -4,6 +4,7 @@ import numpy as np
 import cirq
 from .decompose import decompose_controls_left, decompose_controls_right
 from src.lobe.multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
+from ._utils import _apply_negative_identity
 
 
 def bosonic_mode_block_encoding(
@@ -11,6 +12,7 @@ def bosonic_mode_block_encoding(
     block_encoding_ancilla,
     active_index,
     exponents,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -23,6 +25,7 @@ def bosonic_mode_block_encoding(
         block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
         active_index (int): An integer representing the bosonic mode on which the operator acts
         exponents (Tuple(int, int)): A Tuple of ints corresponds to the exponents of the operators: (R, S).
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -34,6 +37,9 @@ def bosonic_mode_block_encoding(
 
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
+    if sign == -1:
+        gates += _apply_negative_identity(block_encoding_ancilla, ctrls=ctrls)
 
     R, S = exponents[0], exponents[1]
 
@@ -65,6 +71,7 @@ def bosonic_modes_block_encoding(
     block_encoding_ancillae,
     active_indices,
     exponents_list,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -79,7 +86,9 @@ def bosonic_modes_block_encoding(
             active indices. Each block-encoding ancilla is used to block-encode the operators acting on one mode
         active_indices (List[int]): An integer representing the bosonic modes on which the operator acts in
             right to left order: [l, ..., j, i]
-        exponents_list (List[Tuple(int, int)]): A List of Tuples of ints corresponds to the exponents of the operators: (R, S).
+        exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
+            annihilation (Si) operators in the operator acting on mode i.
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -91,6 +100,10 @@ def bosonic_modes_block_encoding(
 
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
+    if sign == -1:
+        gates += _apply_negative_identity(block_encoding_ancillae[0], ctrls=ctrls)
+
     for block_encoding_ancilla, active_index, exponents in zip(
         block_encoding_ancillae, active_indices, exponents_list
     ):
@@ -112,6 +125,7 @@ def bosonic_mode_plus_hc_block_encoding(
     block_encoding_ancillae,
     active_index,
     exponents,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -124,7 +138,8 @@ def bosonic_mode_plus_hc_block_encoding(
         system (lobe.system.System): The system object holding the system registers
         block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
         active_index (int): An integer representing the bosonic mode on which the operator acts
-        exponents (Tuple(int, int)): A Tuple of ints corresponds to the exponents of the operators: (S, R).
+        exponents (Tuple(int, int)): A Tuple of ints corresponds to the exponents of the operators: (R, S).
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -136,6 +151,9 @@ def bosonic_mode_plus_hc_block_encoding(
     gates = []
     block_encoding_metrics = CircuitMetrics()
     index = block_encoding_ancillae[0]
+
+    if sign == -1:
+        gates += _apply_negative_identity(index, ctrls=ctrls)
 
     gates.append(cirq.H.on(index))
 
@@ -194,29 +212,32 @@ def bosonic_product_plus_hc_block_encoding(
     system,
     block_encoding_ancillae,
     active_indices,
-    exponents,
+    exponents_list,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
-    """
+    """Obtain operations for a block-encoding circuit for a product of bosonic operators acting on multiple modes plus hermitian conjugate
+
     NOTE: Assumes operator is written in the form:
          $(a_i^\dagger)^{R_i} (a_i)^{S_i}) (a_j^\dagger)^{R_j} (a_j)^{S_j}) ... (a_l^\dagger)^{R_l} (a_l)^{S_l})$
          Hermitian conjugate
 
      Args:
-         system (lobe.system.System): The system object holding the system registers
-         block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
-             of which operators are applied (right to left).
-         exponents (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
-             annihilation (Si) operators in the operator acting on mode i.
-         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
-             the control qubits and values.
+        system (lobe.system.System): The system object holding the system registers
+        block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
+        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+            of which operators are applied (right to left).
+        exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
+            annihilation (Si) operators in the operator acting on mode i.
+        sign (int): Either 1 or -1 to indicate the sign of the term
+        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
 
      Returns:
-         - List of cirq operations representing the gates to be applied in the circuit
-         - CircuitMetrics object representing cost of block-encoding circuit
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
     """
 
     assert len(ctrls[0]) <= 1
@@ -226,6 +247,8 @@ def bosonic_product_plus_hc_block_encoding(
     gates = []
     block_encoding_metrics = CircuitMetrics()
     index = block_encoding_ancillae[0]
+    if sign == -1:
+        gates += _apply_negative_identity(index, ctrls=ctrls)
 
     gates.append(cirq.H.on(index))
 
@@ -237,7 +260,7 @@ def bosonic_product_plus_hc_block_encoding(
     block_encoding_metrics += _metrics
 
     for i, active_index in enumerate(active_indices):
-        Ri, Si = exponents[i][0], exponents[i][1]
+        Ri, Si = exponents_list[i][0], exponents_list[i][1]
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[active_index],
             Ri - Si,
@@ -263,7 +286,7 @@ def bosonic_product_plus_hc_block_encoding(
     )  # right elbow followed by left elbow is a CNOT
 
     for i, active_index in enumerate(active_indices):
-        Ri, Si = exponents[i][0], exponents[i][1]
+        Ri, Si = exponents_list[i][0], exponents_list[i][1]
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[active_index],
             -Ri + Si,

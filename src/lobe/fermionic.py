@@ -8,6 +8,7 @@ def fermionic_product_block_encoding(
     block_encoding_ancilla,
     active_indices,
     operator_types,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -21,6 +22,7 @@ def fermionic_product_block_encoding(
         operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
             number operator
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -32,8 +34,10 @@ def fermionic_product_block_encoding(
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
     block_encoding_metrics = CircuitMetrics()
-
     gates = []
+
+    if sign == -1:
+        gates.append(cirq.Z.on(ctrls[0][0]))
 
     temporary_computations = []
     clean_ancillae_index = 0
@@ -109,6 +113,7 @@ def fermionic_plus_hc_block_encoding(
     block_encoding_ancilla,
     active_indices,
     operator_types,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -126,6 +131,7 @@ def fermionic_plus_hc_block_encoding(
         operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
             number operator
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -137,8 +143,10 @@ def fermionic_plus_hc_block_encoding(
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
     block_encoding_metrics = CircuitMetrics()
-
     gates = []
+
+    if sign == -1:
+        gates.append(cirq.Z.on(ctrls[0][0]))
 
     temporary_computations = []
     parity_qubits = []

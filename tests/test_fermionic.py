@@ -34,6 +34,7 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         )
     operator_types_reversed = operator_types_reversed[:number_of_active_modes]
     operator_types_reversed = list(operator_types_reversed)
+    sign = np.random.choice([1, -1])
 
     operator_string = ""
     for mode, operator_type in zip(active_modes, operator_types_reversed):
@@ -44,7 +45,7 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         if operator_type == 2:
             operator_string += f" b{mode}^ b{mode}"
 
-    operator = ParticleOperator(operator_string)
+    operator = ParticleOperator(operator_string, coeff=sign)
     operator += operator.dagger()
 
     circuit, metrics, system = _setup(
@@ -55,6 +56,7 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
             fermionic_plus_hc_block_encoding,
             active_indices=active_modes[::-1],
             operator_types=operator_types_reversed[::-1],
+            sign=sign,
         ),
     )
 
@@ -103,6 +105,7 @@ def test_arbitrary_fermionic_product(trial):
         )
     operator_types_reversed = operator_types_reversed[:number_of_active_modes]
     operator_types_reversed = list(operator_types_reversed)
+    sign = np.random.choice([1, -1])
 
     operator_string = ""
     for mode, operator_type in zip(active_modes, operator_types_reversed):
@@ -113,7 +116,7 @@ def test_arbitrary_fermionic_product(trial):
         if operator_type == 2:
             operator_string += f" b{mode}^ b{mode}"
 
-    operator = ParticleOperator(operator_string)
+    operator = sign * ParticleOperator(operator_string)
 
     circuit, metrics, system = _setup(
         1,
@@ -123,6 +126,7 @@ def test_arbitrary_fermionic_product(trial):
             fermionic_product_block_encoding,
             active_indices=active_modes[::-1],
             operator_types=operator_types_reversed[::-1],
+            sign=sign,
         ),
     )
 

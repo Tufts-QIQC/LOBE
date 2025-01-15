@@ -12,6 +12,7 @@ def yukawa_4point_pair_term_block_encoding(
     system,
     block_encoding_ancillae,
     active_indices,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -25,6 +26,7 @@ def yukawa_4point_pair_term_block_encoding(
         block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -37,6 +39,9 @@ def yukawa_4point_pair_term_block_encoding(
     assert ctrls[1] == [1]
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
+    if sign == -1:
+        gates.append(cirq.Z.on(ctrls[0][0]))
 
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
     temporary_qbool = clean_ancillae[0]
@@ -144,6 +149,7 @@ def yukawa_3point_pair_term_block_encoding(
     system,
     block_encoding_ancillae,
     active_indices,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -157,6 +163,7 @@ def yukawa_3point_pair_term_block_encoding(
         block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -169,6 +176,9 @@ def yukawa_3point_pair_term_block_encoding(
     assert ctrls[1] == [1]
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
+    if sign == -1:
+        gates.append(cirq.Z.on(ctrls[0][0]))
 
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
     temporary_qbool = clean_ancillae[0]
@@ -272,6 +282,7 @@ def _custom_fermionic_plus_nonhc_block_encoding(
     system,
     block_encoding_ancilla,
     active_indices,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -284,6 +295,7 @@ def _custom_fermionic_plus_nonhc_block_encoding(
         block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left): [k, j, i].
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -296,6 +308,9 @@ def _custom_fermionic_plus_nonhc_block_encoding(
     assert ctrls[1] == [1]
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
+    if sign == -1:
+        gates.append(cirq.Z.on(ctrls[0][0]))
 
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
     gates.append(
@@ -376,6 +391,7 @@ def _custom_term_block_encoding(
     system,
     block_encoding_ancilla,
     active_indices,
+    sign=1,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -388,6 +404,7 @@ def _custom_term_block_encoding(
         block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left): [j, i].
+        sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -400,6 +417,9 @@ def _custom_term_block_encoding(
     assert ctrls[1] == [1]
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
+    if sign == -1:
+        gates.append(cirq.Z.on(ctrls[0][0]))
 
     _gates, _metrics = decompose_controls_left(
         (ctrls[0] + [system.fermionic_register[active_indices[1]]], ctrls[1] + [0]),
