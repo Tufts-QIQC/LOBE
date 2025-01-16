@@ -36,7 +36,6 @@ def bosonic_mode_block_encoding(
     block_encoding_metrics = CircuitMetrics()
 
     R, S = exponents[0], exponents[1]
-
     adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_index],
         R - S,

@@ -68,7 +68,11 @@ class LCU:
         self.operator = operator
         self.zero_threshold = zero_threshold
         paulis = operator.to_paulis(
-            max_bose_occ=max_bose_occ, zero_threshold=zero_threshold
+            max_fermionic_mode=operator.max_fermionic_mode,
+            max_antifermionic_mode=operator.max_antifermionic_mode,
+            max_bosonic_mode=operator.max_bosonic_mode,
+            max_bosonic_occupancy=max_bose_occ,
+            zero_threshold=zero_threshold,
         )
 
         self.paulis = seperate_real_imag(paulis, zero_threshold=zero_threshold)
