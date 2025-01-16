@@ -10,29 +10,36 @@ f W \psi_m
 c0 W 0 0
 c1 W 0 0
 c2 W 0 0
-1 W \vdots
+1 W 0 0
 c3 W 0 0
 
+c0 START
 a +c0
-b +c0
-f c0 c1 c2 c3 TOUCH
-b +c1
-c +c1
-f c0 c1 c2 c3 TOUCH
-c +c2
-f +c2
+c1 START
+b +c0 +c1
+c2 START
+c +c1 +c2
+1 START
+c +1
+f +1
 
+c3 START
 -c0 -c1 -c2 -1 +c3
 ctrl -c3 +anc
 -c0 -c1 -c2 -1 +c3
-f +c2
-c +c2
-f c0 c1 c2 c3 TOUCH
-c +c1
-b +c1
-f c0 c1 c2 c3 TOUCH
-b +c0
+c3 END
+
+f +1
+c +1
+1 END
+c +c1 +c2
+c2 END
+b +c0 +c1
+c1 END
 a +c0
+c0 END
+
+
 
 ctrl -a color=torange
 

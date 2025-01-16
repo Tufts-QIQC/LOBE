@@ -32,15 +32,17 @@ def test_yukawa_3point(trial):
     fermionic_indices = list(
         np.random.choice(range(number_of_fermionic_modes), size=2, replace=False)
     )
+    sign = np.random.choice([1, -1])
 
     operator_string = (
         f"b{fermionic_indices[1]} b{fermionic_indices[0]} a{bosonic_index[0]}^"
     )
-    operator = ParticleOperator(operator_string)
+    operator = ParticleOperator(operator_string, coeff=sign)
     conjugate_string = (
         f"b{fermionic_indices[0]}^ b{fermionic_indices[1]}^ a{bosonic_index[0]}"
     )
-    operator += ParticleOperator(conjugate_string)
+    operator += operator.dagger()
+    # operator *= ParticleOperator("", coeff=sign)
 
     number_of_block_encoding_ancillae = 2
     circuit, metrics, system = _setup(
@@ -50,6 +52,7 @@ def test_yukawa_3point(trial):
         partial(
             yukawa_3point_pair_term_block_encoding,
             active_indices=bosonic_index + fermionic_indices,
+            sign=sign,
         ),
     )
 
@@ -82,11 +85,13 @@ def test_yukawa_4point(trial):
     fermionic_indices = list(
         np.random.choice(range(number_of_fermionic_modes), size=2, replace=False)
     )
+    sign = np.random.choice([1, -1])
 
     operator_string = f"b{fermionic_indices[1]} b{fermionic_indices[0]} a{bosonic_indices[1]}^ a{bosonic_indices[0]}^"
-    operator = ParticleOperator(operator_string)
+    operator = ParticleOperator(operator_string, coeff=sign)
     conjugate_string = f"b{fermionic_indices[0]}^ b{fermionic_indices[1]}^ a{bosonic_indices[1]} a{bosonic_indices[0]}"
-    operator += ParticleOperator(conjugate_string)
+    # operator += ParticleOperator(conjugate_string)
+    operator += operator.dagger()
 
     number_of_block_encoding_ancillae = 3
     circuit, metrics, system = _setup(
@@ -96,6 +101,7 @@ def test_yukawa_4point(trial):
         partial(
             yukawa_4point_pair_term_block_encoding,
             active_indices=bosonic_indices + fermionic_indices,
+            sign=sign,
         ),
     )
 
@@ -123,6 +129,7 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
     fermionic_indices = list(
         np.random.choice(range(number_of_fermionic_modes), size=3, replace=False)
     )
+    sign = np.random.choice([1, -1])
 
     operator_string = (
         f"b{fermionic_indices[2]} b{fermionic_indices[1]} b{fermionic_indices[0]}^"
@@ -132,6 +139,7 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
         f"b{fermionic_indices[1]}^ b{fermionic_indices[2]}^ b{fermionic_indices[0]}^"
     )
     operator += ParticleOperator(nonconjugate_string)
+    operator *= ParticleOperator("", coeff=sign)
 
     number_of_block_encoding_ancillae = 1
     circuit, metrics, system = _setup(
@@ -141,6 +149,7 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
         partial(
             _custom_fermionic_plus_nonhc_block_encoding,
             active_indices=fermionic_indices,
+            sign=sign,
         ),
     )
 
@@ -170,11 +179,13 @@ def test_custom_term_block_encoding(trial):
     ]
     number_of_bosonic_modes = np.random.randint(1, 1 + 1)
     active_bosonic_index = np.random.choice(range(number_of_bosonic_modes), size=1)[0]
+    sign = np.random.choice([1, -1])
 
     operator_string = f"b{active_fermionic_index} a{active_bosonic_index}"
-    operator = ParticleOperator(operator_string)
+    operator = ParticleOperator(operator_string, coeff=sign)
     conjugate_string = f"b{active_fermionic_index}^ a{active_bosonic_index}^"
-    operator += ParticleOperator(conjugate_string)
+    # operator += ParticleOperator(conjugate_string)
+    operator += operator.dagger()
 
     number_of_block_encoding_ancillae = 1
     circuit, metrics, system = _setup(
@@ -184,6 +195,7 @@ def test_custom_term_block_encoding(trial):
         partial(
             _custom_term_block_encoding,
             active_indices=[active_bosonic_index, active_fermionic_index],
+            sign=sign,
         ),
     )
 

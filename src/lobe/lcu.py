@@ -62,7 +62,7 @@ class LCU:
     def __init__(
         self,
         operator: ParticleOperator,
-        max_bose_occ: int,
+        max_bosonic_occupancy: int,
         zero_threshold: float = 1e-15,
     ):
         self.operator = operator
@@ -71,7 +71,11 @@ class LCU:
             max_fermionic_mode=operator.max_fermionic_mode,
             max_antifermionic_mode=operator.max_antifermionic_mode,
             max_bosonic_mode=operator.max_bosonic_mode,
+<<<<<<< HEAD
             max_bosonic_occupancy=max_bose_occ,
+=======
+            max_bosonic_occupancy=max_bosonic_occupancy,
+>>>>>>> ecbbe2554bdaa5a22779fe4819628891d6bbb095
             zero_threshold=zero_threshold,
         )
 
@@ -105,7 +109,7 @@ class LCU:
 
         return pre_coeffs, one_norm
 
-    def get_circuit(self):
+    def get_circuit(self, ctrls=([], [])):
         self.circuit = cirq.Circuit()
         self.circuit_metrics = CircuitMetrics()
 
@@ -122,6 +126,7 @@ class LCU:
             self.paulis,
             system_register=self.system_register,
             clean_ancillae=self.clean_ancillae,
+            ctrls=ctrls,
         )
         self.circuit.append(_gates)
         self.circuit_metrics += _metrics
