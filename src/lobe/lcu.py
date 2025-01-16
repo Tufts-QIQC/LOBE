@@ -71,11 +71,7 @@ class LCU:
             max_fermionic_mode=operator.max_fermionic_mode,
             max_antifermionic_mode=operator.max_antifermionic_mode,
             max_bosonic_mode=operator.max_bosonic_mode,
-<<<<<<< HEAD
-            max_bosonic_occupancy=max_bose_occ,
-=======
             max_bosonic_occupancy=max_bosonic_occupancy,
->>>>>>> ecbbe2554bdaa5a22779fe4819628891d6bbb095
             zero_threshold=zero_threshold,
         )
 
