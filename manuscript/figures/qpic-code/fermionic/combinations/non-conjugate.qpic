@@ -6,13 +6,17 @@ k W \psi_k
 c0 W 0 0
 c1 W 0 0
 
+c0 START
 i +c0
 j +c0
+c1 START
 -k -c0 +c1
 ctrl -c1 +anc
 -k -c0 +c1
+c1 END
 j +c0
 i +c0
+c0 END
 
 ctrl i
 

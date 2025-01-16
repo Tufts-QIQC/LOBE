@@ -14,17 +14,25 @@ i / ^{i<j}
 k / ^{j<k<l}
 m / ^{l<m<n}
 ctrl anc i j k l m n clean0 LABEL
+clean0 START
 j +clean0
 l +clean0
+clean1 START
 l +clean1
 n +clean1
--clean0 -clean1 clean2
+clean2 START
+-clean0 -clean1 +clean2
 ctrl -clean2 +anc
--clean0 -clean1 clean2
+-clean0 -clean1 +clean2
+clean2 END
 n +clean1
 l +clean1
+clean1 END
 l +clean0
 j +clean0
+clean0 END
+
+ctrl -j
 
 i j k l m G $\vec{Z}$ ctrl +n
 i j k G $\vec{Z}$ ctrl +l

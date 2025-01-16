@@ -16,7 +16,7 @@ from functools import partial
 
 MAX_MODES = 7
 MAX_ACTIVE_MODES = 7
-MIN_ACTIVE_MODES = 2
+MIN_ACTIVE_MODES = 1
 
 
 @pytest.mark.parametrize("trial", range(100))
@@ -81,13 +81,16 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
     number_of_number_ops = operator_types_reversed[::-1].count(2)
 
     assert metrics.number_of_elbows == len(active_modes[::-1]) - 1
-    assert metrics.clean_ancillae_usage[-1] == 0
-    assert (
-        max(metrics.clean_ancillae_usage)
-        == (len(active_modes[::-1]) - number_of_number_ops - 1)  # parity qubits
-        + (len(active_modes[::-1]) - 2)  # elbows for qbool
-        + 1  # elbow to apply toff that flips ancilla
-    )
+    if len(metrics.clean_ancillae_usage) > 0:
+        assert metrics.clean_ancillae_usage[-1] == 0
+        assert (
+            max(metrics.clean_ancillae_usage)
+            == (len(active_modes[::-1]) - number_of_number_ops - 1)  # parity qubits
+            + (len(active_modes[::-1]) - 2)  # elbows for qbool
+            + 1  # elbow to apply toff that flips ancilla
+        )
+    else:
+        assert number_of_active_modes == 1
 
 
 @pytest.mark.parametrize("trial", range(100))
@@ -148,10 +151,10 @@ def test_arbitrary_fermionic_product(trial):
         maximum_occupation_number,
     )
 
-    assert metrics.number_of_elbows == len(active_modes[::-1]) - 1
+    assert metrics.number_of_elbows == len(active_modes[::-1])
     assert metrics.clean_ancillae_usage[-1] == 0
     assert (
         max(metrics.clean_ancillae_usage)
-        == (len(active_modes[::-1]) - 2)  # elbows for qbool
+        == (len(active_modes[::-1]) - 1)  # elbows for qbool
         + 1  # elbow to apply toff that flips ancilla
     )

@@ -1,39 +1,26 @@
 \begin{tikzpicture}[scale=1.000000,x=1pt,y=1pt]
-\filldraw[color=white] (0.000000, -7.500000) rectangle (65.000000, 67.500000);
+\filldraw[color=white] (0.000000, -7.500000) rectangle (18.000000, 37.500000);
 % Drawing wires
 % Line 1: ctrl W \text{(a) }ctrl
-\draw[color=black] (0.000000,60.000000) -- (65.000000,60.000000);
-\draw[color=black] (0.000000,60.000000) node[left] {$\text{(a) }ctrl$};
+\draw[color=black] (0.000000,30.000000) -- (18.000000,30.000000);
+\draw[color=black] (0.000000,30.000000) node[left] {$\text{(a) }ctrl$};
 % Line 2: anc W anc
-\draw[color=black] (0.000000,45.000000) -- (65.000000,45.000000);
-\draw[color=black] (0.000000,45.000000) node[left] {$anc$};
+\draw[color=black] (0.000000,15.000000) -- (18.000000,15.000000);
+\draw[color=black] (0.000000,15.000000) node[left] {$anc$};
 % Line 3: i W \psi_i
-\draw[color=black] (0.000000,30.000000) -- (65.000000,30.000000);
-\draw[color=black] (0.000000,30.000000) node[left] {$\psi_i$};
-% Line 4: j W \psi_j
-\draw[color=black] (0.000000,15.000000) -- (65.000000,15.000000);
-\draw[color=black] (0.000000,15.000000) node[left] {$\psi_j$};
-% Line 5: k W \psi_k
-\draw[color=black] (0.000000,0.000000) -- (65.000000,0.000000);
-\draw[color=black] (0.000000,0.000000) node[left] {$\psi_k$};
+\draw[color=black] (0.000000,0.000000) -- (18.000000,0.000000);
+\draw[color=black] (0.000000,0.000000) node[left] {$\psi_i$};
 % Done with wires; drawing gates
-% Line 7: i / ^{i<j}
-\draw (6.000000, 24.000000) -- (14.000000, 36.000000);
-\draw (12.000000, 33.000000) node[right] {$\scriptstyle{^{i<j}}$};
-% Line 8: k / ^{k>j}
-\draw (6.000000, -6.000000) -- (14.000000, 6.000000);
-\draw (12.000000, 3.000000) node[right] {$\scriptstyle{^{k>j}}$};
-% Line 9: ctrl anc i j k LABEL
-% Line 10: -j +anc ctrl
-\draw (56.000000,60.000000) -- (56.000000,15.000000);
-\draw[fill=white] (56.000000, 15.000000) circle(2.250000pt);
+% Line 5: -i +anc ctrl
+\draw (9.000000,30.000000) -- (9.000000,0.000000);
+\draw[fill=white] (9.000000, 0.000000) circle(2.250000pt);
 \begin{scope}
-\draw[fill=white] (56.000000, 45.000000) circle(3.000000pt);
-\clip (56.000000, 45.000000) circle(3.000000pt);
-\draw (53.000000, 45.000000) -- (59.000000, 45.000000);
-\draw (56.000000, 42.000000) -- (56.000000, 48.000000);
+\draw[fill=white] (9.000000, 15.000000) circle(3.000000pt);
+\clip (9.000000, 15.000000) circle(3.000000pt);
+\draw (6.000000, 15.000000) -- (12.000000, 15.000000);
+\draw (9.000000, 12.000000) -- (9.000000, 18.000000);
 \end{scope}
-\filldraw (56.000000, 60.000000) circle(1.500000pt);
+\filldraw (9.000000, 30.000000) circle(1.500000pt);
 % Done with gates; drawing ending labels
 % Done with ending labels; drawing cut lines and comments
 % Done with comments

@@ -9,11 +9,13 @@ c0 W 0 0
 i / ^{i<j}
 k / ^{j<k<l}
 c a i j k l c0 LABEL
+c0 START
 j +c0
 -l +c0
-c -c0 +a
+c c0 +a
 -l +c0
 j +c0
+c0 END
 c -j
 
 i j k G $\vec{Z}$ c +l
