@@ -41,3 +41,10 @@ class CircuitMetrics:
             return max(self.clean_ancillae_usage)
         else:
             return 0
+
+    def display_metrics(self):
+        print("--- Metrics ---")
+        print("Number of elbows: ", self.number_of_elbows)
+        print("Number of T-gates: ", self.number_of_t_gates)
+        print("Number of rotations: ", self.number_of_rotations)
+        print("---------------")
