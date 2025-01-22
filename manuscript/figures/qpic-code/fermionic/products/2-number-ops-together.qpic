@@ -1,0 +1,10 @@
+ctrl W \text{(b) }ctrl
+anc W anc
+i W \psi_i
+j W \psi_j
+clean0 W 0 0
+
+i j +clean0
+-clean0 ctrl +anc
+i j +clean0
+

@@ -1,6 +1,8 @@
 import numpy as np
 from typing import List
 import openparticle as op
+from .rescale import get_active_bosonic_modes
+import cirq
 
 
 def pretty_print(
@@ -134,7 +136,7 @@ def get_basis_of_full_system(
 
 def get_parsed_dictionary(operator, number_of_modes=None):
     if number_of_modes is None:
-        number_of_modes = operator.max_mode() + 1
+        number_of_modes = operator.max_mode + 1
     parsed_operator_array = {
         "fermion": {
             "creation": np.zeros(number_of_modes, dtype=int),
@@ -157,3 +159,42 @@ def get_parsed_dictionary(operator, number_of_modes=None):
                 ladder.mode
             ] += 1
     return parsed_operator_array
+
+
+def get_bosonic_exponents(operator, number_of_modes=None):
+    active_bosonic_modes = get_active_bosonic_modes(operator)
+    parsed_operator_array = get_parsed_dictionary(
+        operator, number_of_modes=number_of_modes
+    )
+    exponents_list = []
+    for active_mode in active_bosonic_modes:
+        exponents_list.append(
+            (
+                parsed_operator_array["boson"]["creation"][active_mode],
+                parsed_operator_array["boson"]["annihilation"][active_mode],
+            )
+        )
+    return active_bosonic_modes, exponents_list
+
+
+def _apply_negative_identity(target, ctrls=([], [])):
+    """Add a controlled -I to the circuit
+
+    Args:
+        target (cirq.LineQubit): An arbitrary qubit on which to apply the -I
+         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+             the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+    """
+    gates = []
+
+    gates.append(cirq.X.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
+    gates.append(cirq.Y.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
+    gates.append(cirq.Z.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
+    gates.append(cirq.X.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
+    gates.append(cirq.Y.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
+    gates.append(cirq.Z.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
+
+    return gates

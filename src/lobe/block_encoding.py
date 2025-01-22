@@ -255,12 +255,13 @@ def _apply_term(
                 numerics=numerics,
             )
             bosonic_counter += 1
-            gates += add_classical_value_incrementers(
+            adder_gates, _ = add_classical_value_incrementers(
                 system.bosonic_system[mode],
                 creation_exponent - annihilation_exponent,
                 clean_ancillae,
                 ctrls=ctrls,
             )
+            gates += adder_gates
             p_val = _get_p_val(
                 creation_exponent - annihilation_exponent,
                 len(system.bosonic_system[mode]),
@@ -432,13 +433,16 @@ def _add_bosonic_rotations(
                 )
             angles.append(2 * np.arcsin(-1 * intended_coefficient) / np.pi)
 
-    gates += get_decomposed_multiplexed_rotation_circuit(
-        bosonic_mode_register + [rotation_qubit],
+    rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
+        bosonic_mode_register,
+        rotation_qubit,
         angles,
         clean_ancillae=clean_ancillae,
         ctrls=ctrls,
-        numerics=numerics,
     )
+    gates += rotation_gates
+    if numerics is not None:
+        numerics["rotations"] += rotation_metrics.number_of_rotations
     return gates
 
 
