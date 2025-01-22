@@ -85,6 +85,24 @@ def get_numbers_of_bosonic_operators_in_terms(terms):
     return numbers_of_bosonic_ops
 
 
+def get_active_bosonic_modes(operator):
+    """Get a list of the bosonic modes being acted on.
+
+    Args:
+        operator (Optional[ParticleOperator, List[ParticleOperator]]): The operator/term in question
+
+    Returns:
+        List[int]: A list of active bosonic modes
+    """
+    active_modes = []
+    for term in operator.to_list():
+        for op in term.split():
+            if isinstance(op, BosonOperator):
+                if op.mode not in active_modes:
+                    active_modes.append(op.mode)
+    return active_modes
+
+
 def get_number_of_active_bosonic_modes(terms):
     """Get a list of the number of bosonic modes being acted on in each term.
 
@@ -97,11 +115,7 @@ def get_number_of_active_bosonic_modes(terms):
     """
     numbers_of_active_bosonic_modes = []
     for term in terms:
-        active_modes = []
-        for operator in term.split():
-            if isinstance(operator, BosonOperator):
-                if operator.mode not in active_modes:
-                    active_modes.append(operator.mode)
+        active_modes = get_active_bosonic_modes(term)
         numbers_of_active_bosonic_modes.append(len(active_modes))
 
     return numbers_of_active_bosonic_modes

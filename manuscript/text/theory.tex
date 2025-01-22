@@ -1,70 +1,81 @@
 \section{Theory}
 \label{sec:theory}
 
-%Give background of ladder operators and constructions of realistic Hamiltonians/Observables from ladder Operators
-In quantum field theories and quantum chemistry, the main method of keeping track of multiparticle states is known as second quantization \cite{Sakurai_Napolitano_2020}.
-In second quantization, multiparticle state vectors are written as $\ket{n} = \ket{n_{I-1}, \dots, n_1, n_0}$ where $n_i \in \mathbb{Z}$ is the number of particles present in mode $i$.
-The fermionic (and antifermionic) occupancy of a mode can either be $0$ or $1$ due to the Pauli exclusion principle \cite{pauli1925zusammenhang}.
+\ws{
+    @Gus, order of this section should go something like:
+    \begin{enumerate}
+        \item Introduce second-quantization
+        \item Discuss importance/relevance from chemisty and roughly how it comes into play from quantum field theory
+        \item Define ladder operators
+        \item Comment on how/why we can treat antifermions as fermions
+        \item Define terms as product of ladder operators
+        \item Define linear combination of ladder operators and how this gives the form of second-quantized hamiltonians 
+    \end{enumerate}
+}
+
+Quantum field theories and quantum chemistry, utilize second quantization \cite{Sakurai_Napolitano_2020}, where multiparticle state vectors are written in an occupation number basis as $\ket{n} = \ket{n_{I-1}, \dots, n_1, n_0}$ where $n_i \in \mathbb{Z}$ is the number of particles present in mode $i$.
+
 
 There is no physical limitation on the occupancy of bosonic modes: $n_{i_a} \in [0, 1, 2, \dots)$.
-This leads to an infinitely large space, therefore we can impose an artificial occupancy cutoff ($\Omega$) such that $n_{i_a} \in [0, 1, 2, \Omega)$ and the space becomes finite.
+Hence the Hilbert space of a single bosonic mode is countably infinite dimensional, therefore we can impose a cutoff ($\Omega$) on the occupancy such that $n_{i_a} \in [0, 1, 2, \dots, \Omega)$ and the space becomes finite.
 The cutoff on the occupancy can introduce error as some physically allowable states become inaccessible.
-However, $\Omega$ can often be chosen such that this error is either zero (if high-occupancy states are never accessed) or reasonable small and the contribution of the magnitude of the error is known. 
+However, $\Omega$ can often be chosen such that this error is either zero (if high-occupancy states are never accessed) or reasonably small and the contribution of the magnitude of the error is known. 
 \ws{@Kamil/@Gus, is this a fair statement? Is there something we can cite for either no-error or known-error cases?}
 \gus{I think it's fair, but could be written differently. How we solve these problems is by expanding in a Fock space of increasing particle number (e.g. $q\bar{q}$, then $q\bar{q}g$, etc.). The Fock states with many bosons ($g$ here), will have vanishingly small amplitude in the wavefunction, which is why we can set $\Omega$ to be small.}
 
 The space spanned by the second-quantized state vectors is called the \textit{Fock space} ($\mathcal{F}$) and the state vectors are referred to as \textit{Fock states}.
-In second quantization, the Hilbert space is promoted to the Fock space via \cite{Schwartz_2013}:
+The Fock space is a direct sum of n-particle sectors for all n. \cite{Schwartz_2013}:
 \begin{equation}
     \mathcal{F} = \oplus_n \mathcal{H}_n.
 \end{equation}
 
-Second quantization appears in quantum chemistry after projecting the Hamiltonian onto basis wavefunctions, and ensuring exchange symmetry via Slater determinants.
-Similarly, in quantum field theories, field operators, rather than wavefunctions, are the main objects of the theory. These field operators act on second-quantized states to create and annihilate particles in the field. 
 
-In second quantization, creation and annihilation operators - which will collectively be refered to as \emph{ladder operators} - are used to manipulate the state of the system.
+In quantum field theories, field operators, rather than wavefunctions, are the main objects of the theory. These field operators act on second-quantized states to create and annihilate particles in the field. 
+
+In second quantization, creation and annihilation operators - which here will collectively be refered to as \emph{ladder operators} - are used to manipulate the state of the system.
 Creation operators increase the occupancy of the mode they act on, while annihilation operators decrease the occupancy.
-Many observables (such as Hamiltonians) can be efficiently expressed as products and/or sums of ladder operators.  
+Many observables (such as Hamiltonians) can be efficiently expressed as sums or products of ladder operators.  
 
-In quantum field theories, the main object of the theories is the \textit{field operator}, rather than the wavefunction. Field operators are written in terms of creation and annihilation operators which, when acting on the vacuum, create and annihilate particles of a particular type. 
-These operators arise from classical field theory, where fields are described by $\phi(x)$, which, given an input $x$, tell you the value of the field $\phi(x)$  at this point. In quantum field theories, they are promoted to operators to obtain $\phi(x) \rightarrow \hat{\phi}(x)$.
-In this formalism, if we act on the vacuum with $\hat{\phi}(x)$, and take the inner product with either a position or momentum eigenstate, we get:
-\begin{align}
-    \langle y|\hat{\phi}(x)|0\rangle &= \delta^{(3)}(\vec{x} - \vec{y}) \\ \nonumber
-    \langle q|\hat{\phi}(x)|0\rangle &= e^{iqx}, \\
-\end{align}
-which shows that $\hat{\phi}(x)$ creates a particle at a particular location with some spread of momentum such that it obeys the Heisenberg uncertainty principle.
+%In quantum field theories, the main object of the theories is the \textit{field operator}, rather than the wavefunction. Field operators are written in terms of creation and annihilation operators which, when acting on the vacuum, create and annihilate particles of a particular type. 
+%These operators arise from classical field theory, where fields are described by $\phi(x)$, which, given an input $x$, tell you the value of the field $\phi(x)$  at this point. In quantum field theories, they are promoted to operators to obtain $\phi(x) \rightarrow \hat{\phi}(x)$.
+%In this formalism, if we act on the vacuum with $\hat{\phi}(x)$, and take the inner product with either a position or momentum eigenstate, we get:
+%\begin{align}
+%    \langle y|\hat{\phi}(x)|0\rangle &= \delta^{(3)}(\vec{x} - \vec{y}) \\ \nonumber
+%    \langle q|\hat{\phi}(x)|0\rangle &= e^{iqx}, \\
+%\end{align}
+%which shows that $\hat{\phi}(x)$ creates a particle at a particular location with some spread of momentum such that it obeys the Heisenberg uncertainty principle.
 
-Field operators are Fourier transforms of creation and annihilation operators acting on momentum modes: 
-\begin{equation}
-    \phi(x) = \int \frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}\left(a_p e^{ipx} + a_p^\dagger e^{-ipx}\right).
-\end{equation}
-where $a_p$, and $a_p^\dagger$ are the creation and annihliation operators acting on momentum mode $p$, to be discussed in more detail in section \ref{subsec:operators}.
-$E_p$ is the energy of a particle with momentum $p$, which taken with $\frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}$ ensures Lorentz invariance. 
+%Field operators are Fourier transforms of creation and annihilation operators acting on momentum modes: 
+%\begin{equation}
+%    \phi(x) = \int \frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}\left(a_p e^{ipx} + a_p^\dagger e^{-ipx}\right).
+%\end{equation}
+%where $a_p$, and $a_p^\dagger$ are the creation and annihliation operators acting on momentum mode $p$, to be discussed in more detail in section \ref{subsec:operators}.
+%$E_p$ is the energy of a particle with momentum $p$, which taken with $\frac{d^3p}{(2\pi)^3}\frac{1}{\sqrt{2E_p}}$ ensures Lorentz invariance. 
 
-The Hamiltonian can then be derived from the field operators via 
-\begin{equation}
-    \label{eq:H_from_phi}
-    H = \int d^3x \left(\frac{\partial \mathcal{L}}{\partial \dot{\phi}}\dot{\phi} - \mathcal{L} \right),
-\end{equation}
-which leads to a Hamiltonian written in terms of ladder operators.
-Note that different types of particles with different types of spins have different types of field operators.
-Thus, the Hamiltonians derived from equation \ref{eq:H_from_phi} will be comprised of different operators depending on the theories involved and the associated particle types and spins that are included in the model. 
+%The Hamiltonian can then be derived from the field operators via 
+%\begin{equation}
+%    \label{eq:H_from_phi}
+%    H = \int d^3x \left(\frac{\partial \mathcal{L}}{\partial \dot{\phi}}\dot{\phi} - \mathcal{L} \right),
+%\end{equation}
+%which leads to a Hamiltonian written in terms of ladder operators.
+%Note that different types of particles with different types of spins have different types of field operators.
+%Thus, the Hamiltonians derived from equation \ref{eq:H_from_phi} will be comprised of different operators depending on the theories involved and the associated particle types and spins that are included in the model. 
 
 \subsection{Ladder Operators}
 \label{subsec:operators}
 
-\subsubsection{Fermions and Antifermions}
+\subsubsection{Fermions}
 
-Fermions (and antifermions) obey the Pauli-exclusion principle \cite{pauli1925zusammenhang} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
-Fermionic (and antifermionic) ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
+Fermions obey the Pauli-exclusion principle \cite{pauli1925zusammenhang} and therefore the occupation of a (anti)fermionic mode can only be occupied ($\ket{1}$) or unoccupied ($\ket{0}$).
+Fermionic ladder operators only act non-trivially on the qubits encoding the mode that the ladder operator acts on and we define their action as follows.
 
 The fermionic creation operator is given by:
 \begin{equation}
+    \label{eq:fermionic-creation}
     b_i^\dagger \ket{n_{i_b}} = 
     \begin{cases} 
-        (-1)^{\sum_{j < i} n_{j_b}} \ket{1}  & when \ket{n_{i_b}} is \ket{0} \\
-        0 & when \ket{n_{i_b}} is \ket{1}
+        (-1)^{\sum_{j < i} n_{j_b}} \ket{1}  & {\rm when} \ket{n_{i_b}} = \ket{0} \\
+        0 & {\rm when} \ket{n_{i_b}} = \ket{1}
     \end{cases}
 \end{equation}
 where $b_i$ denotes a fermionic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, and $\ket{n_{i_b}}$ is the occupation of the $i^{th}$ fermionic mode.
@@ -74,32 +85,41 @@ For a fermionic creation operator, if the mode being acted upon is unoccupied, t
 The value of the coefficient on the output state introduces a sign flip if the parity of the $j$ modes indexed prior to $i$ is odd and does not change the sign if the parity is even. 
 Therefore the ordering of the modes in the encoding has an implication on the action of the operator which must be accounted for.
 If the mode is already occupied before a creation operator is applied, then the operator sets the amplitude of the quantum state to zero since a state with two particles in the same mode is not physical.
-This action "destroys" that portion of the quantum state and we refer to this as ``zeroing-out" the quantum state. 
+This action ``destroys" that portion of the quantum state and we refer to this as ``zeroing-out" the quantum state. 
 
 The fermionic annihilation operator is given by:
 \begin{equation}
+    \label{eq:fermionic-annihilation}
     b_i \ket{n_{i_b}} = 
     \begin{cases} 
-        (-1)^{\sum_{j < i} n_{j_b}} \ket{0}  & when \ket{n_{i_b}} = \ket{1} \\
-        0 & when \ket{n_{i_b}} = \ket{0}
+        (-1)^{\sum_{j < i} n_{j_b}} \ket{0}  & {\rm when} \ket{n_{i_b}} = \ket{1} \\
+        0 & {\rm when} \ket{n_{i_b}} = \ket{0}
     \end{cases}
 \end{equation}
 and the antifermionic annihilation operator is likewise defined for $d$ instead of $b$.
-
 The action of the annihilation operators is similar (and opposite) to the creation operators.
 If the mode is already occupied, then the annihilation operator ``annihilates" the fermion at that mode by setting the occupation to zero and applies a phase based on the parity of the occupation of the preceeding modes.
-If the mode is unoccupied before the operator is applied, then the annihilation operator ``zeroes-out" the amplitude.
+If the mode is unoccupied before the operator is applied, then the annihilation operator ``zeroes-out" the state.
+
+Antifermions are common particles found in quantum field theories.
+There properties and commutation rules are the same as fermions, so they can be treated, for the purposes of this paper, as a different ``type'' of fermion, whose ladder operators are represented by $d$ and $d^\dagger$.
 
 \subsubsection{Bosons}
+There is no physical limitation on the occupancy of bosonic modes: $n_{i_a} \in [0, 1, 2, \dots)$.
+Hence the Hilbert space of a single bosonic mode is countably infinite dimensional, therefore we can impose a cutoff ($\Omega$) on the occupancy such that $n_{i_a} \in [0, 1, 2, \dots, \Omega)$ and the space becomes finite.
+The cutoff on the occupancy can introduce error as some physically allowable states become inaccessible.
+However, $\Omega$ can often be chosen such that this error is either zero (if high-occupancy states are never accessed) or reasonable small and the contribution of the magnitude of the error is known. 
+\ws{@Kamil/@Gus, is this a fair statement? Is there something we can cite for either no-error or known-error cases?}
+\gus{I think it's fair, but could be written differently. How we solve these problems is by expanding in a Fock space of increasing particle number (e.g. $q\bar{q}$, then $q\bar{q}g$, etc.). The Fock states with many bosons ($g$ here), will have vanishingly small amplitude in the wavefunction, which is why we can set $\Omega$ to be small.}
 
-Similarly to fermions, the action of bosonic creation operators is to increase the occupation of the mode being acted upon by $1$.
+The action of bosonic creation operators is to increase the occupation of the mode being acted upon by $1$.
 If the occupancy is already at the (artificially restricted) maximum allowable occupancy, then the operator will zero-out the amplitude:
 \begin{equation}
     \label{eq:bosonic-creation}
     a_i^\dagger \ket{n_{i_a}} = 
     \begin{cases} 
-        \sqrt{n_{i_a} + 1} \ket{n_{i_a} + 1}  & when \ket{n_{i_a}} \neq \ket{\Omega} \\
-        0 & when \ket{n_{i_a}} = \ket{\Omega}
+        \sqrt{n_{i_a} + 1} \ket{n_{i_a} + 1}  & {\rm when} \ket{n_{i_a}} \neq \ket{\Omega} \\
+        0 & {\rm when} \ket{n_{i_a}} = \ket{\Omega}
     \end{cases}
 \end{equation}
 where $a_i$ denotes a bosonic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, $\ket{n_{i_a}}$ is the occupation of the $i^{th}$ bosonic mode, and $\Omega$ is the maximum allowable bosonic occupation.
@@ -110,22 +130,13 @@ Likewise, bosonic annihilation operators lower the occupancy of the mode being a
     \label{eq:bosonic-annihilation}
     a_i \ket{n_{i_a}} = 
     \begin{cases} 
-        \sqrt{n_{i_a}} \ket{n_{i_a} - 1}  & when \ket{n_{i_a}} \neq \ket{0} \\
-        0 & when \ket{n_{i_a}} = \ket{0}
+        \sqrt{n_{i_a}} \ket{n_{i_a} - 1}  & {\rm when} \ket{n_{i_a}} \neq \ket{0} \\
+        0 & {\rm when} \ket{n_{i_a}} = \ket{0}
     \end{cases}
 \end{equation}
-Similarly, if the occupancy of the state is zero before the operator is applied, then the amplitude is zeroed-out.
+Similarly, if the occupancy of the state is zero before the operator is applied, then the state is zeroed-out.
 
-\subsection{Observables}
-\label{subsec:observables}
-
-\subsubsection{Products of Ladder Operators (Terms)}
-
-We define a \textit{term} ($T$) as a product of ladder operators that can act on fermionic, antifermionic, and bosonic modes:
-\begin{equation}
-    T = \prod_{m=0}^{M-1} c_m
-\end{equation}
-where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^\dagger, d_i, d_i^\dagger, a_i, a_i^\dagger\}$.
+\gus{@will Peter makes a comment here that I can't read}.
 
 The ladder operators ($c_m$) can be reordered arbitrarily with the introduction of additional terms due to the commutation rules.
 The commutation rules are given as:
@@ -145,6 +156,20 @@ The commutation rules are given as:
 Given a term, the normal ordered form is that in which all creation operators are to the left of annihilation operators.
 For example, the normal-ordered form of the term $a_3 b_4^\dagger$ is $b_4^\dagger a_3$.
 
+\subsection{Observables}
+\label{subsec:observables}
+
+\subsubsection{Products of Ladder Operators (Terms)}
+
+We define a \textit{term} ($T$) as a product of ladder operators that can act on fermionic, antifermionic, and bosonic modes:
+\begin{equation}
+    \label{eq:term}
+    T = \prod_{m=0}^{M-1} c_m
+\end{equation}
+\gus{@will Alexis thinks this notation in equation \ref{eq:term} is a bit ambiguous. We should talk about this.}
+where $M$ is the number of ladder operators in the term and $c_m \in \{b_i, b_i^\dagger, d_i, d_i^\dagger, a_i, a_i^\dagger\}$.
+
+
 In this work, we will express terms in their \emph{canonically ordered} form.
 Canonical ordering in quantum field theory is an adaptation of normal ordering.
 We say a term is \textit{canonically ordered} when all fermionic ladder operators appear in their normal ordered form on the left, followed by all normal ordered antifermionic operators, and then finally all normal ordered bosonic operators:
@@ -154,43 +179,12 @@ We say a term is \textit{canonically ordered} when all fermionic ladder operator
 where $\delta$ takes the value $0$ or $1$ to denote if the operator is active in the term and the values $R$ and $S$ are integers $\in [0, \Omega]$ and denote the exponent of the bosonic ladder operators acting on the $i^{th}$ bosonic mode.
 
 When ordering a term, the commutation rules (Eq. \ref{eq:commutation}) must be taken into account.
-These commutation relations may introduce more terms when a term is reordered, however, we often find that the canoncial ordering reduces the number of terms.
+These commutation relations may introduce more terms when reordering, however, we often find that the canoncial ordering reduces the number of terms.
 
 
-Hamiltonians (or observables) can be written in the form of linear combinations of terms:
+Hermitian operators can be written in the form of linear combinations of terms:
 \begin{equation}
     \label{eq:lclo}
     H = \sum_{l=0}^{L-1} \alpha_l T_l
 \end{equation}
-where $L$ is the total number of terms and $\alpha_l$ are real-valued coefficients associated with the terms $T_l$.
-
-
-\subsection{Encoding}
-\label{subsec:encoding}
-In order to map information about the multiparticle system to Fock states (and thus qubit states), an encoding of quantum states must be chosen.
-
-In this work, the encoding that is used for the occupation of the fermionic modes is identical to the Jordan-Wigner encoding \cite{jordan-wigner}.
-The map between a Fock state to a qubit state is given as 
-\begin{equation}
-    \ket{n_{I_b}, \dots, n_{1_b}, n_{0_b}} \rightarrow \ket{q_{I_b}, \dots, q_{1_b}, q_{0_b}}
-\end{equation}
-where $n_{i_b} = q_{i_b} \in [0, 1]$ depending on if mode $i$ is occupied or not.
-The encoding scheme is the same for antifermions.
-In total, the number of qubits required for the fermionic and antifermionic susbsystems is: $Q_{\psi_b} = I_b$ and $Q_{\psi_d} = I_d$.
-
-The encoding scheme for bosons must allow for occupancies in the range $[0, \Omega]$ due to the absence of the Pauli exclusion principle.
-For bosons, a Fock state of a single mode stores the occupancy in binary notation: 
-\begin{equation}
-    \ket{n_{i_a}} \rightarrow \ket{b_j, b_{j-1}, ..., b_0}
-\end{equation}
-where $j$ runs from $0$ to $\lceil \log_2{\Omega} \rceil - 1$ and the values of $b_j$ are given by the binary representation of $n_{i_a}$.
-Each bosonic mode requires $\lceil \log_2{\Omega} \rceil$ qubits.
-For each mode ($i_a \in [0, I_a)$), we must encode the corresponding occupancy of this mode in binary. 
-Therefore, the number of qubits required for the bosonic subsystem is: $Q_{\psi_a} = I_a \lceil \log_2{\Omega} \rceil$.
-
-Thus, for a general Fock state with fermions, antifermions, and bosons, the total number of qubits needed to encode this state in a qubit register is:
-\begin{equation}
-    Q_{sys} = I_b + I_d + I_a \lceil \log_2{\Omega} \rceil
-\end{equation}
-Throughout this work, for simplicity we assume that the number of modes is the same for each type of particle ($I_b = I_d = I_a \equiv I)$, though this limitation is not required.
-
+where $L$ is the total number of terms and $\alpha_l$ are real-valued \gus{I \textit{think} we can have complex coefficients here, no?} coefficients associated with the terms $T_l$.

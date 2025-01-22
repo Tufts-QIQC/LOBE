@@ -1,18 +1,15 @@
-from openparticle.qubit_mappings import op_qubit_map, fock_qubit_state_mapping
 from openparticle import ParticleOperator
-from openparticle.utils import generate_matrix, get_fock_basis
 import numpy as np
 import cirq
 from symmer import PauliwordOp
 from symmer.operators.utils import symplectic_to_string
+from .metrics import CircuitMetrics
+from .asp import get_target_state, add_prepare_circuit
+from .index import index_over_terms
+from functools import partial
 
-import sys, os
 
-sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), ".."))
-from src.lobe.asp import get_target_state, add_prepare_circuit
-
-
-def seperate_real_imag(Pop: PauliwordOp) -> PauliwordOp:
+def seperate_real_imag(Pop: PauliwordOp, zero_threshold: float = 1e-15) -> PauliwordOp:
     """
     seperate the real and imaginary part of a PauliwordOp into seperate terms!
     This is useful for block encodings when ops have real and imag coeffs.
@@ -22,14 +19,16 @@ def seperate_real_imag(Pop: PauliwordOp) -> PauliwordOp:
 
     Args:
         Pop (PauliwordOp): op to split into real and imag parts. Input is assumed to be cleaned up.
+        zero_threshold (float): The cutoff on the magnitude of the coefficients. Terms will smaller coefficients will
+            be removed.
     Returns
         A PauliwordOp that has real and imaginary coefficients on seperate Pauli terms
 
     """
 
-    op_real = Pop[np.abs(Pop.coeff_vec.real) > 0]
+    op_real = Pop[np.abs(Pop.coeff_vec.real) > zero_threshold]
     op_real.coeff_vec = op_real.coeff_vec.real
-    op_imag = Pop[np.abs(Pop.coeff_vec.imag) > 0]
+    op_imag = Pop[np.abs(Pop.coeff_vec.imag) > zero_threshold]
     op_imag.coeff_vec = op_imag.coeff_vec.imag * 1j
 
     return PauliwordOp(
@@ -60,11 +59,23 @@ GATE_SELECTION = {
 
 class LCU:
 
-    def __init__(self, operator: ParticleOperator, max_bose_occ: int):
+    def __init__(
+        self,
+        operator: ParticleOperator,
+        max_bosonic_occupancy: int,
+        zero_threshold: float = 1e-15,
+    ):
+        self.operator = operator
+        self.zero_threshold = zero_threshold
+        paulis = operator.to_paulis(
+            max_fermionic_mode=operator.max_fermionic_mode,
+            max_antifermionic_mode=operator.max_antifermionic_mode,
+            max_bosonic_mode=operator.max_bosonic_mode,
+            max_bosonic_occupancy=max_bosonic_occupancy,
+            zero_threshold=zero_threshold,
+        )
 
-        paulis = op_qubit_map(operator, max_bose_occ=max_bose_occ)
-
-        self.paulis = seperate_real_imag(paulis)
+        self.paulis = seperate_real_imag(paulis, zero_threshold=zero_threshold)
 
         self.coeffs = self.paulis.coeff_vec
 
@@ -76,10 +87,12 @@ class LCU:
             cirq.LineQubit(i) for i in range(self.number_of_index_qubits)
         ]
         self.system_register = [
-            cirq.LineQubit(self.number_of_index_qubits + i)
+            cirq.LineQubit(1000 + i + self.number_of_index_qubits)
             for i in range(self.paulis.n_qubits)
         ]
         self.number_of_system_qubits = len(self.system_register)
+        self.clean_ancillae = [cirq.LineQubit(-1 - i) for i in range(100)]
+        self.circuit_metrics = CircuitMetrics()
 
     @staticmethod
     def get_prep_vector(coeff_vector):
@@ -93,50 +106,80 @@ class LCU:
 
         return pre_coeffs, one_norm
 
-    def get_circuit(self):
+    def get_circuit(self, ctrls=([], [])):
         self.circuit = cirq.Circuit()
+        self.circuit_metrics = CircuitMetrics()
 
-        self.circuit += add_prepare_circuit(
-            self.index_register, target_state=self.target_state
+        _gates, _metrics = add_prepare_circuit(
+            self.index_register,
+            target_state=self.target_state,
+            clean_ancillae=self.clean_ancillae,
         )
+        self.circuit.append(_gates)
+        self.circuit_metrics += _metrics
 
-        self.circuit += self.add_select_oracle(
-            self.index_register, self.paulis, system_register=self.system_register
+        _gates, _metrics = self.add_select_oracle(
+            self.index_register,
+            self.paulis,
+            system_register=self.system_register,
+            clean_ancillae=self.clean_ancillae,
+            ctrls=ctrls,
         )
+        self.circuit.append(_gates)
+        self.circuit_metrics += _metrics
 
-        self.circuit += add_prepare_circuit(
-            self.index_register, target_state=self.target_state, dagger=True
+        _gates, _metrics = add_prepare_circuit(
+            self.index_register,
+            target_state=self.target_state,
+            dagger=True,
+            clean_ancillae=self.clean_ancillae,
         )
+        self.circuit.append(_gates)
+        self.circuit_metrics += _metrics
 
         return self.circuit
 
     @classmethod
-    def add_select_oracle(cls, index_register, paulis, system_register):
+    def add_select_oracle(
+        cls, index_register, paulis, system_register, clean_ancillae=[], ctrls=([], [])
+    ):
         gates = []
 
-        n_index_qubits = len(index_register)
         terms = [symplectic_to_string(row) for row in paulis.symp_matrix]
-        n_terms = len(terms)
         coeffs = paulis.coeff_vec  # list(paulis.to_dictionary.values())
         n_system_qubits = paulis.n_qubits
 
-        for i in range(n_terms):
-            ctrl = f"{i:0{n_index_qubits}b}"
+        def _apply_term(term, coeff, ctrls=([], [])):
+            gates = []
             for n in range(n_system_qubits):
-                term = terms[i][n]
+                operator = term[n]
                 if n == 0:
                     # Check for +-1j or -1 coeff only needed for one term in tensor product
-                    key = (term, cls.map_complex_to_key(coeffs[i]))
-                    gate = GATE_SELECTION[key]
+                    key = (operator, cls.map_complex_to_key(coeff))
+                    operations = GATE_SELECTION[key]
                 else:
-                    gate = GATE_SELECTION[(term, 1)]
-                for mapped_gates in gate:
+                    operations = GATE_SELECTION[(operator, 1)]
+
+                for operation in operations:
                     gates.append(
-                        mapped_gates.on(system_register[n]).controlled_by(
-                            *index_register, control_values=[int(char) for char in ctrl]
+                        operation.on(system_register[n]).controlled_by(
+                            *ctrls[0], control_values=ctrls[1]
                         )
                     )  # TODO: remove controlled outer gates in -X = ZXZ, -Y = ZYZ, -Z = XZX
-        return gates
+
+            return gates, CircuitMetrics()
+
+        _gates, metrics = index_over_terms(
+            index_register,
+            [
+                partial(_apply_term, term=term, coeff=coeff)
+                for term, coeff in zip(terms, coeffs)
+            ],
+            clean_ancillae=clean_ancillae,
+            ctrls=ctrls,
+        )
+        gates += _gates
+        return gates, metrics
 
     @property
     def unitary(self):

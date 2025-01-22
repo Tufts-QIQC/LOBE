@@ -1,27 +1,31 @@
 import pytest
 import numpy as np
 from src.lobe.lcu import LCU
-from openparticle import ParticleOperator
-from openparticle.qubit_mappings import op_qubit_map
+from openparticle import ParticleOperator, generate_matrix, get_fock_basis
+from src.lobe._utils import get_basis_of_full_system
 
 
-@pytest.mark.parametrize("max_len_of_terms", [1, 2, 3])
-@pytest.mark.parametrize("n_terms", [1, 2, 3])
-@pytest.mark.parametrize("max_bose_occ", [1, 3])
-def test_lcu_circuit_block_encodes_random_ParticleOperator(
-    max_len_of_terms, n_terms, max_bose_occ
-):
-    op = ParticleOperator.random(
-        n_terms=n_terms, max_len_of_terms=max_len_of_terms, max_mode=2
-    )
+@pytest.mark.parametrize(
+    "op",
+    [
+        ParticleOperator("b0"),
+        ParticleOperator("a0 a0"),
+        ParticleOperator("a0 a1"),
+        ParticleOperator("a0") + ParticleOperator("a2"),
+        ParticleOperator("a0 a0") + ParticleOperator("a0^ a0^"),
+        ParticleOperator("b0 b1"),
+        ParticleOperator("b0 d0"),
+        ParticleOperator("b1 d1"),
+        ParticleOperator("b0 b1 d0"),
+        # ParticleOperator("b0 b2 b3 d2"),
+    ],
+)
+def test_lcu_circuit_block_encodes_operator(op):
+    max_bosonic_occupancy = 3
 
-    if () not in list(op.op_dict.keys()):
-        qubit_op = op_qubit_map(op, max_bose_occ=max_bose_occ)
+    full_fock_basis = get_fock_basis(op, max_bosonic_occupancy)
+    expected_unitary = generate_matrix(op, full_fock_basis)
 
-        lcu = LCU(op, max_bose_occ=max_bose_occ)
+    lcu = LCU(op, max_bosonic_occupancy=max_bosonic_occupancy)
 
-        if len(lcu.get_circuit().all_qubits()) >= 14:
-            pytest.skip(
-                f"too many qubits {len(lcu.get_circuit().all_qubits())} to explicitly validate"
-            )
-        assert np.allclose(lcu.unitary, qubit_op.to_sparse_matrix.toarray())
+    assert np.allclose(lcu.unitary, expected_unitary)

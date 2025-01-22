@@ -1,0 +1,20 @@
+ctrl W \text{(c) }ctrl
+anc W anc
+i W \psi_i
+j W \psi_j
+k W \psi_k
+l W \psi_l
+clean0 W 0 0
+
+i / ^{i<j}
+k / ^{j<k<l}
+ctrl anc i j k l LABEL
+
+clean0 START
+-j l +clean0
+ctrl +anc -clean0
+-j l +clean0
+clean0 END
+
+i j k G $\vec{Z}$ +l ctrl
+i G $\vec{Z}$ +j ctrl

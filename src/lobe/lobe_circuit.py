@@ -47,7 +47,7 @@ def lobe_circuit(
         terms, max_bose_occ
     )
 
-    number_of_modes = max([term.max_mode() for term in terms]) + 1
+    number_of_modes = max([term.max_mode for term in terms]) + 1
 
     number_of_ancillae = (
         1000  # Some arbitrary large number with most ancilla disregarded
@@ -96,9 +96,12 @@ def lobe_circuit(
         coefficients = [term.coeff for term in rescaled_terms]
         norm = sum(np.abs(coefficients))
         target_state = get_target_state(coefficients)
-        circuit += add_prepare_circuit(
-            index_register, target_state=target_state, numerics=NUMERICS
+        gates, _ = add_prepare_circuit(
+            index_register,
+            target_state=target_state,
+            clean_ancillae=clean_ancillae,
         )
+        circuit.append(gates)
         perform_coefficient_oracle = False
         NUMERICS["rescaling_factor"] *= norm
     circuit += add_lobe_oracle(
@@ -114,9 +117,12 @@ def lobe_circuit(
     if state_prep_protocol == "usp":
         circuit += add_naive_usp(index_register)
     elif state_prep_protocol == "asp":
-        circuit += add_prepare_circuit(
-            index_register, target_state=target_state, numerics=NUMERICS
+        gates, _ = add_prepare_circuit(
+            index_register,
+            target_state=target_state,
+            clean_ancillae=clean_ancillae,
         )
+        circuit.append(gates)
 
     unitary = None
     matrix = None
