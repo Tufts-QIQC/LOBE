@@ -92,6 +92,7 @@ class LCU:
         ]
         self.number_of_system_qubits = len(self.system_register)
         self.clean_ancillae = [cirq.LineQubit(-1 - i) for i in range(100)]
+        self.circuit_metrics = CircuitMetrics()
 
     @staticmethod
     def get_prep_vector(coeff_vector):

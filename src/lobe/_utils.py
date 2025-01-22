@@ -136,7 +136,7 @@ def get_basis_of_full_system(
 
 def get_parsed_dictionary(operator, number_of_modes=None):
     if number_of_modes is None:
-        number_of_modes = operator.max_mode() + 1
+        number_of_modes = operator.max_mode + 1
     parsed_operator_array = {
         "fermion": {
             "creation": np.zeros(number_of_modes, dtype=int),

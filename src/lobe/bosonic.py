@@ -156,7 +156,6 @@ def bosonic_mode_plus_hc_block_encoding(
 
     gates.append(cirq.H.on(index))
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(1)
     _gates, _metrics = decompose_controls_left(
         (ctrls[0] + [index], ctrls[1] + [0]), clean_ancillae[0]
     )
@@ -200,7 +199,6 @@ def bosonic_mode_plus_hc_block_encoding(
     )
     gates += _gates
     block_encoding_metrics += _metrics
-    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
 
     gates.append(cirq.H.on(index))
 
@@ -251,7 +249,6 @@ def bosonic_product_plus_hc_block_encoding(
 
     gates.append(cirq.H.on(index))
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(1)
     _gates, _metrics = decompose_controls_left(
         (ctrls[0] + [index], ctrls[1] + [0]), clean_ancillae[0]
     )
@@ -300,7 +297,6 @@ def bosonic_product_plus_hc_block_encoding(
     )
     gates += _gates
     block_encoding_metrics += _metrics
-    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
 
     gates.append(cirq.H.on(index))
 

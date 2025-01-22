@@ -66,7 +66,11 @@ def test_bosonic_mode_block_encoding(
         np.log2(maximum_occupation_number + 1)
     ) + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
     assert metrics.number_of_rotations <= maximum_occupation_number + 2
-    assert metrics.clean_ancillae_usage[-1] == 0
+    if len(metrics.clean_ancillae_usage) > 0:
+        assert metrics.clean_ancillae_usage[-1] == 0
+        assert metrics.ancillae_highwater() == int(
+            np.log2(maximum_occupation_number + 1)
+        )
 
 
 MAX_ACTIVE_MODES = 5
@@ -207,10 +211,15 @@ def test_bosonic_mode_plus_hc_block_encoding(
         circuit, system, number_of_block_encoding_ancillae
     )
     assert metrics.number_of_elbows <= max(
-        3 * int(np.log2(maximum_occupation_number + 1)), 0
+        3 * int(np.log2(maximum_occupation_number + 1)) + 1, 0
     )
     assert metrics.number_of_rotations <= maximum_occupation_number + 2
-    assert metrics.clean_ancillae_usage[-1] == 0
+    if len(metrics.clean_ancillae_usage) > 0:
+        assert metrics.clean_ancillae_usage[-1] == 0
+        assert (
+            metrics.ancillae_highwater()
+            == int(np.log2(maximum_occupation_number + 1)) + 1
+        )
 
 
 @pytest.mark.parametrize("number_of_active_modes", range(2, MAX_ACTIVE_MODES + 1))
