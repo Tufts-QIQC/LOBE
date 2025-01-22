@@ -263,9 +263,8 @@ This block-encoding circuit has an optimal rescaling factor ($\lambda = 1$), req
 
 \subsection{Bosonic Ladder Operators}
 
-Here, we aim to define a family of unitaries ($\{U_{a^\dagger_i}, U_{a_i}\}$) that generate block-encodings of the associated bosonic creation ($a_i^\dagger$) and annihilation ($a_i$) operators.
-Recall the definition of the bosonic creation operator given in Equation \ref{eq:bosonic-creation}.
-From this definition, it is clear that if we rescale the operator by a factor of $\lambda = \sqrt{\Omega}$, then we can define a block-encoding unitary of the form of Eq. \ref{eq:general-block-encoding}: 
+In this section, we aim to define a family of unitaries that generate block-encodings of the bosonic creation ($a_i^\dagger$) and annihilation ($a_i$) operators.
+From the defined action of the bosonic creation operator (Equation \ref{eq:bosonic-creation}), it is clear that we can define a block-encoding unitary of the form of Eq. \ref{eq:general-block-encoding}: 
 \begin{equation}
     \label{eq:be-bos-creation}
     U_{a^\dagger_i} \ket{\omega_i} \ket{0}_\text{anc} = 
@@ -275,7 +274,7 @@ From this definition, it is clear that if we rescale the operator by a factor of
     
     \end{cases}
 \end{equation}
-where $\omega_i$ is the occupation number of the $i^\text{th}$ bosonic mode.
+where $\omega_i$ is the occupation number of the $i^\text{th}$ bosonic mode and the operator is rescaled by a factor of $\sqrt{\Omega}$.
 
 \begin{figure}
     \mbox{
@@ -284,52 +283,49 @@ where $\omega_i$ is the occupation number of the $i^\text{th}$ bosonic mode.
     }
     \caption{
         \textbf{Bosonic Ladder Operator Block-Encoding}
-        In subfigure a, a block-encoding for the bosonic creation operator, $a_i^\dagger$, is given.
-        In subfigure b, a block-encoding for the bosonic annihilation operator, $a_i$, is given.
+        In subfigure (a), a block-encoding for the bosonic creation operator, $a_i^\dagger$, is given.
+        In subfigure (b), a block-encoding for the bosonic annihilation operator, $a_i$, is given.
     }
     \label{fig:bosonic-ladder-op-be}
 \end{figure}
 
 The desired action of the block-encoding circuit for the bosonic creation operator is to increase the occupation of the bosonic mode by $1$ and rotate the block-encoding ancilla such that it has a coefficient of $\sqrt{\frac{\omega_i + 1}{\Omega}}$ in the $\ket{0}$ state when the occupation of the $i^\text{th}$ bosonic mode is $w_i$ prior to the operation.
 This can be achieved by applying an incrementer circuit to the register encoding the occupation of the bosonic mode which increases the occupation by $1 \mod \Omega$ in each branch of the wavefunction.
-The corresponding coefficients can be attained using a series of $R_y$ gates with different angles, controlled on the corresponding occupation state of the bosonic mode, and applied to the block-encoding ancilla.
-An example circuit diagram for this circuit is given in subfigure \ref{fig:bosonic-ladder-op-be}a.
+The desired ampltidues of the block-encoding ancilla can be obtained using a series of $R_y$ gates that are controlled on the corresponding bosonic occupation.
 The angle of the $R_y$ gate can be classically determined by the following function:
 \begin{equation}
     \label{eq:single-op-angles}
     \theta(\omega_i) = 
     \begin{cases} 
-        2\sin^{-1}\Big(\sqrt{\frac{\omega_i}{\Omega}}\Big) & \text{when } \omega_i < \Omega\\
+        2\cos^{-1}\Big(\sqrt{\omega_i/\Omega}\Big) & \text{when } \omega_i < \Omega\\
         0 & \text{when } \omega_i = \Omega
     \end{cases}
 \end{equation}
-where the choice of $\omega_i$ here in comparison with $\omega_i + 1$ in Eq. \ref{eq:be-bos-creation} is due to the occupation of the state being updated prior to these rotations.
+where $\omega_i$ here in comparison with $\omega_i + 1$ in Eq. \ref{eq:be-bos-creation} is due to the occupation of the state being updated prior to these rotations.
+An example circuit diagram for this circuit is given in subfigure \ref{fig:bosonic-ladder-op-be}a.
 
 A block-encoding circuit for the bosonic annihilation operator can be constructed similarly.
 The only necessary modification is that the multiplexed rotations are applied prior to the incrementer circuit.
 An example circuit diagram is given in subfigure \ref{fig:bosonic-ladder-op-be}b.
 
-An implementation of a controlled incrementer circuit is given in \cite{Gidney_2015} which requires $\lceil \log_2\Omega \rceil$ Toffoli gates.
+An implementation of a controlled incrementer circuit is given in \cite{Gidney_2015} which requires $4 \lceil \log_2\Omega \rceil$ T gates.
 The series of controlled rotation gates can be implemented using a set of multiplexed rotations which can be decomposed via the protocol given in Möttönen et. al \cite{mottonen2004transformation}.
-A discussion of different schemes to construct a \textit{controlled} set of multiplexed rotations is given in Appendix \ref{sec:multiplexed-rotations} and we opt for the decomposition that requires $\Omega$ uncontrolled rotations and $1$ controlled rotation.
-A controlled rotation can be decomposed into $2$ uncontrolled rotations as shown in Figure \ref{fig:controlled-rotation}.
-As a result, this block-encoding has a rescaling factor of $\sqrt{\Omega}$, requires one block-encoding ancilla, and uses $\lceil \log_2\Omega \rceil$ Toffoli gates and $\Omega + 2$ arbitrary rotations.
+A discussion of different schemes to construct a \textit{controlled} set of multiplexed rotations is given in Appendix \ref{sec:multiplexed-rotations} and we opt for the decomposition that requires $\Omega + 2$ uncontrolled rotations and $4 \lceil{\log_2{\Omega}}\rceil$ T gates (Figure \ref{fig:gate-optimized-controlled-multiplexed-rotations}).
+This block-encoding construction has a rescaling factor of $\sqrt{\Omega}$, requires one block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil$ clean ancillae, and uses $8 \lceil \log_2\Omega \rceil$ T gates and $\Omega + 2$ arbitrary rotations.
 
 
 \subsection{Products of Bosonic Ladder Operators}
 
 In this subsection, we discuss constructing block-encodings for a product of bosonic ladder operators acting on the same mode.
-
 Unlike fermions, multiple bosons can occupy the same bosonic mode.
-Therefore a bosonic ladder operator that is raised to an integer power can be applied to the state without necessarily zeroing-out the state.
+Therefore a product of bosonic ladder operators can be applied to the state without necessarily zeroing-out the state.
 Consider the desired action of a block-encoding for series of $R$ bosonic creation operators acting on the $i^\text{th}$ bosonic mode:
 \begin{equation}
     \label{eq:be-S-creation-ops}
     U_{(a^\dagger_i)^R} \ket{\omega_i} \ket{0}_\text{anc} = 
     \begin{cases}
-        \prod_{r=1}^{R} \sqrt{\frac{\omega_i + r}{\Omega}} \ket{\omega_i + R} \ket{0}_\text{anc} + \beta_\psi \ket{\perp} & \text{when } \omega_i \leq \Omega - R \\
+        \prod_{r=1}^{R} \sqrt{(\omega_i + r) / \Omega} \ket{\omega_i + R} \ket{0}_\text{anc} + \beta_\psi \ket{\perp} & \text{when } \omega_i \leq \Omega - R \\
         \ket{\perp} & \text{when } \omega_i > \Omega - R \\
-    
     \end{cases}
 \end{equation}
 
@@ -341,9 +337,9 @@ Consider the desired action of a block-encoding for series of $R$ bosonic creati
     \include{figures/qpic-code/bosonic/products/R-creation-S-annihilation}
     \caption{
         \textbf{Block-Encoding Product of Bosonic Ladder Operators}
-        In subfigure a, a block-encoding for the operator $(a_i^\dagger)^R$ is given.
-        In subfigure b, a block-encoding for the operator $(a_i)^S$ is given.
-        In subfigure c, a block-encoding for the operator $(a_i^\dagger)^R (a_i)^S$ is given.
+        In subfigure (a), a block-encoding for the operator $(a_i^\dagger)^R$ is given.
+        In subfigure (b), a block-encoding for the operator $(a_i)^S$ is given.
+        In subfigure (c), a block-encoding for the operator $(a_i^\dagger)^R (a_i)^S$ is given.
     }
     \label{fig:products-bosonic-operators}
 \end{figure}
@@ -355,11 +351,11 @@ The angles of the multiplexed rotations can be determined classically using the 
 \begin{equation}
     \theta(\omega_i, R) = 
     \begin{cases} 
-        2\sin^{-1}\Big(\prod_{r=0}^{R-1}\sqrt{\frac{\omega_i - r}{\Omega}}\Big) & \text{when } \omega_i \leq \Omega - R \\
+        2\cos^{-1}\Big(\prod_{r=0}^{R-1}\sqrt{(\omega_i - r) / \Omega}\Big) & \text{when } \omega_i \leq \Omega - R \\
         0 & \text{when } \omega_i > \Omega - R
     \end{cases}
 \end{equation}
-where the choice of $\omega_i - r$ here in comparison with $\omega_i + r$ in Eq. \ref{eq:be-S-creation-ops} is due to the occupation of the state being updated prior to these rotations.
+where $\omega_i - r$ here in comparison with $\omega_i + r$ in Eq. \ref{eq:be-S-creation-ops} is due to the occupation of the state being updated prior to these rotations.
 
 A block-encoding for a bosonic annihilation operator being applied $S$ times can be achieved using a similar construction shown in subfigue \ref{fig:products-bosonic-operators}b.
 The occupation of the mode is first decreased by $S$ and then the controlled multiplexed rotations are applied to pick up the corresponding coefficient on the block-encoding ancilla.
@@ -367,7 +363,7 @@ The function to determine the rotation angles is given by:
 \begin{equation}
     \theta(\omega_i, S) = 
     \begin{cases} 
-        2\sin^{-1}\Big(\prod_{s=1}^{S}\sqrt{\frac{\omega_i + s}{\Omega}}\Big) & \text{when } \omega_i \geq S \\
+        2\cos^{-1}\Big(\prod_{s=1}^{S}\sqrt{(\omega_i + s) / \Omega}\Big) & \text{when } \omega_i \geq S \\
         0 & \text{when } \omega_i < S
     \end{cases}
 \end{equation}
@@ -378,24 +374,22 @@ The function to determine the rotation angles is given by:
 \begin{equation}
     \theta(\omega_i, R, S) = 
     \begin{cases} 
-        2\sin^{-1}\Big(\prod_{r=0}^{R-1}\sqrt{\frac{\omega_i - r}{\Omega}} \prod_{s=1}^{S}\sqrt{\frac{\omega_i - R + s}{\Omega}}\Big) & \text{when } S \leq \omega_i \leq \Omega - R \\
+        2\cos^{-1}\Big(\prod_{r=0}^{R-1}\sqrt{(\omega_i - r) / \Omega} \prod_{s=1}^{S}\sqrt{(\omega_i - R + s) / \Omega}\Big) & \text{when } S \leq \omega_i \leq \Omega - R \\
         0 & \text{Otherwise} 
     \end{cases}
 \end{equation}
 
 Incrementing a quantum register by a classical value can be implemented in multiple ways with different compilations having different space-time tradeoffs.
-In this work, we often choose decompositions that reduce the number of non-Clifford operations at the expense or requiring more temporary ancillae, therefore we opt for the compilation given in Figure \ref{fig:addition-gate-efficient}.
-This circuit requires, at most, $\lceil \log_2 \Omega \rceil - 1$ pairs of left and right elbows.
-These block-encoding circuits have a rescaling factor of $\lambda = \Omega^{R+S/2}$, require one block-encoding ancilla, and use \textit{at most} $\Omega + \lceil \log_2 \Omega \rceil$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
+We opt for the compilation given in Figure \ref{fig:addition-gate-efficient} which requires, at most, $4 (\lceil \log_2 \Omega \rceil - 1)$ T gates.
+These block-encoding circuits have a rescaling factor of $\lambda = \Omega^{(R+S)/2}$, require one block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil$ clean ancillae, and use \textit{at most} $8 \lceil \log_2 \Omega \rceil$ T gates and $\Omega + 2$ arbitrary rotations.
 
 
 \subsection{Linear Combinations of Bosonic Ladder Operators}
 
 In this subsection, we discuss constructing block-encodings for a linear combination of a product of bosonic ladder operators acting on the same mode plus its hermitian conjugate.
 
-For a simple example, consider the operator $a_i^\dagger + a_i$.
-Trivially, one could construct an LCO block-encoding by performing a linear combination of the block-encodings of the creation and annihilation operators respectively.
-This block-encoding would have a rescaling factor of $\lambda = 2\sqrt{\Omega}$, use two block-encoding ancilla, and require $2\big(\lceil \log_2 \Omega \rceil - 1\big)$ pairs of elbows and $2 \big(\Omega + 2\big)$ arbitrary rotations.
+Consider the operator $a_i^\dagger + a_i$.
+Trivially, one could construct an LCO block-encoding for this operator which would have a rescaling factor of $\lambda = 2\sqrt{\Omega}$, require two block-encoding ancilla, and use $16 \lceil \log_2 \Omega \rceil$ T gates and $2\Omega + 4$ arbitrary rotations.
 
 
 \begin{figure}
@@ -403,25 +397,22 @@ This block-encoding would have a rescaling factor of $\lambda = 2\sqrt{\Omega}$,
     \include{figures/qpic-code/bosonic/combinations/multi-ops}
     \caption{
         \textbf{Block-Encoding Product of Bosonic Ladder Operators Plus Hermitian Conjugate}
-        In subfigure a, a block-encoding for the operator $(a_i^\dagger + a_i)$ is given.
-        In subfigure b, a block-encoding for the operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ is given.
+        In subfigure (a), a block-encoding for the operator $(a_i^\dagger + a_i)$ is given.
+        In subfigure (b), a block-encoding for the operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ is given.
     }
     \label{fig:lc-bosonic}
 \end{figure}
 
 
 Due to the symmetry of the block-encodings for the individual operators, we can produce a more gate-efficient compilation.
-For the annihilation operator, we wish to decrease the occupancy by $1$ and then apply the rotations.
-Whereas for the creation operator, we wish in apply the rotations and then increase the occupancy by $1$.
+For the creation operator, we wish to increase the occupancy by $1$ and then apply the rotations.
+Whereas for the annihilation operator, we wish to apply the rotations and then decrease the occupancy by $1$.
 Since the desired rotation angles are independent of which operator is being applied (Eq. \ref{eq:single-op-angles}), we can reuse the multiplexed rotations to apply the appropriate angles for both terms.
-An example circuit diagram for this block-encoding is shown in subfigue \ref{fig:lc-bosonic}a.
-Similarly, a block-encoding for the generalized operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ can be constructed and is shown in subfigure \ref{fig:lc-bosonic}b.
+An example circuit diagram for this construction is shown in subfigue \ref{fig:lc-bosonic}a.
+A block-encoding for the generalized operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ can be constructed similarly and is shown in subfigure \ref{fig:lc-bosonic}b.
 
-This compilation strategy is chosen under the assumption that the cost of implementing the multiplexed rotations exceeds the cost of the incrementer circuit.
-If the inverse were true, a compilation could be constructed where the incrementer circuit is reused for both terms and the multiplexed rotations would be applied twice.  
-
-For these block-encoding circuits, one additional pair of elbows is required to index between the two controlled incrementer circuits in Figure \ref{fig:lc-bosonic}.
-Therefore, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{R+S/2}$, use two block-encoding ancilla, and require $\Omega + 2\big(\lceil \log_2 \Omega \rceil\big)$ pairs of elbows and $\Omega + 2$ arbitrary rotations.
+For these block-encoding circuits, one additional block-encoding ancilla and a pair of elbows is required to index between the two controlled incrementer circuits in Figure \ref{fig:lc-bosonic}.
+Therefore, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{(R+S)/2}$, require two block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil + 1$ clean ancillae, and use $12 \lceil \log_2 \Omega \rceil + 1$ T gates and $\Omega + 2$ arbitrary rotations.
 
 \subsection{Terms with Fermionic and Bosonic Ladder Operators}
 
@@ -434,31 +425,33 @@ In this subsection, we discuss how to generate block-encodings for operators tha
     \include{figures/qpic-code/terms/non-naive-yukawa}
     \caption{
         \textbf{Block-Encoding Terms}
-        In subfigure a, a naive block-encoding for the operator $b_i a_j + a_j^\dagger b_i^\dagger$ is given.
-        In subfigure b, a block-encoding for the operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ is given.
+        In subfigure (a), a naive block-encoding for the operator $b_i a_j + a_j^\dagger b_i^\dagger$ is given.
+        In subfigure (b), a block-encoding for the operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ is given.
     }
     \label{fig:be-term-example}
 \end{figure}
 
 
 As an example, consider the operator: $b_i a_j + a_j^\dagger b_i^\dagger$.
-Using Theorems \ref{th:product} and \ref{th:lco} to construct block-encodings of the individual terms and then combining them together would have a rescaling factor of $\lambda = 2*\sqrt{\Omega}$ and use $3$ block-encoding ancillae.
-Additionally, the non-Clifford gate-cost would be $3$ Toffoli gates, 2 controlled incrementers, and $2*\Omega$ arbitrary rotations.
-A circuit diagram for this construction is given in subfigure \ref{fig:be-term-example}a.
+A naive block-encoding could be produced using Theoerm \ref{th:product} to block-encode each term and then using Theorem \ref{th:lco} to block-encode the linear combination of the two terms (subfigure \ref{fig:be-term-example}a).
 
-However, we can instead block-encode the entire operator at once by noting the action of the conjoined operator on the different occupation states of the fermionic mode.
+However, we can instead block-encode the entire operator at once by noting the action of the whole operator on the different occupation states of the fermionic mode.
 Using the circuit shown in subfigure \ref{fig:be-term-example}b, the occupation of the fermionic mode is used to determine which bosonic operator is applied to the bosonic mode.
-If the fermionic mode is occupied, then the bosonic annihilation operator is applied to apply the term $b_i a_j$.
-If the fermionic mode is unoccupied, then the bosonic creation operator is applied to apply the term $b_i^\dagger a_j^\dagger$.
-This block-encoding will have a rescaling factor of $\lambda = \sqrt{\Omega}$, use $1$ block-encoding ancillae, and require $1$ Toffoli gate, $2$ controlled incrementers, and $\Omega$ arbitrary rotations.
+If the fermionic mode is unoccupied, then the bosonic creation operator is applied, corresponding to the term $b_i^\dagger a_j^\dagger$.
+If the fermionic mode is occupied, then the bosonic annihilation operator, corresponding to the term $b_i a_j$.
+After the appropriate bosonic operator is applied, then the fermionic system is updated using the $\vec{Z}X_i$ operation.
+This block-encoding circuit will have a rescaling factor of $\lambda = \sqrt{\Omega}$, requires $1$ block-encoding ancillae and $\lceil \log_2\Omega \rceil + 1$ clean ancillae, and uses $12 \lceil \Omega \rceil - 4$ T gates and $\Omega$ arbitrary rotations.
 
 This strategy can be employed for other combinations of bosonic and fermionic ladder operators.
-In the full Yukawa model, the operator $b_i b_j a_k^\dagger + b_j^\dagger b_i^\dagger a_k$ is used to describe the process of a fermion and antifermion being annihilated to form a boson as well as a boson being annihilated to form a fermion and antifermion.
-For this operator, the occupation of either mode can be used to dictate which bosonic operator is applied to the system.
-If both modes are occupied, then the bosonic creation operator should be applied.
-If both modes are unoccupied, then the bosonic annihilation operator should be applied.
-If the occupation of the two modes are not the same, then the state will be zeroed-out and the block-encoding ancilla for the fermionic modes will be flipped outside of the encoded subspace, therefore the action performed on the bosonic state will not matter.
+For a useful example, in the full Yukawa model the operator $b_i b_j a_k^\dagger + b_j^\dagger b_i^\dagger a_k$ is used to model the process of a fermion and antifermion being annihilated to form a boson as well as a boson being annihilated to form a fermion and antifermion.
+If both fermionic modes are occupied, then the bosonic creation operator should be applied.
+If both fermionic modes are unoccupied, then the bosonic annihilation operator should be applied.
+If the occupation of the two modes are not the same, then the state will be zeroed-out.
+
+When constructing the circuit, the occupation of either fermionic mode can be used to determine which bosonic operator is applied to the system.
+After the bosonic operators are applied, the condition on the parity of the fermionic modes can be used to determine if the block-encoding ancilla for the fermionic modes should be flipped outside of the encoded subspace.
+Finally, the fermionic system is updated for the two fermionic ladder operators. 
 A circuit diagram for this block-encoding is shown in subfigure \ref{fig:be-term-example}c.
-This block-encoding has a rescaling factor of $\lambda = \sqrt{\Omega}$, uses $2$ block-encoding ancillae, and requires $2$ Toffolis, $2$ controlled incrementers, and $\Omega$ arbitrary rotations.
+This block-encoding has a rescaling factor of $\lambda = \sqrt{\Omega}$, requires $2$ block-encoding ancillae and $2 + \lceil \log_2 \Omega \rceil$ clean ancillae, and uses $12 \lceil \log_2 \Omega \rceil$ T gates and $\Omega + 2$ arbitrary rotations.
 
 
