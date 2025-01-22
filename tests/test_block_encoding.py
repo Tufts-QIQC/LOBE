@@ -20,7 +20,7 @@ def _test_helper(terms, maximum_occupation_number):
     for term in terms[1:]:
         hamiltonian += term
 
-    number_of_modes = max([term.max_mode() for term in terms]) + 1
+    number_of_modes = max([term.max_mode for term in terms]) + 1
 
     rescaled_terms, bosonic_rescaling_factor = bosonically_rescale_terms(
         terms, maximum_occupation_number
@@ -259,7 +259,7 @@ def test_lobe_block_encoding_asp(maximum_occupation_number):
     norm = sum(np.abs(rescaled_coefficients))
     target_state = get_target_state(rescaled_coefficients)
 
-    number_of_modes = max([term.max_mode() for term in terms]) + 1
+    number_of_modes = max([term.max_mode for term in terms]) + 1
 
     full_fock_basis = get_basis_of_full_system(
         number_of_modes,
