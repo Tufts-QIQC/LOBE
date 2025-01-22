@@ -100,6 +100,9 @@ def bosonic_modes_block_encoding(
     gates = []
     block_encoding_metrics = CircuitMetrics()
 
+    if not isinstance(block_encoding_ancillae, list):
+        block_encoding_ancillae = [block_encoding_ancillae]
+
     if sign == -1:
         gates += _apply_negative_identity(block_encoding_ancillae[0], ctrls=ctrls)
 
@@ -267,7 +270,7 @@ def bosonic_product_plus_hc_block_encoding(
         block_encoding_metrics += adder_metrics
 
         rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
-            block_encoding_ancillae[1 + i],
+            block_encoding_ancillae[i],
             system.bosonic_system[active_index],
             Ri,
             Si,
