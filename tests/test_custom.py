@@ -85,6 +85,7 @@ def test_yukawa_3point(trial):
     assert max(metrics.clean_ancillae_usage) == max(
         1 + np.ceil(np.log2(maximum_occupation_number + 1)), 1
     )
+    assert metrics.clean_ancillae_usage[-1] == 0
 
 
 @pytest.mark.parametrize("trial", range(100))
@@ -133,6 +134,26 @@ def test_yukawa_4point(trial):
         number_of_block_encoding_ancillae,
         maximum_occupation_number,
     )
+    assert (
+        metrics.number_of_elbows
+        == 1  # elbow for controls of adders
+        + (
+            4
+            * (np.ceil(np.log2(maximum_occupation_number + 1)) - 1)  # elbows for adders
+        )
+        + (
+            2 * np.ceil(np.log2(maximum_occupation_number + 1))
+        )  # elbows for rotation gadget
+        + 1  # elbow for flipping fermionic be-ancilla
+    )
+    assert metrics.number_of_nonclifford_rotations <= 2 * (
+        maximum_occupation_number + 3
+    )
+    assert len(metrics.rotation_angles) == 2 * (maximum_occupation_number + 3)
+    assert max(metrics.clean_ancillae_usage) == max(
+        1 + np.ceil(np.log2(maximum_occupation_number + 1)), 1
+    )
+    assert metrics.clean_ancillae_usage[-1] == 0
 
 
 @pytest.mark.parametrize("trial", range(100))
@@ -181,6 +202,9 @@ def test_custom_fermionic_plus_nonhc_block_encoding(trial):
         number_of_block_encoding_ancillae,
         maximum_occupation_number,
     )
+    assert metrics.number_of_elbows == 2
+    assert max(metrics.clean_ancillae_usage) == 2
+    assert metrics.clean_ancillae_usage[-1] == 0
 
 
 @pytest.mark.parametrize("trial", range(100))
