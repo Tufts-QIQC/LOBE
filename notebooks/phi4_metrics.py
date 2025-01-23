@@ -11,8 +11,6 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), ".."
 
 from src.lobe.system import System
 from src.lobe.lcu import LCU
-from src.lobe.lobe_circuit import lobe_circuit
-from src.lobe.block_encoding import add_lobe_oracle
 from cirq.contrib.svg import SVGCircuit
 from src.lobe.usp import add_naive_usp
 from src.lobe.asp import get_target_state, add_prepare_circuit
@@ -127,7 +125,8 @@ def check_unitary(
 
 
 def phi4_lcu_circuit_metrics(resolution, max_bose_occ):
-    print("---", resolution, "---")
+    # print("---", resolution, "---")
+    print("---", max_bose_occ, "---")
     operator = operator = phi4_Hamiltonian(resolution, g=1, mb=1)
     lcu = LCU(operator, max_bosonic_occupancy=max_bose_occ, zero_threshold=1e-6)
 
@@ -151,6 +150,7 @@ def phi4_lcu_circuit_metrics(resolution, max_bose_occ):
 
 def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     operator = phi4_Hamiltonian(resolution, 1, 1)
+    print("---", maximum_occupation_number, "---")
 
     grouped_terms = operator.group()
     number_of_block_encoding_ancillae = max(
@@ -298,120 +298,132 @@ def _get_phi4_hamiltonian_norm(res, max_bose_occ, g=1):
 
 
 # Main functionality
-omega = 3
-resolutions = np.arange(2, 6, 1)
+# omega = 3
+omegas = [int(2**n - 1) for n in np.arange(1, 6, 1)]
+resolution = 2
+# resolutions = np.arange(2, 6, 1)
 print("LOBE")
 
-GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
+# GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
+GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(resolution, omega) for omega in omegas]
 print("LCU")
-LCU_DATA = [phi4_lcu_circuit_metrics(res, omega) for res in resolutions]
+# LCU_DATA = [phi4_lcu_circuit_metrics(res, omega) for res in resolutions]
+LCU_DATA = [phi4_lcu_circuit_metrics(resolution, omega) for omega in omegas]
 
 operator_norms = []
-for res in resolutions:
-    operator = phi4_Hamiltonian(res, 1, 1).normal_order()
+for omega in omegas:
+    operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
     operator.remove_identity()
-    operator_norms.append(_get_phi4_hamiltonian_norm(res, omega))
-    print(res, operator_norms[-1])
+    operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
+    print(resolution, omega, operator_norms[-1])
 system_qubits = [
     System(
-        phi4_Hamiltonian(res, 1, 1).max_bosonic_mode, omega, 1000, False, False, True
+        phi4_Hamiltonian(resolution, 1, 1).max_bosonic_mode,
+        omega,
+        1000,
+        False,
+        False,
+        True,
     ).number_of_system_qubits
-    for res in resolutions
+    for omega in omegas
 ]
 
 
 fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
 
 axes[0][0].plot(
-    resolutions,
-    [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
+    omegas,
+    [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
     color=BLUE,
     marker="s",
     alpha=1,
     label="LOBE",
 )
 axes[0][0].plot(
-    resolutions,
-    [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
+    omegas,
+    [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(omegas))],
     color=ORANGE,
     marker="o",
     alpha=1,
     label="LCU",
 )
 axes[0][0].set_ylabel("Number of T-gates")
-axes[0][0].set_xlabel("Resolution $(K$)")
+axes[0][0].set_xlabel("Occupancy ($\Omega$)")
 
 axes[0][1].plot(
-    resolutions,
-    [GROUPED_LOBE_DATA[i][0].number_of_rotations for i in range(len(resolutions))],
+    omegas,
+    [
+        GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
+        for i in range(len(omegas))
+    ],
     color=BLUE,
     marker="s",
     alpha=1,
     label="LOBE",
 )
 axes[0][1].plot(
-    resolutions,
-    [LCU_DATA[i][0].number_of_rotations for i in range(len(resolutions))],
+    omegas,
+    [LCU_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
     color=ORANGE,
     marker="o",
     alpha=1,
     label="LCU",
 )
 axes[0][1].set_ylabel("Number of Rotations")
-axes[0][1].set_xlabel("Resolution $(K$)")
+axes[0][1].set_xlabel("Occupancy ($\Omega$)")
 
 axes[1][0].plot(
-    resolutions,
-    [GROUPED_LOBE_DATA[i][2] for i in range(len(resolutions))],
+    omegas,
+    [GROUPED_LOBE_DATA[i][2] for i in range(len(omegas))],
     color=BLUE,
     marker="s",
     alpha=1,
     label="LOBE",
 )
 axes[1][0].plot(
-    resolutions,
-    [LCU_DATA[i][2] for i in range(len(resolutions))],
+    omegas,
+    [LCU_DATA[i][2] for i in range(len(omegas))],
     color=ORANGE,
     marker="o",
     alpha=1,
     label="LCU",
 )
 axes[1][0].set_ylabel("Number of BE-Ancillae")
-axes[1][0].set_xlabel("Resolution $(K$)")
+axes[1][0].set_xlabel("Occupancy ($\Omega$)")
 
 axes[1][1].plot(
-    resolutions,
-    [GROUPED_LOBE_DATA[i][1] for i in range(len(resolutions))],
+    omegas,
+    [GROUPED_LOBE_DATA[i][1] for i in range(len(omegas))],
     color=BLUE,
     marker="s",
     alpha=1,
     label="LOBE",
 )
 axes[1][1].plot(
-    resolutions,
-    [LCU_DATA[i][1] for i in range(len(resolutions))],
+    omegas,
+    [LCU_DATA[i][1] for i in range(len(omegas))],
     color=ORANGE,
     marker="o",
     alpha=1,
     label="LCU",
 )
 axes[1][1].plot(
-    resolutions,
-    [operator_norms[i] for i in range(len(resolutions))],
+    omegas,
+    [operator_norms[i] for i in range(len(omegas))],
     color="black",
     marker="x",
     ls="--",
     alpha=1,
 )
 axes[1][1].set_ylabel("Rescaling Factor")
-axes[1][1].set_xlabel("Resolution $(K$)")
+axes[1][1].set_xlabel("Occupancy ($\Omega$)")
 
 
 axes[2][0].plot(
-    resolutions,
+    omegas,
     [
         LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
-        for i in range(len(resolutions))
+        for i in range(len(omegas))
     ],
     color=ORANGE,
     marker="^",
@@ -419,13 +431,13 @@ axes[2][0].plot(
     label="LCU",
 )
 axes[2][0].plot(
-    resolutions,
+    omegas,
     [
         GROUPED_LOBE_DATA[i][0].ancillae_highwater()
         + GROUPED_LOBE_DATA[i][2]
         + system_qubits[i]
         + 1
-        for i in range(len(resolutions))
+        for i in range(len(omegas))
     ],
     color=BLUE,
     marker="s",
