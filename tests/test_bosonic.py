@@ -78,7 +78,8 @@ def test_bosonic_mode_block_encoding(
     assert metrics.number_of_elbows <= np.ceil(
         np.log2(maximum_occupation_number + 1)
     ) + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
-    assert metrics.number_of_nonclifford_rotations <= maximum_occupation_number + 2
+    assert metrics.number_of_nonclifford_rotations <= maximum_occupation_number + 3
+    assert len(metrics.rotation_angles) == maximum_occupation_number + 3
     if len(metrics.clean_ancillae_usage) > 0:
         assert metrics.clean_ancillae_usage[-1] == 0
         assert metrics.ancillae_highwater() == int(
@@ -171,6 +172,9 @@ def test_bosonic_modes_block_encoding(
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
         maximum_occupation_number + 3
     )
+    assert len(metrics.rotation_angles) == number_of_active_modes * (
+        maximum_occupation_number + 3
+    )
     assert metrics.clean_ancillae_usage[-1] == 0
 
 
@@ -226,7 +230,8 @@ def test_bosonic_mode_plus_hc_block_encoding(
     assert metrics.number_of_elbows <= max(
         3 * int(np.log2(maximum_occupation_number + 1)), 0
     )
-    assert metrics.number_of_nonclifford_rotations <= maximum_occupation_number + 2
+    assert metrics.number_of_nonclifford_rotations <= maximum_occupation_number + 3
+    assert len(metrics.rotation_angles) == maximum_occupation_number + 3
     assert metrics.clean_ancillae_usage[-1] == 0
 
 
@@ -318,6 +323,9 @@ def test_bosonic_product_plus_hc_block_encoding(
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
         maximum_occupation_number + 3
     )
+    assert len(metrics.rotation_angles) == number_of_active_modes * (
+        maximum_occupation_number + 3
+    )
     assert metrics.clean_ancillae_usage[-1] == 0
 
 
@@ -380,6 +388,9 @@ def test_phi4_term(term):
         + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
     )
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
+        maximum_occupation_number + 3
+    )
+    assert len(metrics.rotation_angles) == number_of_active_modes * (
         maximum_occupation_number + 3
     )
     assert metrics.clean_ancillae_usage[-1] == 0

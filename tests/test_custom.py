@@ -42,7 +42,6 @@ def test_yukawa_3point(trial):
         f"b{fermionic_indices[0]}^ b{fermionic_indices[1]}^ a{bosonic_index[0]}"
     )
     operator += operator.dagger()
-    # operator *= ParticleOperator("", coeff=sign)
 
     number_of_block_encoding_ancillae = 2
     circuit, metrics, system = _setup(
@@ -82,6 +81,7 @@ def test_yukawa_3point(trial):
         + 1
     )  # elbow for flipping fermionic be-ancilla
     assert metrics.number_of_nonclifford_rotations <= (maximum_occupation_number + 3)
+    assert len(metrics.rotation_angles) == (maximum_occupation_number + 3)
     assert max(metrics.clean_ancillae_usage) == max(
         2 + np.ceil(np.log2(maximum_occupation_number + 1)), 2
     )
@@ -105,7 +105,6 @@ def test_yukawa_4point(trial):
     operator_string = f"b{fermionic_indices[1]} b{fermionic_indices[0]} a{bosonic_indices[1]}^ a{bosonic_indices[0]}^"
     operator = ParticleOperator(operator_string, coeff=sign)
     conjugate_string = f"b{fermionic_indices[0]}^ b{fermionic_indices[1]}^ a{bosonic_indices[1]} a{bosonic_indices[0]}"
-    # operator += ParticleOperator(conjugate_string)
     operator += operator.dagger()
 
     number_of_block_encoding_ancillae = 3
@@ -235,6 +234,7 @@ def test_custom_term_block_encoding(trial):
         np.log2(maximum_occupation_number + 1)
     )  # elbows for rotation gadget
     assert metrics.number_of_nonclifford_rotations <= (maximum_occupation_number + 3)
+    assert len(metrics.rotation_angles) == (maximum_occupation_number + 3)
     assert max(metrics.clean_ancillae_usage) == max(
         1 + (len(system.bosonic_system[active_bosonic_index])), 2
     )
