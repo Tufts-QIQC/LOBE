@@ -112,7 +112,7 @@ def test_get_decomposed_multiplexed_rotation_circuit_controlled(number_of_angles
     assert metrics.clean_ancillae_usage[-1] == 0
     assert metrics.ancillae_highwater() == len(index_register)
     assert metrics.number_of_elbows == len(index_register)
-    assert metrics.number_of_rotations <= (1 << len(index_register)) + 2
+    assert metrics.number_of_nonclifford_rotations <= (1 << len(index_register)) + 2
 
 
 def test_get_decomposed_multiplexed_rotation_circuit_only_counts_nonclifford_rotations():
@@ -137,7 +137,7 @@ def test_get_decomposed_multiplexed_rotation_circuit_only_counts_nonclifford_rot
         ctrls=ctrls,
     )
 
-    assert metrics.number_of_rotations == 3
+    assert metrics.number_of_nonclifford_rotations == 3
 
 
 @pytest.mark.parametrize(

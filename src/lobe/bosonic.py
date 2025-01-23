@@ -270,7 +270,7 @@ def bosonic_product_plus_hc_block_encoding(
         block_encoding_metrics += adder_metrics
 
         rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
-            block_encoding_ancillae[i],
+            block_encoding_ancillae[i + 1],
             system.bosonic_system[active_index],
             Ri,
             Si,

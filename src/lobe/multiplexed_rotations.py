@@ -2,8 +2,6 @@ import numpy as np
 import cirq
 from .metrics import CircuitMetrics
 
-CLIFFORD_ROTATION_ANGLES = [i * np.pi / 2 for i in range(9)]
-
 
 def get_decomposed_multiplexed_rotation_circuit(
     indexing_register,
@@ -55,16 +53,6 @@ def get_decomposed_multiplexed_rotation_circuit(
             )
             ancilla.append(clean_ancillae[len(ancilla)])
 
-    for angle in processed_angles:
-        if not np.any(
-            [
-                np.isclose((angle) % (4 * np.pi), clifford_angle)
-                for clifford_angle in CLIFFORD_ROTATION_ANGLES
-            ]
-        ):
-            # Count only nonClifford rotations
-            rotation_gadget_metrics.number_of_rotations += 1
-
     _gates, recursion_metrics = _recursive_helper(
         indexing_register,
         rotation_qubit,
@@ -101,15 +89,8 @@ def get_decomposed_multiplexed_rotation_circuit(
 
     if len(ctrls[0]) > 0:
         angle = -np.pi * sum(processed_angles)
-        if not np.any(
-            [
-                np.isclose((angle / 2) % (4 * np.pi), clifford_angle)
-                for clifford_angle in CLIFFORD_ROTATION_ANGLES
-            ]
-        ):
-            # Controlled rotations are implemented with two rotations of angle/2.
-            # This checks if those rotations will be nonClifford
-            rotation_gadget_metrics.number_of_rotations += 2
+        rotation_gadget_metrics.rotation_angles.append(-angle / 2)
+        rotation_gadget_metrics.rotation_angles.append(angle / 2)
         gates.append(
             cirq.Moment(
                 cirq.ry(angle)
@@ -140,6 +121,7 @@ def _recursive_helper(
     gates = []
 
     if level == 1:
+        recursion_metrics.rotation_angles.append(np.pi * angles[rotation_index])
         gates.append(
             cirq.Moment(cirq.ry(np.pi * angles[rotation_index]).on(rotation_qubit))
         )
@@ -156,6 +138,7 @@ def _recursive_helper(
                     .controlled_by(*ctrls[0], control_values=ctrls[1])
                 )
             )
+        recursion_metrics.rotation_angles.append(np.pi * angles[rotation_index + 1])
         gates.append(
             cirq.Moment(cirq.ry(np.pi * angles[rotation_index + 1]).on(rotation_qubit))
         )
