@@ -1,10 +1,7 @@
 import cirq
 import numpy as np
 from ._grover_rudolph import _grover_rudolph
-from .multiplexed_rotations import (
-    get_decomposed_multiplexed_rotation_circuit,
-    CLIFFORD_ROTATION_ANGLES,
-)
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 from .metrics import CircuitMetrics
 
 
@@ -109,13 +106,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
 
     angle = np.pi * multiplexing_angles[0][0]
     gates.append(cirq.ry(angle).on(qubits[0]))
-    if not np.any(
-        [
-            np.isclose((angle) % (4 * np.pi), clifford_angle)
-            for clifford_angle in CLIFFORD_ROTATION_ANGLES
-        ]
-    ):
-        metrics.number_of_rotations += 1
+    metrics.rotation_angles.append(angle)
 
     for qubit_index, angles in enumerate(multiplexing_angles[1:]):
         rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
