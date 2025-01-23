@@ -4,11 +4,10 @@ import numpy as np
 import cirq
 from src.lobe.system import System
 from src.lobe.bosonic import (
-    bosonic_mode_block_encoding,
-    bosonic_modes_block_encoding,
-    bosonic_mode_plus_hc_block_encoding,
+    bosonic_product_block_encoding,
     bosonic_product_plus_hc_block_encoding,
 )
+from src.lobe.rescale import get_number_of_active_bosonic_modes
 import pytest
 from functools import partial
 
@@ -20,77 +19,14 @@ from _utils import (
     get_basis_of_full_system,
 )
 from src.lobe._utils import get_bosonic_exponents
-
-from src.lobe.rescale import (
-    bosonically_rescale_terms,
-    get_number_of_active_bosonic_modes,
-)
 from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.index import index_over_terms
-
-
-@pytest.mark.parametrize("number_of_modes", range(2, 4))
-@pytest.mark.parametrize("active_mode", range(0, 4))
-@pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
-@pytest.mark.parametrize("R", range(1, 4))
-@pytest.mark.parametrize("S", range(1, 4))
-@pytest.mark.parametrize("sign", [1, -1])
-def test_bosonic_mode_block_encoding(
-    number_of_modes, active_mode, maximum_occupation_number, R, S, sign
-):
-    if (maximum_occupation_number == 7) and (active_mode > 0):
-        pytest.skip()
-
-    active_mode = active_mode % number_of_modes
-    operator = ParticleOperator(f"a{active_mode}^") ** R
-    operator *= ParticleOperator(f"a{active_mode}") ** S
-    operator *= ParticleOperator("", coeff=sign)
-    expected_rescaling_factor = np.sqrt(maximum_occupation_number) ** (R + S)
-
-    number_of_block_encoding_ancillae = 1
-    circuit, metrics, system = _setup(
-        number_of_block_encoding_ancillae,
-        operator,
-        maximum_occupation_number,
-        partial(
-            bosonic_mode_block_encoding,
-            active_index=active_mode,
-            exponents=(R, S),
-            sign=sign,
-        ),
-    )
-    _validate_block_encoding(
-        circuit,
-        system,
-        expected_rescaling_factor,
-        operator,
-        number_of_block_encoding_ancillae,
-        maximum_occupation_number,
-    )
-    _validate_clean_ancillae_are_cleaned(
-        circuit,
-        system,
-        number_of_block_encoding_ancillae,
-    )
-    _validate_block_encoding_does_nothing_when_control_is_off(
-        circuit, system, number_of_block_encoding_ancillae
-    )
-    assert metrics.number_of_elbows <= np.ceil(
-        np.log2(maximum_occupation_number + 1)
-    ) + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
-    assert metrics.number_of_nonclifford_rotations <= maximum_occupation_number + 3
-    assert len(metrics.rotation_angles) == maximum_occupation_number + 3
-    if len(metrics.clean_ancillae_usage) > 0:
-        assert metrics.clean_ancillae_usage[-1] == 0
-        assert metrics.ancillae_highwater() == int(
-            np.log2(maximum_occupation_number + 1)
-        )
 
 
 MAX_ACTIVE_MODES = 5
 
 
-@pytest.mark.parametrize("number_of_active_modes", range(2, MAX_ACTIVE_MODES + 1))
+@pytest.mark.parametrize("number_of_active_modes", range(1, MAX_ACTIVE_MODES + 1))
 @pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
 @pytest.mark.parametrize(
     "exponents_list",
@@ -103,7 +39,7 @@ MAX_ACTIVE_MODES = 5
     ],
 )
 @pytest.mark.parametrize("sign", [1, -1])
-def test_bosonic_modes_block_encoding(
+def test_bosonic_product_block_encoding(
     number_of_active_modes, maximum_occupation_number, exponents_list, sign
 ):
     active_modes = np.random.choice(
@@ -143,7 +79,7 @@ def test_bosonic_modes_block_encoding(
         operator,
         maximum_occupation_number,
         partial(
-            bosonic_modes_block_encoding,
+            bosonic_product_block_encoding,
             active_indices=active_modes,
             exponents_list=exponents_list,
             sign=sign,
@@ -175,63 +111,6 @@ def test_bosonic_modes_block_encoding(
     assert len(metrics.rotation_angles) == number_of_active_modes * (
         maximum_occupation_number + 3
     )
-    assert metrics.clean_ancillae_usage[-1] == 0
-
-
-@pytest.mark.parametrize("number_of_modes", range(2, 4))
-@pytest.mark.parametrize("active_mode", range(0, 4))
-@pytest.mark.parametrize("maximum_occupation_number", [1, 3, 7])
-@pytest.mark.parametrize("R", range(1, 4))
-@pytest.mark.parametrize("S", range(1, 4))
-@pytest.mark.parametrize("sign", [1, -1])
-def test_bosonic_mode_plus_hc_block_encoding(
-    number_of_modes, active_mode, maximum_occupation_number, R, S, sign
-):
-    if R == S:
-        pytest.skip()
-    if (maximum_occupation_number == 7) and (active_mode > 0):
-        pytest.skip()
-
-    active_mode = active_mode % number_of_modes
-    operator = ParticleOperator(f"a{active_mode}^") ** R
-    operator *= ParticleOperator(f"a{active_mode}") ** S
-    operator *= ParticleOperator("", coeff=sign)
-    operator += operator.dagger()
-    expected_rescaling_factor = 2 * np.sqrt(maximum_occupation_number) ** (R + S)
-
-    number_of_block_encoding_ancillae = 2
-    circuit, metrics, system = _setup(
-        number_of_block_encoding_ancillae,
-        operator,
-        maximum_occupation_number,
-        partial(
-            bosonic_mode_plus_hc_block_encoding,
-            active_index=active_mode,
-            exponents=(R, S),
-            sign=sign,
-        ),
-    )
-    _validate_block_encoding(
-        circuit,
-        system,
-        expected_rescaling_factor,
-        operator,
-        number_of_block_encoding_ancillae,
-        maximum_occupation_number,
-    )
-    _validate_clean_ancillae_are_cleaned(
-        circuit,
-        system,
-        number_of_block_encoding_ancillae,
-    )
-    _validate_block_encoding_does_nothing_when_control_is_off(
-        circuit, system, number_of_block_encoding_ancillae
-    )
-    assert metrics.number_of_elbows <= max(
-        3 * int(np.log2(maximum_occupation_number + 1)), 0
-    )
-    assert metrics.number_of_nonclifford_rotations <= maximum_occupation_number + 3
-    assert len(metrics.rotation_angles) == maximum_occupation_number + 3
     assert metrics.clean_ancillae_usage[-1] == 0
 
 
@@ -361,7 +240,7 @@ def test_phi4_term(term):
         operator,
         maximum_occupation_number,
         partial(
-            bosonic_modes_block_encoding,
+            bosonic_product_block_encoding,
             active_indices=active_modes,
             exponents_list=exponents_list,
             sign=sign,
@@ -443,7 +322,7 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
 
         BE_functions.append(
             partial(
-                bosonic_modes_block_encoding,
+                bosonic_product_block_encoding,
                 system=system,
                 block_encoding_ancillae=block_encoding_ancillae,
                 active_indices=active_modes,
@@ -556,7 +435,7 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
 #         if not plus_hc:
 #             block_encoding_functions.append(
 #                 partial(
-#                     bosonic_modes_block_encoding,
+#                     bosonic_product_block_encoding,
 #                     system=system,
 #                     block_encoding_ancillae=block_encoding_ancillae,
 #                     active_indices=active_modes,
