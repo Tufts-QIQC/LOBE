@@ -83,7 +83,7 @@ def test_yukawa_3point(trial):
     assert metrics.number_of_nonclifford_rotations <= (maximum_occupation_number + 3)
     assert len(metrics.rotation_angles) == (maximum_occupation_number + 3)
     assert max(metrics.clean_ancillae_usage) == max(
-        2 + np.ceil(np.log2(maximum_occupation_number + 1)), 2
+        1 + np.ceil(np.log2(maximum_occupation_number + 1)), 1
     )
 
 
