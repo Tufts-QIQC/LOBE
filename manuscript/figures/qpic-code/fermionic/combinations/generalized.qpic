@@ -3,48 +3,31 @@ PREAMBLE \definecolor{torange}{RGB}{253,143,41}
 
 ctrl W ctrl
 anc W anc
-a W \psi_i
-b W \psi_j
-c W \vdots
-f W \psi_m
-c0 W 0 0
-c1 W 0 0
-c2 W 0 0
-1 W 0 0
-c3 W 0 0
+i W \psi_i
+j W \psi_j
+sys W \vdots
+m W \psi_m
+clean W 0 0 
 
-c0 START
-a +c0
-c1 START
-b +c0 +c1
-c2 START
-c +c1 +c2
-1 START
-c +1
-f +1
+sys +m
+j +sys
+i +j
 
-c3 START
--c0 -c1 -c2 -1 +c3
-ctrl -c3 +anc
--c0 -c1 -c2 -1 +c3
-c3 END
+clean START
+-j -sys -m +clean
+ctrl -clean +anc
+-j -sys -m +clean
+clean END
 
-f +1
-c +1
-1 END
-c +c1 +c2
-c2 END
-b +c0 +c1
-c1 END
-a +c0
-c0 END
+i +j
+j +sys
+sys +m
 
 
+ctrl -i color=torange
 
-ctrl -a color=torange
-
-a b c G $\vec{Z}$ ctrl +f
-ctrl a b c LABEL ...
-a b G $\vec{Z}$ ctrl +c
-a G $\vec{Z}$ ctrl +b
-ctrl +a
+i j sys G $\vec{Z}$ ctrl +m
+ctrl i j sys LABEL ...
+i j G $\vec{Z}$ ctrl +sys
+i G $\vec{Z}$ ctrl +j
+ctrl +i
