@@ -35,8 +35,8 @@ def test_asp(number_of_qubits, number_of_terms, asp_func):
     for index, coeff in enumerate(target_state):
         assert np.isclose(wavefunction[index], coeff, atol=100 * _ZERO)
 
-    assert metrics.number_of_rotations > 0
-    assert metrics.number_of_rotations <= 1 << int(
+    assert metrics.number_of_nonclifford_rotations > 0
+    assert metrics.number_of_nonclifford_rotations <= 1 << int(
         np.ceil(np.log2((len(coefficients))))
     )
 
@@ -50,7 +50,7 @@ def test_asp(number_of_qubits, number_of_terms, asp_func):
     for index, coeff in enumerate(one_state):
         assert np.isclose(wavefunction[index], coeff, atol=100 * _ZERO)
 
-    assert metrics.number_of_rotations > 0
-    assert metrics.number_of_rotations <= 2 * (
+    assert metrics.number_of_nonclifford_rotations > 0
+    assert metrics.number_of_nonclifford_rotations <= 2 * (
         1 << int(np.ceil(np.log2((len(coefficients)))))
     )

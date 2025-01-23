@@ -442,7 +442,7 @@ def _add_bosonic_rotations(
     )
     gates += rotation_gates
     if numerics is not None:
-        numerics["rotations"] += rotation_metrics.number_of_rotations
+        numerics["rotations"] += rotation_metrics.number_of_nonclifford_rotations
     return gates
 
 

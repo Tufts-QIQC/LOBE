@@ -35,7 +35,8 @@ def test_index_over_terms_adds_metrics():
     def _block_encoding_func(ctrls=([], [])):
         metrics = CircuitMetrics()
         metrics.number_of_elbows += 10
-        metrics.number_of_rotations += 20
+        for _ in range(20):
+            metrics.rotation_angles.append(0.0001)
         metrics.number_of_t_gates += 30
         metrics.add_to_clean_ancillae_usage(40)
         metrics.add_to_clean_ancillae_usage(-40)
@@ -58,7 +59,7 @@ def test_index_over_terms_adds_metrics():
     )
 
     assert metrics.number_of_elbows == number_of_terms - 1 + (number_of_terms * 10)
-    assert metrics.number_of_rotations == (number_of_terms * 20)
+    assert metrics.number_of_nonclifford_rotations == (number_of_terms * 20)
     assert metrics.number_of_t_gates == (number_of_terms * 30)
     assert metrics.ancillae_highwater() == len(index_register) + 40
 
