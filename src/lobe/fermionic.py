@@ -186,18 +186,13 @@ def fermionic_plus_hc_block_encoding(
             number_op_qubits.append(system.fermionic_register[index])
 
     for i, active_mode in enumerate(non_number_op_indices[:-1]):
-        parity_qubit = clean_ancillae[clean_ancillae_index]
+        parity_qubit = system.fermionic_register[active_mode]
         parity_qubits.append(parity_qubit)
         clean_ancillae_index += 1
 
-        temporary_computations.append(
-            cirq.Moment(
-                cirq.X.on(parity_qubit).controlled_by(
-                    system.fermionic_register[active_mode],
-                    control_values=[not non_number_op_types[i]],
-                )
-            )
-        )
+        if non_number_op_types[i]:
+            temporary_computations.append(cirq.Moment(cirq.X.on(parity_qubit)))
+
         temporary_computations.append(
             cirq.Moment(
                 cirq.X.on(parity_qubit).controlled_by(
@@ -206,7 +201,6 @@ def fermionic_plus_hc_block_encoding(
                 )
             )
         )
-    block_encoding_metrics.add_to_clean_ancillae_usage(len(parity_qubits))
 
     # Use left-elbow to store temporary logical AND of parity qubits
     block_encoding_metrics.add_to_clean_ancillae_usage(
@@ -244,7 +238,6 @@ def fermionic_plus_hc_block_encoding(
     )
 
     # Reset clean ancillae
-    block_encoding_metrics.add_to_clean_ancillae_usage(-len(parity_qubits))
     gates += temporary_computations[::-1]
 
     # Update system
