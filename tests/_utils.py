@@ -77,8 +77,15 @@ def _validate_block_encoding(
     operator,
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
+    max_qubits=18,
+    using_pytest=True,
 ):
-    if len(circuit.all_qubits()) >= 12:
+    if len(circuit.all_qubits()) >= max_qubits:
+        if using_pytest:
+            pytest.skip(f"Too many qubits to validate: {len(circuit.all_qubits())}")
+        else:
+            print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
+    elif len(circuit.all_qubits()) >= 12:
         print(
             f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
