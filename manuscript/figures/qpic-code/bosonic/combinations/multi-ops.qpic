@@ -4,7 +4,7 @@ index W index
 i W \omega_i
 
 i / ^{\log_2{\Omega}}
-ctrl anc index i LABEL
+ctrl anc i LABEL width=-1
 
 index G $H$ 
 i G width=40 $+R-S$ ctrl -index

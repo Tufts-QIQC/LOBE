@@ -4,7 +4,7 @@ i W \psi_i
 j W \psi_j
 
 i / ^{i<j}
-ctrl anc i j LABEL
+ctrl anc i j LABEL width=-10
 ctrl -j +anc
 
 i G $\vec{Z}$ ctrl +j
