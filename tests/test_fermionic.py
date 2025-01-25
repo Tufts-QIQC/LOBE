@@ -26,11 +26,11 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         range(MAX_MODES + 1), size=number_of_active_modes, replace=False
     )
     operator_types_reversed = np.random.choice(
-        [2, 1, 0], size=number_of_active_modes, replace=True
+        [3, 2, 1, 0], size=number_of_active_modes, replace=True
     )
-    while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
+    while not ((0 in operator_types_reversed) or (1 in operator_types_reversed)):
         operator_types_reversed = np.random.choice(
-            [2, 1, 0], size=number_of_active_modes, replace=True
+            [3, 2, 1, 0], size=number_of_active_modes, replace=True
         )
     operator_types_reversed = operator_types_reversed[:number_of_active_modes]
     operator_types_reversed = list(operator_types_reversed)
@@ -44,6 +44,8 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
             operator_string += f" b{mode}^"
         if operator_type == 2:
             operator_string += f" b{mode}^ b{mode}"
+        if operator_type == 3:
+            operator_string += f" b{mode} b{mode}^"
 
     operator = ParticleOperator(operator_string, coeff=sign)
     operator += operator.dagger()
@@ -99,12 +101,12 @@ def test_arbitrary_fermionic_product(trial):
         range(MAX_MODES + 1), size=number_of_active_modes, replace=False
     )
     operator_types_reversed = np.random.choice(
-        [2, 1, 0], size=number_of_active_modes, replace=True
+        [3, 2, 1, 0], size=number_of_active_modes, replace=True
     )
-    while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
-        operator_types_reversed = np.random.choice(
-            [2, 1, 0], size=number_of_active_modes, replace=True
-        )
+    # while np.allclose(operator_types_reversed, [2] * number_of_active_modes):
+    #     operator_types_reversed = np.random.choice(
+    #         [3, 2, 1, 0], size=number_of_active_modes, replace=True
+    #     )
     operator_types_reversed = operator_types_reversed[:number_of_active_modes]
     operator_types_reversed = list(operator_types_reversed)
     sign = np.random.choice([1, -1])
@@ -117,6 +119,8 @@ def test_arbitrary_fermionic_product(trial):
             operator_string += f" b{mode}^"
         if operator_type == 2:
             operator_string += f" b{mode}^ b{mode}"
+        if operator_type == 3:
+            operator_string += f" b{mode} b{mode}^"
 
     operator = sign * ParticleOperator(operator_string)
 
@@ -157,3 +161,27 @@ def test_arbitrary_fermionic_product(trial):
         == (len(active_modes[::-1]) - 1)  # elbows for qbool
         + 1  # elbow to apply toff that flips ancilla
     )
+
+
+def test_be_functions_throw_error_when_unknown_operator_type_is_passed():
+    with pytest.raises(RuntimeError) as error_message:
+        fermionic_product_block_encoding(
+            None,
+            [],
+            [0, 1, 2],
+            [0, 1, 4],
+            clean_ancillae=[None] * 5,
+            ctrls=([None], [1]),
+        )
+        assert "Operator Type" in error_message
+
+    with pytest.raises(RuntimeError) as error_message:
+        fermionic_plus_hc_block_encoding(
+            None,
+            [],
+            [0, 1, 2],
+            [0, 1, 4],
+            clean_ancillae=[None] * 5,
+            ctrls=([None], [1]),
+        )
+        assert "Operator Type" in error_message
