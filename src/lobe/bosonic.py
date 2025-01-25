@@ -234,7 +234,7 @@ def _get_bosonic_rotation_angles(
                 )
 
     rotation_angles = [
-        2 / np.pi * np.arccos(intended_coefficient)
+        2 * np.arccos(intended_coefficient)
         for intended_coefficient in intended_coefficients
     ]
     return rotation_angles
