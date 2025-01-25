@@ -3,7 +3,7 @@ anc W anc
 i W \omega_i
 
 i / ^{\log_2{\Omega}}
-ctrl anc i LABEL
+ctrl anc i LABEL width=-1
  
 i G width=40 $+R-S$ ctrl
 anc G:width=65 $R_y(\theta_w, R, S)$ i G:width=20 $In_\omega$ ctrl

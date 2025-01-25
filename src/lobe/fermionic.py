@@ -21,7 +21,7 @@ def fermionic_product_block_encoding(
             of which operators are applied (right to left).
         operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
-            number operator
+            number operator, 3 if operator is bi bi^
         sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
@@ -50,7 +50,7 @@ def fermionic_product_block_encoding(
             )
         )
         block_encoding_metrics.add_to_clean_ancillae_usage(-1)
-        if operator_types[0] != 2:
+        if (operator_types[0] == 0) or (operator_types[0] == 1):
             op_gates, op_metrics = _apply_fermionic_ladder_op(
                 system, active_indices[0], ctrls=ctrls
             )
@@ -65,12 +65,17 @@ def fermionic_product_block_encoding(
     non_number_op_indices = []
     non_number_op_types = []
     number_op_qubits = []
-    for type, index in zip(operator_types, active_indices):
-        if type != 2:
-            non_number_op_types.append(type)
+    rev_number_op_qubits = []
+    for op_type, index in zip(operator_types, active_indices):
+        if (op_type == 0) or (op_type == 1):
+            non_number_op_types.append(op_type)
             non_number_op_indices.append(index)
-        else:
+        elif op_type == 2:
             number_op_qubits.append(system.fermionic_register[index])
+        elif op_type == 3:
+            rev_number_op_qubits.append(system.fermionic_register[index])
+        else:
+            raise RuntimeError(f"Operator Type {op_type} Unknown")
 
     # Use left-elbow to store temporary logical AND of parity qubits and control
     block_encoding_metrics.add_to_clean_ancillae_usage(len(active_indices) - 1)
@@ -80,15 +85,18 @@ def fermionic_product_block_encoding(
     # for i, active_mode in enumerate(non_number_op_indices):
 
     clean_ancillae_index += 1
+    values = (
+        [int(not i) for i in non_number_op_types]
+        + ([1] * len(number_op_qubits))
+        + ([0] * len(rev_number_op_qubits))
+    )
     temporary_computations.append(
         cirq.Moment(
             cirq.X.on(temporary_qbool).controlled_by(
                 *[system.fermionic_register[i] for i in non_number_op_indices],
                 *number_op_qubits,
-                control_values=(
-                    [int(not i) for i in non_number_op_types]
-                )  # controlled by occupancies of the active modes
-                + ([1] * len(number_op_qubits)),
+                *rev_number_op_qubits,
+                control_values=values,  # controlled by occupancies of the active modes
             )
         )
     )
@@ -144,7 +152,7 @@ def fermionic_plus_hc_block_encoding(
             of which operators are applied (right to left).
         operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
-            number operator
+            number operator, 3 if operator is bi bi^
         sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
@@ -178,26 +186,26 @@ def fermionic_plus_hc_block_encoding(
     non_number_op_indices = []
     non_number_op_types = []
     number_op_qubits = []
-    for type, index in zip(operator_types, active_indices):
-        if type != 2:
-            non_number_op_types.append(type)
+    rev_number_op_qubits = []
+    for op_type, index in zip(operator_types, active_indices):
+        if (op_type == 0) or (op_type == 1):
+            non_number_op_types.append(op_type)
             non_number_op_indices.append(index)
-        else:
+        elif op_type == 2:
             number_op_qubits.append(system.fermionic_register[index])
+        elif op_type == 3:
+            rev_number_op_qubits.append(system.fermionic_register[index])
+        else:
+            raise RuntimeError(f"Operator Type {op_type} Unknown")
 
     for i, active_mode in enumerate(non_number_op_indices[:-1]):
-        parity_qubit = clean_ancillae[clean_ancillae_index]
+        parity_qubit = system.fermionic_register[active_mode]
         parity_qubits.append(parity_qubit)
         clean_ancillae_index += 1
 
-        temporary_computations.append(
-            cirq.Moment(
-                cirq.X.on(parity_qubit).controlled_by(
-                    system.fermionic_register[active_mode],
-                    control_values=[not non_number_op_types[i]],
-                )
-            )
-        )
+        if non_number_op_types[i]:
+            temporary_computations.append(cirq.Moment(cirq.X.on(parity_qubit)))
+
         temporary_computations.append(
             cirq.Moment(
                 cirq.X.on(parity_qubit).controlled_by(
@@ -206,23 +214,27 @@ def fermionic_plus_hc_block_encoding(
                 )
             )
         )
-    block_encoding_metrics.add_to_clean_ancillae_usage(len(parity_qubits))
 
     # Use left-elbow to store temporary logical AND of parity qubits
     block_encoding_metrics.add_to_clean_ancillae_usage(
-        len(parity_qubits) + len(number_op_qubits) - 1
+        len(parity_qubits) + len(number_op_qubits) + len(rev_number_op_qubits) - 1
     )
     block_encoding_metrics.number_of_elbows += (
-        len(parity_qubits) + len(number_op_qubits) - 1
+        len(parity_qubits) + len(number_op_qubits) + len(rev_number_op_qubits) - 1
     )
     temporary_qbool = clean_ancillae[clean_ancillae_index]
+    values = (
+        ([0] * len(parity_qubits))
+        + ([1] * len(number_op_qubits))
+        + ([0] * len(rev_number_op_qubits))
+    )
     temporary_computations.append(
         cirq.Moment(
             cirq.X.on(temporary_qbool).controlled_by(
                 *parity_qubits,
                 *number_op_qubits,
-                control_values=([0] * len(parity_qubits))
-                + ([1] * len(number_op_qubits)),
+                *rev_number_op_qubits,
+                control_values=values,
             )
         )
     )
@@ -240,11 +252,10 @@ def fermionic_plus_hc_block_encoding(
         )
     )
     block_encoding_metrics.add_to_clean_ancillae_usage(
-        -(len(parity_qubits) + len(number_op_qubits) - 1)
+        -(len(parity_qubits) + len(number_op_qubits) + len(rev_number_op_qubits) - 1)
     )
 
     # Reset clean ancillae
-    block_encoding_metrics.add_to_clean_ancillae_usage(-len(parity_qubits))
     gates += temporary_computations[::-1]
 
     # Update system
