@@ -43,27 +43,22 @@ def yukawa_4point_pair_term_block_encoding(
     if sign == -1:
         gates.append(cirq.Z.on(ctrls[0][0]))
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(1)
-    temporary_qbool = clean_ancillae[0]
-    gates.append(
-        cirq.X.on(temporary_qbool).controlled_by(
-            system.fermionic_register[active_indices[2]]
-        )
+    temporary_qbool = system.fermionic_register[active_indices[2]]
+
+    _gates, _metrics = decompose_controls_left(
+        (ctrls[0] + [temporary_qbool], ctrls[1] + [1]), clean_ancillae[0]
     )
+    gates += _gates
+    block_encoding_metrics += _metrics
 
     for be_ancilla, bosonic_index in zip(
         block_encoding_ancillae[:2], active_indices[:2]
     ):
-        _gates, _metrics = decompose_controls_left(
-            (ctrls[0] + [temporary_qbool], ctrls[1] + [1]), clean_ancillae[1]
-        )
-        gates += _gates
-        block_encoding_metrics += _metrics
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[bosonic_index],
             1,
-            clean_ancillae=clean_ancillae[2:],
-            ctrls=([clean_ancillae[1]], [1]),
+            clean_ancillae=clean_ancillae[1:],
+            ctrls=([clean_ancillae[0]], [1]),
         )
         gates += adder_gates
         block_encoding_metrics += adder_metrics
@@ -75,31 +70,32 @@ def yukawa_4point_pair_term_block_encoding(
             system.bosonic_system[bosonic_index],
             be_ancilla,
             rotation_angles,
-            clean_ancillae=clean_ancillae[2:],
+            clean_ancillae=clean_ancillae[1:],
             ctrls=ctrls,
         )
         gates += rotation_gates
         block_encoding_metrics += rotation_metrics
 
-        gates.append(
-            cirq.X.on(clean_ancillae[1]).controlled_by(
-                *ctrls[0], control_values=ctrls[1]
-            )
-        )
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    for be_ancilla, bosonic_index in zip(
+        block_encoding_ancillae[:2], active_indices[:2]
+    ):
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_system[bosonic_index],
             -1,
-            clean_ancillae=clean_ancillae[2:],
-            ctrls=([clean_ancillae[1]], [1]),
+            clean_ancillae=clean_ancillae[1:],
+            ctrls=([clean_ancillae[0]], [1]),
         )
         gates += adder_gates
         block_encoding_metrics += adder_metrics
 
-        _gates, _metrics = decompose_controls_right(
-            (ctrls[0] + [temporary_qbool], ctrls[1] + [0]), clean_ancillae[1]
-        )
-        gates += _gates
-        block_encoding_metrics += _metrics
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [temporary_qbool], ctrls[1] + [0]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
 
     gates.append(
         cirq.X.on(temporary_qbool).controlled_by(
@@ -117,11 +113,6 @@ def yukawa_4point_pair_term_block_encoding(
     gates.append(
         cirq.X.on(temporary_qbool).controlled_by(
             system.fermionic_register[active_indices[3]]
-        )
-    )
-    gates.append(
-        cirq.X.on(temporary_qbool).controlled_by(
-            system.fermionic_register[active_indices[2]]
         )
     )
 
@@ -180,16 +171,9 @@ def yukawa_3point_pair_term_block_encoding(
     if sign == -1:
         gates.append(cirq.Z.on(ctrls[0][0]))
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(1)
-    temporary_qbool = clean_ancillae[0]
-    gates.append(
-        cirq.X.on(temporary_qbool).controlled_by(
-            system.fermionic_register[active_indices[1]]
-        )
-    )
-
     _gates, _metrics = decompose_controls_left(
-        (ctrls[0] + [temporary_qbool], ctrls[1] + [1]), clean_ancillae[1]
+        (ctrls[0] + [system.fermionic_register[active_indices[1]]], ctrls[1] + [1]),
+        clean_ancillae[0],
     )
     gates += _gates
     block_encoding_metrics += _metrics
@@ -197,8 +181,8 @@ def yukawa_3point_pair_term_block_encoding(
     adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_indices[0]],
         1,
-        clean_ancillae=clean_ancillae[2:],
-        ctrls=([clean_ancillae[1]], [1]),
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
@@ -210,51 +194,55 @@ def yukawa_3point_pair_term_block_encoding(
         system.bosonic_system[active_indices[0]],
         block_encoding_ancillae[0],
         rotation_angles,
-        clean_ancillae=clean_ancillae[2:],
+        clean_ancillae=clean_ancillae[1:],
         ctrls=ctrls,
     )
     gates += rotation_gates
     block_encoding_metrics += rotation_metrics
 
     gates.append(
-        cirq.X.on(clean_ancillae[1]).controlled_by(*ctrls[0], control_values=ctrls[1])
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
     )
     adder_gates, adder_metrics = add_classical_value(
         system.bosonic_system[active_indices[0]],
         -1,
-        clean_ancillae=clean_ancillae[2:],
-        ctrls=([clean_ancillae[1]], [1]),
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
 
     _gates, _metrics = decompose_controls_right(
-        (ctrls[0] + [temporary_qbool], ctrls[1] + [0]), clean_ancillae[1]
+        (ctrls[0] + [system.fermionic_register[active_indices[1]]], ctrls[1] + [0]),
+        clean_ancillae[0],
     )
     gates += _gates
     block_encoding_metrics += _metrics
 
     gates.append(
-        cirq.X.on(temporary_qbool).controlled_by(
-            system.fermionic_register[active_indices[2]]
+        cirq.Moment(
+            cirq.X.on(system.fermionic_register[active_indices[1]]).controlled_by(
+                system.fermionic_register[active_indices[2]]
+            )
         )
     )
+
     block_encoding_metrics.number_of_elbows += 1
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
     gates.append(
         cirq.X.on(block_encoding_ancillae[1]).controlled_by(
-            *ctrls[0], temporary_qbool, control_values=ctrls[1] + [1]
+            *ctrls[0],
+            system.fermionic_register[active_indices[1]],
+            control_values=ctrls[1] + [1]
         )
     )
     block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+
     gates.append(
-        cirq.X.on(temporary_qbool).controlled_by(
-            system.fermionic_register[active_indices[2]]
-        )
-    )
-    gates.append(
-        cirq.X.on(temporary_qbool).controlled_by(
-            system.fermionic_register[active_indices[1]]
+        cirq.Moment(
+            cirq.X.on(system.fermionic_register[active_indices[1]]).controlled_by(
+                system.fermionic_register[active_indices[2]]
+            )
         )
     )
 
@@ -312,56 +300,34 @@ def _custom_fermionic_plus_nonhc_block_encoding(
     if sign == -1:
         gates.append(cirq.Z.on(ctrls[0][0]))
 
-    block_encoding_metrics.add_to_clean_ancillae_usage(1)
-    gates.append(
-        cirq.X.on(clean_ancillae[0]).controlled_by(
+    temporary_computations = []
+    temporary_computations.append(
+        cirq.X.on(system.fermionic_register[active_indices[1]]).controlled_by(
             system.fermionic_register[active_indices[2]]
-        )
-    )
-    gates.append(
-        cirq.X.on(clean_ancillae[0]).controlled_by(
-            system.fermionic_register[active_indices[1]]
         )
     )
 
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
     block_encoding_metrics.number_of_elbows += 1
-    gates.append(
-        cirq.X.on(clean_ancillae[1]).controlled_by(
+    temporary_computations.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(
             system.fermionic_register[active_indices[0]],
-            clean_ancillae[0],
+            system.fermionic_register[active_indices[1]],
             control_values=[0, 0],
         )
     )
 
+    gates += temporary_computations
     block_encoding_metrics.add_to_clean_ancillae_usage(1)
     block_encoding_metrics.number_of_elbows += 1
     gates.append(
         cirq.X.on(block_encoding_ancilla).controlled_by(
-            clean_ancillae[1], *ctrls[0], control_values=[0] + ctrls[1]
+            clean_ancillae[0], *ctrls[0], control_values=[0] + ctrls[1]
         )
     )
     block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+    gates += temporary_computations[::-1]
 
-    gates.append(
-        cirq.X.on(clean_ancillae[1]).controlled_by(
-            system.fermionic_register[active_indices[0]],
-            clean_ancillae[0],
-            control_values=[0, 0],
-        )
-    )
-    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
-
-    gates.append(
-        cirq.X.on(clean_ancillae[0]).controlled_by(
-            system.fermionic_register[active_indices[1]]
-        )
-    )
-    gates.append(
-        cirq.X.on(clean_ancillae[0]).controlled_by(
-            system.fermionic_register[active_indices[2]]
-        )
-    )
     block_encoding_metrics.add_to_clean_ancillae_usage(-1)
 
     gates.append(

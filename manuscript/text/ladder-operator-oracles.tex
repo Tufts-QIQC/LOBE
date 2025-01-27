@@ -414,6 +414,18 @@ A block-encoding for the generalized operator $\big((a_i^\dagger)^R (a_i)^S + (a
 For these block-encoding circuits, one additional block-encoding ancilla and a pair of elbows is required to index between the two controlled incrementer circuits in Figure \ref{fig:lc-bosonic}.
 Therefore, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{(R+S)/2}$, require two block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil + 1$ clean ancillae, and use $12 \lceil \log_2 \Omega \rceil + 1$ T gates and $\Omega + 2$ arbitrary rotations.
 
+
+\begin{figure}
+    \include{figures/qpic-code/bosonic/combinations/generalized-hc}
+    \caption{
+        \textbf{Generalized Block-Encoding Product of Bosonic Ladder Operators Plus Hermitian Conjugate}
+        A block-encoding for the operator $((a_i^\dagger)^{R_i} + a_i^{S_i})((a_j^\dagger)^{R_j} + a_j^{S_j})...((a_m^\dagger)^{R_m} + a_m^{S_m}) + h.c.$ is given.
+    }
+    \label{fig:lc-bosonic-general}
+\end{figure}
+
+
+
 \subsection{Terms with Fermionic and Bosonic Ladder Operators}
 
 In the previous subsections, we discussed strategies for compiling block-encodings of different products and linear combinations of ladder operators acting on either fermionic or bosonic modes.

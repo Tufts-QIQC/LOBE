@@ -8,7 +8,7 @@ clean0 W 0 0
 
 i / ^{i<j}
 k / ^{j<k<l}
-ctrl anc i j k l clean0 LABEL
+ctrl anc i j k l clean0 LABEL width=-25
 
 clean0 START
 j l +clean0

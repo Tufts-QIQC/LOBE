@@ -7,65 +7,7 @@ from src.lobe.multiplexed_rotations import get_decomposed_multiplexed_rotation_c
 from ._utils import _apply_negative_identity
 
 
-def bosonic_mode_block_encoding(
-    system,
-    block_encoding_ancilla,
-    active_index,
-    exponents,
-    sign=1,
-    clean_ancillae=[],
-    ctrls=([], []),
-):
-    """Obtain operations for a block-encoding circuit for a product of bosonic ladder operators acting on the same mode
-
-    NOTE: Assumes operator is written in the form: $(a_i^\dagger)^R (a_i)^S)$
-
-    Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
-        active_index (int): An integer representing the bosonic mode on which the operator acts
-        exponents (Tuple(int, int)): A Tuple of ints corresponds to the exponents of the operators: (R, S).
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
-            the control qubits and values.
-
-    Returns:
-        - List of cirq operations representing the gates to be applied in the circuit
-        - CircuitMetrics object representing cost of block-encoding circuit
-    """
-
-    gates = []
-    block_encoding_metrics = CircuitMetrics()
-
-    if sign == -1:
-        gates += _apply_negative_identity(block_encoding_ancilla, ctrls=ctrls)
-
-    R, S = exponents[0], exponents[1]
-    adder_gates, adder_metrics = add_classical_value(
-        system.bosonic_system[active_index],
-        R - S,
-        clean_ancillae=clean_ancillae,
-        ctrls=ctrls,
-    )
-    gates += adder_gates
-    block_encoding_metrics += adder_metrics
-
-    rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
-        block_encoding_ancilla,
-        system.bosonic_system[active_index],
-        R,
-        S,
-        clean_ancillae=clean_ancillae,
-        ctrls=ctrls,
-    )
-    gates += rotation_gates
-    block_encoding_metrics += rotation_metrics
-
-    return gates, block_encoding_metrics
-
-
-def bosonic_modes_block_encoding(
+def bosonic_product_block_encoding(
     system,
     block_encoding_ancillae,
     active_indices,
@@ -109,102 +51,16 @@ def bosonic_modes_block_encoding(
     for block_encoding_ancilla, active_index, exponents in zip(
         block_encoding_ancillae, active_indices, exponents_list
     ):
-        _gates, _metrics = bosonic_mode_block_encoding(
+        _gates, _metrics = _single_bosonic_mode_block_encoding(
             system,
-            block_encoding_ancilla,
-            active_index,
-            exponents,
+            [block_encoding_ancilla],
+            [active_index],
+            [exponents],
             clean_ancillae=clean_ancillae,
             ctrls=ctrls,
         )
         gates += _gates
         block_encoding_metrics += _metrics
-    return gates, block_encoding_metrics
-
-
-def bosonic_mode_plus_hc_block_encoding(
-    system,
-    block_encoding_ancillae,
-    active_index,
-    exponents,
-    sign=1,
-    clean_ancillae=[],
-    ctrls=([], []),
-):
-    """Obtain operations for a block-encoding circuit for a product of bosonic ladder ops plus hermitian conjugate
-
-    NOTE: Input arguements should correspond to only one term of the form: $(a_i^\dagger)^R (a_i)^S)$.
-        The form of the hermitian conjugate will be inferred.
-
-    Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
-        active_index (int): An integer representing the bosonic mode on which the operator acts
-        exponents (Tuple(int, int)): A Tuple of ints corresponds to the exponents of the operators: (R, S).
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
-            the control qubits and values.
-
-    Returns:
-        - List of cirq operations representing the gates to be applied in the circuit
-        - CircuitMetrics object representing cost of block-encoding circuit
-    """
-    gates = []
-    block_encoding_metrics = CircuitMetrics()
-    index = block_encoding_ancillae[0]
-
-    if sign == -1:
-        gates += _apply_negative_identity(index, ctrls=ctrls)
-
-    gates.append(cirq.H.on(index))
-
-    _gates, _metrics = decompose_controls_left(
-        (ctrls[0] + [index], ctrls[1] + [0]), clean_ancillae[0]
-    )
-    gates += _gates
-    block_encoding_metrics += _metrics
-
-    adder_gates, adder_metrics = add_classical_value(
-        system.bosonic_system[active_index],
-        exponents[0] - exponents[1],
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=([clean_ancillae[0]], [1]),
-    )
-    gates += adder_gates
-    block_encoding_metrics += adder_metrics
-
-    rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
-        block_encoding_ancillae[1],
-        system.bosonic_system[active_index],
-        exponents[0],
-        exponents[1],
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=ctrls,
-    )
-    gates += rotation_gates
-    block_encoding_metrics += rotation_metrics
-
-    gates.append(
-        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
-    )
-    adder_gates, adder_metrics = add_classical_value(
-        system.bosonic_system[active_index],
-        -exponents[0] + exponents[1],
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=([clean_ancillae[0]], [1]),
-    )
-    gates += adder_gates
-    block_encoding_metrics += adder_metrics
-
-    _gates, _metrics = decompose_controls_right(
-        (ctrls[0] + [index], ctrls[1] + [1]), clean_ancillae[0]
-    )
-    gates += _gates
-    block_encoding_metrics += _metrics
-
-    gates.append(cirq.H.on(index))
-
     return gates, block_encoding_metrics
 
 
@@ -382,3 +238,65 @@ def _get_bosonic_rotation_angles(
         for intended_coefficient in intended_coefficients
     ]
     return rotation_angles
+
+
+def _single_bosonic_mode_block_encoding(
+    system,
+    block_encoding_ancillae,
+    active_indices,
+    exponents_list,
+    sign=1,
+    clean_ancillae=[],
+    ctrls=([], []),
+):
+    """Obtain operations for a block-encoding circuit for a product of bosonic ladder operators acting on the same mode
+
+    NOTE: Assumes operator is written in the form: $(a_i^\dagger)^R (a_i)^S)$
+
+    Args:
+        system (lobe.system.System): The system object holding the system registers
+        block_encoding_ancillae (List[cirq.LineQubit]): The a list of block-encoding ancillae (should be length of one)
+        active_indices (List[int]): A list with one integer representing the bosonic mode on which the operator acts
+        exponents_list (List[Tuple(int, int)]): A list with one tuple of ints corresponds to the exponents of the operators: (R, S).
+        sign (int): Either 1 or -1 to indicate the sign of the term
+        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
+    """
+
+    gates = []
+    block_encoding_metrics = CircuitMetrics()
+
+    block_encoding_ancilla = block_encoding_ancillae[0]
+    active_index = active_indices[0]
+    exponents = exponents_list[0]
+
+    if sign == -1:
+        gates += _apply_negative_identity(block_encoding_ancilla, ctrls=ctrls)
+
+    R, S = exponents[0], exponents[1]
+    adder_gates, adder_metrics = add_classical_value(
+        system.bosonic_system[active_index],
+        R - S,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    gates += adder_gates
+    block_encoding_metrics += adder_metrics
+
+    rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
+        block_encoding_ancilla,
+        system.bosonic_system[active_index],
+        R,
+        S,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    gates += rotation_gates
+    block_encoding_metrics += rotation_metrics
+
+    return gates, block_encoding_metrics

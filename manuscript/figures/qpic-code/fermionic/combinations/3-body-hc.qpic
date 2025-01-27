@@ -6,31 +6,22 @@ k W \psi_k
 l W \psi_l
 m W \psi_m
 n W \psi_n
-clean0 W 0 0
-clean1 W 0 0
-clean2 W 0 0
+clean W 0 0
 
 i / ^{i<j}
 k / ^{j<k<l}
 m / ^{l<m<n}
-ctrl anc i j k l m n clean0 LABEL
-clean0 START
-j +clean0
-l +clean0
-clean1 START
-l +clean1
-n +clean1
-clean2 START
--clean0 -clean1 +clean2
-ctrl -clean2 +anc
--clean0 -clean1 +clean2
-clean2 END
-n +clean1
-l +clean1
-clean1 END
-l +clean0
-j +clean0
-clean0 END
+ctrl anc i j k l m n clean LABEL width=-1
+
+l +n 
+j +l
+clean START
+-n -l +clean
+ctrl -clean +anc
+-n -l +clean
+clean END
+j +l
+l +n
 
 ctrl -j
 
