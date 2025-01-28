@@ -1,4 +1,3 @@
-from openparticle import ParticleOperator
 from openparticle.utils import get_fock_basis, generate_matrix
 from openparticle.hamiltonians.phi4_hamiltonian import phi4_Hamiltonian
 import cirq
@@ -11,17 +10,11 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), ".."
 
 from src.lobe.system import System
 from src.lobe.lcu import LCU
-from cirq.contrib.svg import SVGCircuit
-from src.lobe.usp import add_naive_usp
 from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.rescale import (
-    rescale_terms_usp,
-    get_numbers_of_bosonic_operators_in_terms,
     get_number_of_active_bosonic_modes,
-    get_active_bosonic_modes,
 )
 from src.lobe._utils import (
-    get_basis_of_full_system,
     get_bosonic_exponents,
     pretty_print,
 )
@@ -31,123 +24,41 @@ from src.lobe.bosonic import (
     bosonic_product_plus_hc_block_encoding,
     bosonic_product_block_encoding,
 )
+from tests._utils import _validate_block_encoding
 
 from colors import *
 
 
-def check_unitary(
-    operator,
-    basis,
-    circuit,
-    resolution,
-    max_bosonic_occupancy,
-    system,
-    rescaling_factor,
-):
-    if len(circuit.all_qubits()) > 18:
-        print("Skipped: ", len(circuit.all_qubits()))
-
-    full_fock_basis = basis
-    expected_unitary = generate_matrix(operator, full_fock_basis)
-
-    if len(circuit.all_qubits()) <= 12:
-        print("Checking Unitary: ", resolution)
-        rescaled_block = (
-            circuit.unitary()[
-                : 1 << system.number_of_system_qubits,
-                : 1 << system.number_of_system_qubits,
-            ]
-            * rescaling_factor
-        )
-        if not np.allclose(rescaled_block, expected_unitary):
-            print(circuit)
-            print(full_fock_basis)
-            print("Obtained:\n", rescaled_block.real.round(2))
-            print("---")
-            print("Expected:\n", expected_unitary.real.round(2))
-            assert False
-        print("Passed")
-    else:
-        print(
-            f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
-        )
-        simulator = cirq.Simulator()
-
-        zero_state = np.zeros(
-            1 << (len(circuit.all_qubits()) - system.number_of_system_qubits - 1),
-            dtype=complex,
-        )
-        zero_state[0] = 1
-
-        initial_control_state = [1, 0]
-
-        random_system_state = np.zeros(1 << system.number_of_system_qubits)
-        random_system_state = np.zeros(1 << system.number_of_system_qubits)
-        i, j = np.random.randint(
-            1 << system.number_of_system_qubits
-        ), np.random.randint(1 << system.number_of_system_qubits)
-        random_system_state[i] = 1 / np.sqrt(2)
-        random_system_state[j] = 1 / np.sqrt(2)
-        # while np.isclose(np.linalg.norm(expected_unitary @ random_system_state), 0):
-        #     random_system_state = 1j * np.random.uniform(
-        #         -1, 1, 1 << system.number_of_system_qubits
-        #     )
-        #     random_system_state += np.random.uniform(
-        #         -1, 1, 1 << system.number_of_system_qubits
-        #     )
-        #     random_system_state = random_system_state / np.linalg.norm(
-        #         random_system_state
-        #     )
-
-        initial_state = np.kron(
-            np.kron(zero_state, initial_control_state), random_system_state
-        )
-
-        output_state = simulator.simulate(
-            circuit, initial_state=initial_state
-        ).final_state_vector
-        final_state = output_state[: 1 << system.number_of_system_qubits]
-
-        expected_final_state = expected_unitary @ random_system_state
-        expected_final_state = expected_final_state / np.linalg.norm(
-            expected_final_state
-        )
-        normalized_final_state = final_state / np.linalg.norm(final_state)
-        if not np.allclose(expected_final_state, normalized_final_state, atol=1e-4):
-            print(pretty_print(random_system_state, [system.number_of_system_qubits]))
-            print("Failed")
-            print(expected_unitary.real.round(2))
-            print(
-                "Expected",
-                pretty_print(expected_final_state, [system.number_of_system_qubits]),
-            )
-            print(
-                "Obtained",
-                pretty_print(normalized_final_state, [system.number_of_system_qubits]),
-            )
-            assert False
-        print("Passed")
-
-
-def phi4_lcu_circuit_metrics(resolution, max_bose_occ):
-    # print("---", resolution, "---")
-    print("---", max_bose_occ, "---")
-    operator = operator = phi4_Hamiltonian(resolution, g=1, mb=1)
-    lcu = LCU(operator, max_bosonic_occupancy=max_bose_occ, zero_threshold=1e-6)
-
-    circuit = lcu.get_circuit()
-    system = System(
-        operator.max_bosonic_mode + 1, max_bose_occ, 1000, False, False, True
+def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
+    print("---", resolution, "---", maximum_occupation_number, "---")
+    operator = operator = phi4_Hamiltonian(resolution, g=1, mb=1).normal_order()
+    operator.remove_identity()
+    lcu = LCU(
+        operator, max_bosonic_occupancy=maximum_occupation_number, zero_threshold=1e-6
     )
-    basis = get_fock_basis(operator, max_bose_occ=max_bose_occ)
-    check_unitary(
-        operator=operator,
-        basis=basis,
-        circuit=circuit,
-        resolution=resolution,
-        max_bosonic_occupancy=max_bose_occ,
-        system=system,
-        rescaling_factor=lcu.one_norm,
+    ctrls = ([cirq.LineQubit(-1000000)], [1])
+    circuit = cirq.Circuit()
+    circuit += cirq.X.on(ctrls[0][0])
+    circuit += lcu.get_circuit(ctrls=ctrls)
+    circuit += cirq.X.on(ctrls[0][0])
+
+    system = System(
+        operator.max_bosonic_mode + 1,
+        maximum_occupation_number,
+        1000,
+        False,
+        False,
+        True,
+    )
+    _validate_block_encoding(
+        circuit,
+        system,
+        lcu.one_norm,
+        operator,
+        len(lcu.index_register),
+        maximum_occupation_number,
+        max_qubits=20,
+        using_pytest=False,
     )
 
     return lcu.circuit_metrics, lcu.one_norm, len(lcu.index_register), circuit
@@ -155,10 +66,10 @@ def phi4_lcu_circuit_metrics(resolution, max_bose_occ):
 
 def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     operator = phi4_Hamiltonian(resolution, 1, 1)
-    print("---", maximum_occupation_number, "---")
+    operator.remove_identity()
+    print("---", resolution, "---", maximum_occupation_number, "---")
 
     grouped_terms = operator.group()
-    # print(grouped_terms)
 
     number_of_block_encoding_ancillae = max(
         get_number_of_active_bosonic_modes(grouped_terms)
@@ -275,19 +186,17 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
             for term, rescaling_factor in zip(grouped_terms, rescaling_factors)
         ]
     )
-    basis = get_basis_of_full_system(
-        operator.max_bosonic_mode + 1, maximum_occupation_number, False, False, True
-    )
     print("Total metrics of the block encoding: \n")
     metrics.display_metrics()
-    check_unitary(
-        operator,
-        basis,
+    _validate_block_encoding(
         cirq.Circuit(gates),
-        resolution,
-        maximum_occupation_number,
         system,
         overall_rescaling_factor,
+        operator,
+        len(index_register) + number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+        max_qubits=20,
+        using_pytest=False,
     )
 
     return (
@@ -298,9 +207,9 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     )
 
 
-def _get_phi4_hamiltonian_norm(res, max_bose_occ, g=1):
+def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
     ham = phi4_Hamiltonian(res, g=g, mb=1)
-    basis = get_fock_basis(ham, max_bose_occ)
+    basis = get_fock_basis(ham, maximum_occupation_number)
     matrix = generate_matrix(ham, basis)
 
     vals = np.linalg.eigvalsh(matrix)
@@ -631,3 +540,4 @@ def plot_phi4_changing_resolution():
 
 
 plot_phi4_changing_occupancy()
+# plot_phi4_changing_resolution()

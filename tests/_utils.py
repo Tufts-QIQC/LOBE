@@ -144,7 +144,9 @@ def _validate_block_encoding(
             expected_final_state
         )
         normalized_final_state = final_state / np.linalg.norm(final_state)
-        assert np.allclose(expected_final_state, normalized_final_state, atol=1e-6)
+        assert np.allclose(
+            np.dot(expected_final_state.T.conj(), normalized_final_state), 1, atol=1e-6
+        )
     else:
         full_fock_basis = get_basis_of_full_system(
             system.number_of_modes,
@@ -160,6 +162,8 @@ def _validate_block_encoding(
         ]
 
         rescaled_upper_left_block = expected_rescaling_factor * upper_left_block
+        print(rescaled_upper_left_block.real.round(2))
+        print(matrix.real.round(2))
         assert np.allclose(rescaled_upper_left_block, matrix)
 
 
