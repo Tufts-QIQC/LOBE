@@ -16,6 +16,7 @@ from src.lobe.rescale import (
 )
 from src.lobe._utils import (
     get_bosonic_exponents,
+    get_basis_of_full_system,
     pretty_print,
 )
 from src.lobe.index import index_over_terms
@@ -27,6 +28,99 @@ from src.lobe.bosonic import (
 from tests._utils import _validate_block_encoding
 
 from colors import *
+
+
+def _check_unitary(
+    circuit,
+    system,
+    expected_rescaling_factor,
+    operator,
+    full_fock_basis,
+    number_of_block_encoding_ancillae,
+):
+    if len(circuit.all_qubits()) >= 12:
+        print(
+            f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
+        )
+        simulator = cirq.Simulator()
+
+        matrix = generate_matrix(operator, full_fock_basis)
+
+        random_system_state = np.zeros(1 << system.number_of_system_qubits)
+        i, j = np.random.randint(
+            1 << system.number_of_system_qubits
+        ), np.random.randint(1 << system.number_of_system_qubits)
+        random_system_state[i] = 1 / np.sqrt(2)
+        random_system_state[j] = 1 / np.sqrt(2)
+        # while np.isclose(np.linalg.norm(matrix @ random_system_state), 0):
+        #     random_system_state = 1j * np.random.uniform(
+        #         -1, 1, 1 << system.number_of_system_qubits
+        #     )
+        #     random_system_state += np.random.uniform(
+        #         -1, 1, 1 << system.number_of_system_qubits
+        #     )
+        #     random_system_state = random_system_state / np.linalg.norm(
+        #         random_system_state
+        #     )
+        zero_state = np.zeros(
+            1
+            << (
+                len(circuit.all_qubits())
+                - system.number_of_system_qubits
+                - 1
+                - number_of_block_encoding_ancillae
+            ),
+            dtype=complex,
+        )
+        zero_state[0] = 1
+        initial_control_state = [1, 0]
+        initial_block_encoding_ancilla_state = np.zeros(
+            1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state[0] = 1
+        initial_state = np.kron(
+            np.kron(
+                np.kron(initial_control_state, initial_block_encoding_ancilla_state),
+                zero_state,
+            ),
+            random_system_state,
+        )
+        output_state = simulator.simulate(
+            circuit, initial_state=initial_state
+        ).final_state_vector
+        final_state = output_state[: 1 << system.number_of_system_qubits]
+
+        expected_final_state = matrix @ random_system_state
+        expected_final_state = expected_final_state / np.linalg.norm(
+            expected_final_state
+        )
+        normalized_final_state = final_state / np.linalg.norm(final_state)
+        print(
+            "Expected:\n",
+            pretty_print(expected_final_state, [system.number_of_system_qubits]),
+        )
+        print(
+            "Obtained:\n",
+            pretty_print(normalized_final_state, [system.number_of_system_qubits]),
+        )
+        assert np.isclose(
+            1,
+            np.abs(np.dot(expected_final_state.T.conj(), normalized_final_state)) ** 2,
+        )
+        # assert np.allclose(
+        #     np.dot(expected_final_state.T.conj(), normalized_final_state), 1, atol=1e-3
+        # )
+    else:
+        matrix = generate_matrix(operator, full_fock_basis)
+
+        upper_left_block = circuit.unitary(dtype=complex)[
+            : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
+        ]
+
+        rescaled_upper_left_block = expected_rescaling_factor * upper_left_block
+        print(rescaled_upper_left_block.real.round(2))
+        print(matrix.real.round(2))
+        assert np.allclose(rescaled_upper_left_block, matrix)
 
 
 def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
@@ -50,15 +144,14 @@ def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
         False,
         True,
     )
-    _validate_block_encoding(
+    basis = get_fock_basis(operator, max_bose_occ=maximum_occupation_number)
+    _check_unitary(
         circuit,
         system,
         lcu.one_norm,
         operator,
+        basis,
         len(lcu.index_register),
-        maximum_occupation_number,
-        max_qubits=20,
-        using_pytest=False,
     )
 
     return lcu.circuit_metrics, lcu.one_norm, len(lcu.index_register), circuit
@@ -188,15 +281,16 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     )
     print("Total metrics of the block encoding: \n")
     metrics.display_metrics()
-    _validate_block_encoding(
+    basis = get_basis_of_full_system(
+        operator.max_bosonic_mode + 1, maximum_occupation_number, False, False, True
+    )
+    _check_unitary(
         cirq.Circuit(gates),
         system,
         overall_rescaling_factor,
         operator,
+        basis,
         len(index_register) + number_of_block_encoding_ancillae,
-        maximum_occupation_number,
-        max_qubits=20,
-        using_pytest=False,
     )
 
     return (
@@ -217,7 +311,7 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
 
 
 def plot_phi4_changing_occupancy():
-    omegas = [int(2**n - 1) for n in np.arange(1, 7, 1)]
+    omegas = [int(2**n - 1) for n in np.arange(5, 6, 1)]
     resolution = 2
     print("LOBE")
 
@@ -235,7 +329,7 @@ def plot_phi4_changing_occupancy():
         print(resolution, omega, operator_norms[-1])
     system_qubits = [
         System(
-            phi4_Hamiltonian(omegas, 1, 1).max_bosonic_mode,
+            phi4_Hamiltonian(omega, 1, 1).max_bosonic_mode,
             omega,
             1000,
             False,
@@ -539,5 +633,5 @@ def plot_phi4_changing_resolution():
     plt.show()
 
 
-# plot_phi4_changing_occupancy()
-plot_phi4_changing_resolution()
+plot_phi4_changing_occupancy()
+# plot_phi4_changing_resolution()
