@@ -1,8 +1,9 @@
 \section{Block-Encoding}
 \label{sec:block-encoding}
 
+\ws{restriction to unitary operators}
 Quantum algorithms are composed by a series of unitary operators.
-However, it is often necessary to embed information about non-unitary operators within quantum algorithm.
+However, it is often necessary to embed information about non-unitary operators within quantum algorithms.
 Block-Encoding refers to a type of access model where the information regarding non-unitary operators is stored in a labeled subspace of a larger unitary operator.
 
 If $A$ represents some $2^{N_A}\times2^{N_A}$ non-unitary operator then a block-encoding of $A$ is given by:
@@ -13,18 +14,7 @@ If $A$ represents some $2^{N_A}\times2^{N_A}$ non-unitary operator then a block-
     * & * 
     \end{pmatrix}
 \end{equation}
-where $U_A$ is a unitary operator, $\bar{A}$ is a rescaled form of $A$ such that $||\bar{A}|| \leq 1$, and matrix entries $*$ denote matrix elements that ensure $U_A$ is unitary.
-
-The rescaling factor ($\lambda$) of a block-encoding is given by:
-\begin{equation}
-    A = \lambda \bar{A}
-\end{equation}
-This rescaling factor can have important implications in the cost of quantum algorithms with smaller rescaling factors leading to more efficient algorithms though the exact impact on the cost is algorithm-dependent.
-For example, the success probability of applying $\bar{A}$ as described above decreases as $\lambda$ increases.
-If the block-encoding is used in Quantum Phase Estimation as is done in \cite{poulin2018quantum, babbush2018encoding, lee2021even}, then the output estimates of the eigenvalues correspond to the rescaled operator ($\bar{A}$) and the rescaling factor must be accounted for in postprocessing.
-
-
-In the above equation, the encoded subspace of $U_A$ is chosen (without loss of generality) to be the all-zero state of the ancilla register.
+where $U_A$ is a unitary operator, $\bar{A}$ is a rescaled form of $A$ such that the spectral norm ($||\bar{A}||$) is less than or equal to $1$, and matrix entries $*$ denote matrix elements that ensure $U_A$ is unitary.
 
 The action of $U_A$ on an arbitrary quantum state ($\ket{\psi}$) can be defined as:
 \begin{equation}
@@ -32,11 +22,12 @@ The action of $U_A$ on an arbitrary quantum state ($\ket{\psi}$) can be defined 
     U_A \ket{\psi} \ket{0}_{\text{anc}} = \bar{A} \ket{\psi} \ket{0}_{\text{anc}} + \beta_\psi \ket{\perp}
 \end{equation}
 where $\ket{}_{\text{anc}}$ is the ancilla register used to produce the block-encoding and $\beta_\psi$ is a complex coefficient that normalizes the output quantum state.
-The portion of the state given by $\ket{\perp}$ represents the branch of the wavefunction that is outside of the encoded subspace and is orthogonal to any quantum state with nonzero amplitude of the ancilla register in the all-zero state.
+The portion of the state given by $\ket{\perp}$ represents the branch of the wavefunction that is orthogonal to any state in the encoded subspace.
+In the above equations, the encoded subspace of $U_A$ is chosen (without loss of generality) to be the all-zero state of the ancilla register.
 
-It is important to note that $\beta_\psi$ is dependent on the initial state of the system register ($\ket{\psi}$) in addition to the construction of $U_A$.
+It is important to note that $\beta_\psi$ is dependent on the initial state of the system register ($\ket{\psi}$).
 The dependence of $\beta$ on $\ket{\psi}$ can be seen in a simple case where $\ket{\psi}$ is an eigenstate of $\bar{A}$.
-If $\ket{\lambda_k}$ is an eigenstate of $\bar{A}$, then Eq. \ref{eq:general-block-encoding} leads to:
+If $\ket{\lambda_k}$ is an eigenstate of $\bar{A}$ with eigenvalue $k$, then Eq. \ref{eq:general-block-encoding} leads to:
 \begin{equation}
     U_A \ket{\lambda_k} \ket{0}_{\text{anc}} = k \ket{\lambda_k} \ket{0}_{\text{anc}} + \sqrt{1 - |k|^2} \ket{\perp}
 \end{equation}
@@ -45,6 +36,14 @@ where $\sqrt{1 - |k|^2}$ is clearly dependent upon the eigenvalue associated wit
 We can interpret the action of the block-encoding as a probabilistic application of $\bar{A}$.
 After the block-encoding is applied, if a measurement of the block-encoding ancillae results in all of those qubits being in the zero state, then $\bar{A}$ has been applied to the quantum state.
 The probability for this measurement result to occur is given by $\text{P}(0) = ||\bar{A} \ket{\psi}||^2$
+
+The rescaling factor ($\lambda$) of a block-encoding is given by:
+\begin{equation}
+    A = \lambda \bar{A}
+\end{equation}
+This rescaling factor can have important implications in the cost of quantum algorithms with smaller rescaling factors leading to more efficient algorithms though the exact impact on the cost is algorithm-dependent.
+For example, the success probability of applying $\bar{A}$ as described above decreases as $\lambda$ increases.
+If the block-encoding is used to construct a Walk operator \cite{} and used in Quantum Phase Estimation as is done in \cite{poulin2018quantum, babbush2018encoding, lee2021even}, then the output estimates of the eigenvalues are scaled by the rescaling factor which must be accounted for in postprocessing.
 
 In the following subsections, we will describe some commonly used frameworks for constructing block-encodings of different operators, in particular the Sparse-Oracle framework and Linear Combination of Unitaries (LCU).
 The Sparse-Oracle framework allows for constructing block-encodings of a more general class of operators, while LCU is restricted to operators described as a linear combination of unitary operators.
@@ -58,6 +57,7 @@ The Sparse-Oracle framework \cite{berry2009black, childs2009universal, berry2015
 When an operator is sparse within some known basis, the Sparse-Oracle framework can build off of this structure to heavily reduce the cost of the block-encoding construction.
 
 Lin et. al \cite{lin2022lecture} defines three oracles ($D_s$, $O_A$, and $O_c$) to produce a Sparse-Oracle block-encoding as follows:
+\ws{reorganize to be definitions then statement, check order of oracle definitions in camps and lin}
 \begin{theorem}
     \label{th:sparse-oracles}
     Let $s$ represent the maximum number of nonzero entries in a single row of a matrix $A$ where each element of $A$ has magnitude at most $1$.
@@ -109,9 +109,12 @@ It is also worth noting that the factor of $2^n$ can be reduced to $s$ by simply
 Implementing USP requires more operations than the diffusion operator, so a trade-off exists between reducing the rescaling factor and reducing the number of operations.
 % Since the impact of the rescaling factor on the spacetime cost is algorithm dependent, we simply note this alternative compilation choice but do not explore it in detail. 
 
+\ws{what did i mean by analogous?}
 Although these oracles - and the analogous oracles assumed in other works \cite{berry2009black, childs2009universal, berry2015hamiltonian, berry2015simulating,low2017optimal,childs2017quantum,gilyen2019quantum} - produce valid block-encodings, none of these works provide quantum circuits that implement these oracles.
 In Camps et. al \cite{camps2024explicit}, a framework for constructing explicit quantum circuits for these oracles for general matrices ($D_s$, $O_A$, and $O_c$) is given.
 Explicitly compiled Sparse-Oracle block-encodings of the form given in Eq. \ref{eq:so-be} for particular systems have been explored in several works \cite{camps2022fable, liu2024efficient, sanavio2024explicit} \ws{add citations here}.
+
+\ws{look at FABLE}
 
 \subsubsection{Sparse-Oracles for Fermionic Pairing Hamiltonian}
 
@@ -207,13 +210,13 @@ Suppose we wish to generate a block-encoding of an operator that can be written 
     \label{eq:lcu}
     A = \sum_{l=0}^{L-1} \alpha_l U_l
 \end{equation}
-where $\alpha_l$ are real-valued coefficients and each $U_l$ is a unitary operator.
+where $\alpha_l$ are \ws{positive} real-valued coefficients and each $U_l$ is a unitary operator.
 For terms with negative or imaginary coefficients, the sign and imaginary phase can be absorbed into the operator: $-i \alpha_l U_l = \alpha_l (-i U_l)$.
 Likewise, a term with a complex coefficient can be treated as two distinct terms, each with a real coefficient.
 \ws{Question: when we decompose a state into a linear combination of other states we say we expand it in some basis. What is the wording for when we expand an operator in a basis of operators?}
 
 Assuming that $A$ is sparse in this formulation - $L$ grows polynomially with $N_A$ - then the rescaling factor for a Sparse-Oracle block-encoding would be $\lambda_{SO} = 2^{\lceil \log_2 L \rceil} \max_{l} |\alpha_l|$.
-In this construction, $O_A$ would load the (rescaled) coefficients $\{\alpha_l\}$ and $O_c$ would apply the unitaries $\{U_l\}$ onto the system register controlled on the index register being in the computational basis states $\{\ket{l}\}$. 
+In this construction, $O_A$ would load the (rescaled) coefficients $(\{\alpha_l\})$ and $O_c$ would apply the unitaries $(\{U_l\})$ onto the system register controlled on the index register being in the computational basis states $(\{\ket{l}\})$. 
 
 An alternative framework proposed by Childs et. al \cite{childs2012hamiltonian} called Linear Combination of Unitaries (LCU) is \textit{specifically} designed for generating block-encodings of operators in the form of Eq. \ref{eq:lcu}. 
 With two oracles, \textit{Prepare} and \textit{Select}, an LCU block-encoding can be defined as follows:
@@ -255,7 +258,7 @@ A simple proof that $\lambda_\text{LCU} \leq \lambda_\text{SO}$ is given in Appe
 
 The \textit{Prepare} oracle serves a similar role to the $O_A$ oracle in that it loads the coefficients or the values of the matrix elements onto the quantum computer.
 The action of the \textit{Prepare} oracle defined by Eq. \ref{eq:prep-state} is to map the all-zero state of an ancilla register to a particular superposition state where the squared amplitudes of the computational basis states are weighted to encode the coefficients of the terms in the operator.
-We refer to this ancilla register as the \textit{index register} as the computational basis states of this register, $\ket{l}$, index the $L$ terms in Eq. \ref{eq:lcu}.
+We refer to this ancilla register as the \textit{index register} as the computational basis states of this register $(\ket{l})$ index the $L$ terms in Eq. \ref{eq:lcu}.
 
 The matrix representation for a valid implementation of the \textit{Prepare} oracle in the computational basis is given by:
 \begin{equation}
@@ -273,16 +276,16 @@ In certain cases, this can drastically reduce the cost such as is done for the F
 
 When a certain structure is not present, the Grover-Rudolph algorithm \cite{grover2002creating} gives a formulaic routine to generate quantum circuits that implement the $\textit{Prepare}$ oracle.
 Although the cost of implementing Grover-Rudolph scales exponentially with the number of qubits in the register it acts upon, the size of the index register is logarithmic in the number of terms in the operator being block-encoded.
-Therefore, the number of operations required to implement Grover-Rudolph will be linear in $L$ or polynomial in $N_A$ assuming $A$ is sparse.
+Therefore, the number of operations required to implement Grover-Rudolph will be linear in $L$.
 
 \subsubsection{Implementing \textbf{Select}}
 
-Following Eq. \ref{eq:select}, the desired action of the \textit{Select} oracle is to apply the unitary $U_l$ onto the system register \textit{controlled} on the index regsiter being in the state $\ket{l}$ (Eq. \ref{eq:select}).
+Following Eq. \ref{eq:select}, the desired action of the \textit{Select} oracle is to apply the unitary $(U_l)$ onto the system register \textit{controlled} on the index regsiter being in the state $\ket{l}$ (Eq. \ref{eq:select}).
 If structure in the operator is present, the \textit{Select} oracle can be implemented to leverage that structure as is done in \cite{babbush2018encoding}.
 Without any assumptions on the structure in $A$, the \textit{Select} oracle can be implemented by the operator:
 \begin{equation}
     \label{eq:select-naive}
-    \text{Select} = \sum_{l=0}^{L-1} \ket{l}\bra{l} \otimes U_l
+    U_\text{Select} = \sum_{l=0}^{L-1} \ket{l}\bra{l} \otimes U_l + \sum_{l>L} \ket{l}\bra{l} \otimes \id
 \end{equation}
 following the circuit diagram in Figure \ref{fig:unstructured-select}.
 
@@ -316,7 +319,7 @@ where the $O_l$ are operators and we again restrict the coefficients $\alpha_l$ 
 % We also restrict the spectral norms of the operators to satisfy $|\bar{O}_l| \leq 1$ for simplicity and note that we can rescale any operator to satisfy this condition and let the rescaling factor be absorbed by the corresponding coefficient.
 % However, we note that extra care must be taken when absorbing these rescaling factors such that the rescaling of the linear combination is consistent across all terms.
 
-Another way to frame this is creating an LCU block-encoding where the unitary operators themselves are block-encodings of operators which is described in Section 4.3 of Gilyén et. al \cite{gilyen2019quantum} and noted by Jennings et. al \cite{jennings2023efficient}.
+Another way to frame this is creating an LCU block-encoding where the unitary operators themselves are block-encodings of operators which is described in Section 4.3 of Gilyén et. al \cite{gilyen2019quantum} and noted by Jennings et. al \cite{jennings2023efficient}. \ws{check if also in lin lin}
 We will refer to this method of block-encoding as an LCO block-encoding (Linear Combination of Operators).
 As noted by Jennings et. al \cite{jennings2023efficient} it may be enlightening to consider an LCU block-encoding as a apecial case of an LCO block-encoding wherein the operators in the linear combination are all unitary.
 

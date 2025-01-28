@@ -1,6 +1,6 @@
-ctrl W \text{(b) }ctrl
-i W b_i
+ctrl W \text{(a) }ctrl
 anc_a W anc_{a_j}
+i W b_i
 j W \omega_j
 
 j / ^{\log_2{\Omega}}
