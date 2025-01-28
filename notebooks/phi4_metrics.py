@@ -15,7 +15,6 @@ from cirq.contrib.svg import SVGCircuit
 from src.lobe.usp import add_naive_usp
 from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.rescale import (
-    bosonically_rescale_terms,
     rescale_terms_usp,
     get_numbers_of_bosonic_operators_in_terms,
     get_number_of_active_bosonic_modes,
@@ -30,7 +29,7 @@ from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from src.lobe.bosonic import (
     bosonic_product_plus_hc_block_encoding,
-    bosonic_modes_block_encoding,
+    bosonic_product_block_encoding,
 )
 
 from colors import *
@@ -83,16 +82,22 @@ def check_unitary(
         initial_control_state = [1, 0]
 
         random_system_state = np.zeros(1 << system.number_of_system_qubits)
-        while np.isclose(np.linalg.norm(expected_unitary @ random_system_state), 0):
-            random_system_state = 1j * np.random.uniform(
-                -1, 1, 1 << system.number_of_system_qubits
-            )
-            random_system_state += np.random.uniform(
-                -1, 1, 1 << system.number_of_system_qubits
-            )
-            random_system_state = random_system_state / np.linalg.norm(
-                random_system_state
-            )
+        random_system_state = np.zeros(1 << system.number_of_system_qubits)
+        i, j = np.random.randint(
+            1 << system.number_of_system_qubits
+        ), np.random.randint(1 << system.number_of_system_qubits)
+        random_system_state[i] = 1 / np.sqrt(2)
+        random_system_state[j] = 1 / np.sqrt(2)
+        # while np.isclose(np.linalg.norm(expected_unitary @ random_system_state), 0):
+        #     random_system_state = 1j * np.random.uniform(
+        #         -1, 1, 1 << system.number_of_system_qubits
+        #     )
+        #     random_system_state += np.random.uniform(
+        #         -1, 1, 1 << system.number_of_system_qubits
+        #     )
+        #     random_system_state = random_system_state / np.linalg.norm(
+        #         random_system_state
+        #     )
 
         initial_state = np.kron(
             np.kron(zero_state, initial_control_state), random_system_state
@@ -153,10 +158,15 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     print("---", maximum_occupation_number, "---")
 
     grouped_terms = operator.group()
+    # print(grouped_terms)
+
     number_of_block_encoding_ancillae = max(
         get_number_of_active_bosonic_modes(grouped_terms)
     )
+    if len(grouped_terms) != len(operator.to_list()):
+        number_of_block_encoding_ancillae += 1  # For grouped terms, need an additional BE ancilla to index between the group
 
+    # print(resolution, number_of_block_encoding_ancillae)
     index_register = [
         cirq.LineQubit(-i - 2) for i in range(int(np.ceil(np.log2(len(grouped_terms)))))
     ]
@@ -164,7 +174,7 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
         cirq.LineQubit(-100 - i - len(index_register))
         for i in range(number_of_block_encoding_ancillae)
     ]
-    number_of_block_encoding_ancillae = len(block_encoding_ancillae)
+
     ctrls = ([cirq.LineQubit(0)], [1])
     clean_ancillae = [cirq.LineQubit(i + 100) for i in range(100)]
     system = System(
@@ -190,7 +200,7 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
         if not plus_hc:
             block_encoding_functions.append(
                 partial(
-                    bosonic_modes_block_encoding,
+                    bosonic_product_block_encoding,
                     system=system,
                     block_encoding_ancillae=block_encoding_ancillae,
                     active_indices=active_modes,
@@ -297,162 +307,327 @@ def _get_phi4_hamiltonian_norm(res, max_bose_occ, g=1):
     return max(np.abs(vals))
 
 
-# Main functionality
-# omega = 3
-omegas = [int(2**n - 1) for n in np.arange(1, 6, 1)]
-resolution = 2
-# resolutions = np.arange(2, 6, 1)
-print("LOBE")
+def plot_phi4_changing_occupancy():
+    omegas = [int(2**n - 1) for n in np.arange(1, 7, 1)]
+    resolution = 2
+    print("LOBE")
 
-# GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
-GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(resolution, omega) for omega in omegas]
-print("LCU")
-# LCU_DATA = [phi4_lcu_circuit_metrics(res, omega) for res in resolutions]
-LCU_DATA = [phi4_lcu_circuit_metrics(resolution, omega) for omega in omegas]
+    GROUPED_LOBE_DATA = [
+        phi4_LOBE_circuit_metrics(resolution, omega) for omega in omegas
+    ]
+    print("LCU")
+    LCU_DATA = [phi4_lcu_circuit_metrics(resolution, omega) for omega in omegas]
 
-operator_norms = []
-for omega in omegas:
-    operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
-    operator.remove_identity()
-    operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
-    print(resolution, omega, operator_norms[-1])
-system_qubits = [
-    System(
-        phi4_Hamiltonian(resolution, 1, 1).max_bosonic_mode,
-        omega,
-        1000,
-        False,
-        False,
-        True,
-    ).number_of_system_qubits
-    for omega in omegas
-]
+    operator_norms = []
+    for omega in omegas:
+        operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
+        operator.remove_identity()
+        operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
+        print(resolution, omega, operator_norms[-1])
+    system_qubits = [
+        System(
+            phi4_Hamiltonian(omegas, 1, 1).max_bosonic_mode,
+            omega,
+            1000,
+            False,
+            False,
+            True,
+        ).number_of_system_qubits
+        for omega in omegas
+    ]
+
+    fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
+
+    axes[0][0].plot(
+        omegas,
+        [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[0][0].plot(
+        omegas,
+        [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(omegas))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[0][0].set_ylabel("Number of T-gates")
+    axes[0][0].set_xlabel("Occupancy ($\Omega$)")
+
+    axes[0][1].plot(
+        omegas,
+        [
+            GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
+            for i in range(len(omegas))
+        ],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[0][1].plot(
+        omegas,
+        [LCU_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[0][1].set_ylabel("Number of Rotations")
+    axes[0][1].set_xlabel("Occupancy ($\Omega$)")
+
+    axes[1][0].plot(
+        omegas,
+        [GROUPED_LOBE_DATA[i][2] for i in range(len(omegas))],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[1][0].plot(
+        omegas,
+        [LCU_DATA[i][2] for i in range(len(omegas))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[1][0].set_ylabel("Number of BE-Ancillae")
+    axes[1][0].set_xlabel("Occupancy ($\Omega$)")
+
+    axes[1][1].plot(
+        omegas,
+        [GROUPED_LOBE_DATA[i][1] for i in range(len(omegas))],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[1][1].plot(
+        omegas,
+        [LCU_DATA[i][1] for i in range(len(omegas))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[1][1].plot(
+        omegas,
+        [operator_norms[i] for i in range(len(omegas))],
+        color="black",
+        marker="x",
+        ls="--",
+        alpha=1,
+    )
+    axes[1][1].set_ylabel("Rescaling Factor")
+    axes[1][1].set_xlabel("Occupancy ($\Omega$)")
+
+    axes[2][0].plot(
+        omegas,
+        [
+            LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
+            for i in range(len(omegas))
+        ],
+        color=ORANGE,
+        marker="^",
+        alpha=1,
+        label="LCU",
+    )
+    axes[2][0].plot(
+        omegas,
+        [
+            GROUPED_LOBE_DATA[i][0].ancillae_highwater()
+            + GROUPED_LOBE_DATA[i][2]
+            + system_qubits[i]
+            + 1
+            for i in range(len(omegas))
+        ],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[2][0].plot(
+        [], [], color="black", marker="x", ls="--", alpha=1, label="Hamiltonian Norm"
+    )
+    axes[2][0].set_ylabel("Total Qubit Highwater")
+    axes[2][0].set_xlabel("Occupancy ($\Omega$)")
+
+    fig.delaxes(axes[2][1])
+    plt.tight_layout()
+    axes[2][0].legend(
+        loc="upper center",
+        bbox_to_anchor=(1.5, 0.75),
+        fancybox=True,
+        shadow=True,
+        ncol=1,
+    )
+    plt.show()
 
 
-fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
+def plot_phi4_changing_resolution():
+    omega = 3
+    resolutions = np.arange(2, 6, 1)
+    print("LOBE")
 
-axes[0][0].plot(
-    omegas,
-    [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
-    color=BLUE,
-    marker="s",
-    alpha=1,
-    label="LOBE",
-)
-axes[0][0].plot(
-    omegas,
-    [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(omegas))],
-    color=ORANGE,
-    marker="o",
-    alpha=1,
-    label="LCU",
-)
-axes[0][0].set_ylabel("Number of T-gates")
-axes[0][0].set_xlabel("Occupancy ($\Omega$)")
+    GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
+    print("LCU")
+    LCU_DATA = [phi4_lcu_circuit_metrics(res, omega) for res in resolutions]
 
-axes[0][1].plot(
-    omegas,
-    [
-        GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
-        for i in range(len(omegas))
-    ],
-    color=BLUE,
-    marker="s",
-    alpha=1,
-    label="LOBE",
-)
-axes[0][1].plot(
-    omegas,
-    [LCU_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
-    color=ORANGE,
-    marker="o",
-    alpha=1,
-    label="LCU",
-)
-axes[0][1].set_ylabel("Number of Rotations")
-axes[0][1].set_xlabel("Occupancy ($\Omega$)")
+    operator_norms = []
+    for res in resolutions:
+        operator = phi4_Hamiltonian(res, 1, 1).normal_order()
+        operator.remove_identity()
+        operator_norms.append(_get_phi4_hamiltonian_norm(res, omega))
+        print(res, omega, operator_norms[-1])
+    system_qubits = [
+        System(
+            phi4_Hamiltonian(res, 1, 1).max_bosonic_mode,
+            omega,
+            1000,
+            False,
+            False,
+            True,
+        ).number_of_system_qubits
+        for res in resolutions
+    ]
 
-axes[1][0].plot(
-    omegas,
-    [GROUPED_LOBE_DATA[i][2] for i in range(len(omegas))],
-    color=BLUE,
-    marker="s",
-    alpha=1,
-    label="LOBE",
-)
-axes[1][0].plot(
-    omegas,
-    [LCU_DATA[i][2] for i in range(len(omegas))],
-    color=ORANGE,
-    marker="o",
-    alpha=1,
-    label="LCU",
-)
-axes[1][0].set_ylabel("Number of BE-Ancillae")
-axes[1][0].set_xlabel("Occupancy ($\Omega$)")
+    fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
 
-axes[1][1].plot(
-    omegas,
-    [GROUPED_LOBE_DATA[i][1] for i in range(len(omegas))],
-    color=BLUE,
-    marker="s",
-    alpha=1,
-    label="LOBE",
-)
-axes[1][1].plot(
-    omegas,
-    [LCU_DATA[i][1] for i in range(len(omegas))],
-    color=ORANGE,
-    marker="o",
-    alpha=1,
-    label="LCU",
-)
-axes[1][1].plot(
-    omegas,
-    [operator_norms[i] for i in range(len(omegas))],
-    color="black",
-    marker="x",
-    ls="--",
-    alpha=1,
-)
-axes[1][1].set_ylabel("Rescaling Factor")
-axes[1][1].set_xlabel("Occupancy ($\Omega$)")
+    axes[0][0].plot(
+        resolutions,
+        [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[0][0].plot(
+        resolutions,
+        [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[0][0].set_ylabel("Number of T-gates")
+    axes[0][0].set_xlabel("Resolution ($K$)")
+
+    axes[0][1].plot(
+        resolutions,
+        [
+            GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
+            for i in range(len(resolutions))
+        ],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[0][1].plot(
+        resolutions,
+        [
+            LCU_DATA[i][0].number_of_nonclifford_rotations
+            for i in range(len(resolutions))
+        ],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[0][1].set_ylabel("Number of Rotations")
+    axes[0][1].set_xlabel("Resolution ($K$)")
+
+    axes[1][0].plot(
+        resolutions,
+        [GROUPED_LOBE_DATA[i][2] for i in range(len(resolutions))],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[1][0].plot(
+        resolutions,
+        [LCU_DATA[i][2] for i in range(len(resolutions))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[1][0].set_ylabel("Number of BE-Ancillae")
+    axes[1][0].set_xlabel("Resolution ($K$)")
+
+    axes[1][1].plot(
+        resolutions,
+        [GROUPED_LOBE_DATA[i][1] for i in range(len(resolutions))],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[1][1].plot(
+        resolutions,
+        [LCU_DATA[i][1] for i in range(len(resolutions))],
+        color=ORANGE,
+        marker="o",
+        alpha=1,
+        label="LCU",
+    )
+    axes[1][1].plot(
+        resolutions,
+        [operator_norms[i] for i in range(len(resolutions))],
+        color="black",
+        marker="x",
+        ls="--",
+        alpha=1,
+    )
+    axes[1][1].set_ylabel("Rescaling Factor")
+    axes[1][1].set_xlabel("Resolution ($K$)")
+
+    axes[2][0].plot(
+        resolutions,
+        [
+            LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
+            for i in range(len(resolutions))
+        ],
+        color=ORANGE,
+        marker="^",
+        alpha=1,
+        label="LCU",
+    )
+    axes[2][0].plot(
+        resolutions,
+        [
+            GROUPED_LOBE_DATA[i][0].ancillae_highwater()
+            + GROUPED_LOBE_DATA[i][2]
+            + system_qubits[i]
+            + 1
+            for i in range(len(resolutions))
+        ],
+        color=BLUE,
+        marker="s",
+        alpha=1,
+        label="LOBE",
+    )
+    axes[2][0].plot(
+        [], [], color="black", marker="x", ls="--", alpha=1, label="Hamiltonian Norm"
+    )
+    axes[2][0].set_ylabel("Total Qubit Highwater")
+    axes[2][0].set_xlabel("Resolution ($K$)")
+
+    fig.delaxes(axes[2][1])
+    plt.tight_layout()
+    axes[2][0].legend(
+        loc="upper center",
+        bbox_to_anchor=(1.5, 0.75),
+        fancybox=True,
+        shadow=True,
+        ncol=1,
+    )
+    plt.show()
 
 
-axes[2][0].plot(
-    omegas,
-    [
-        LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
-        for i in range(len(omegas))
-    ],
-    color=ORANGE,
-    marker="^",
-    alpha=1,
-    label="LCU",
-)
-axes[2][0].plot(
-    omegas,
-    [
-        GROUPED_LOBE_DATA[i][0].ancillae_highwater()
-        + GROUPED_LOBE_DATA[i][2]
-        + system_qubits[i]
-        + 1
-        for i in range(len(omegas))
-    ],
-    color=BLUE,
-    marker="s",
-    alpha=1,
-    label="LOBE",
-)
-axes[2][0].plot(
-    [], [], color="black", marker="x", ls="--", alpha=1, label="Hamiltonian Norm"
-)
-axes[2][0].set_ylabel("Total Qubit Highwater")
-axes[2][0].set_xlabel("Resolution ($K$)")
-
-fig.delaxes(axes[2][1])
-plt.tight_layout()
-axes[2][0].legend(
-    loc="upper center", bbox_to_anchor=(1.5, 0.75), fancybox=True, shadow=True, ncol=1
-)
-plt.show()
+plot_phi4_changing_occupancy()
