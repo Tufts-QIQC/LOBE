@@ -65,7 +65,7 @@ def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
 
 
 def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
-    operator = phi4_Hamiltonian(resolution, 1, 1)
+    operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
     operator.remove_identity()
     print("---", resolution, "---", maximum_occupation_number, "---")
 
@@ -539,5 +539,5 @@ def plot_phi4_changing_resolution():
     plt.show()
 
 
-plot_phi4_changing_occupancy()
-# plot_phi4_changing_resolution()
+# plot_phi4_changing_occupancy()
+plot_phi4_changing_resolution()
