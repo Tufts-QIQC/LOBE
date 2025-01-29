@@ -403,9 +403,11 @@ In this subsection, we discuss constructing block-encodings for a linear combina
 
 Consider the block-encodings for the operators $a_i^\dagger$ and $a_i$.
 An efficient block-encoding of the operator $a_i^\dagger + a_i$ can be constructed using the symmetry between the two individual block-encodings. 
-To apply the creation operator, the occupancy is increased the occupancy by $1$ and then apply the rotations, whereas for the annihilation operator, we wish to apply the rotations and then decrease the occupancy by $1$.
+To apply the creation operator, the occupancy is increased by $1$ and then the rotations are applied, whereas for the annihilation operator, the rotations are applied first and then the occupancy is decreased by $1$.
 Since the desired rotation angles are independent of which operator is being applied (Eq. \ref{eq:single-op-angles}), we can apply these rotations once for both operators.
 However, one additional block-encoding ancilla is required to index between the two operators.
+An example circuit diagram for this construction is shown in subfigue \ref{fig:lc-bosonic}a.
+A block-encoding for the generalized operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ can be constructed similarly and is shown in subfigure \ref{fig:lc-bosonic}b.
 
 \begin{figure}
     \include{figures/qpic-code/bosonic/combinations/generalized-hc}
@@ -416,8 +418,6 @@ However, one additional block-encoding ancilla is required to index between the 
     \label{fig:lc-bosonic-general}
 \end{figure}
 
-An example circuit diagram for this construction is shown in subfigue \ref{fig:lc-bosonic}a.
-A block-encoding for the generalized operator $\big((a_i^\dagger)^R (a_i)^S + (a_i^\dagger)^S (a_i)^R\big)$ can be constructed similarly and is shown in subfigure \ref{fig:lc-bosonic}b.
 Likewise, this construction can be generalized to a linear combination of a product of bosonic operators acting on different modes plus its hermitian conjugate.
 An example circuit diagram for this construction is shown in Figure \ref{fig:lc-bosonic-general}.
 For an operator acting on $B$ bosonic modes, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{T/2}$ where $T$ is the sum of the exponents of the operators in a term: $T = \sum_{b=0}^{B-1}(R_b+S_b)$.

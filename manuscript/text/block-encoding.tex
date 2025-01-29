@@ -113,7 +113,7 @@ For terms with negative or imaginary coefficients, the sign and imaginary phase 
 Likewise, a term with a complex coefficient can be treated as two distinct terms, each with a real coefficient.
 
 To generate an LCU block-encoding, two oracles, \textit{Prepare} and \textit{Select}, are required. The \textit{Prepare} oracle serves a similar role to the $O_A$ oracle in that it loads the coefficients or the values of the matrix elements onto the quantum computer.
-The action of the \textit{Prepare} oracle is to map the all-zero state of an ancilla register to a particular superposition state where the squared amplitudes of the computational basis states are weighted to encode the coefficients of the terms in the operator:
+The action of the \textit{Prepare} oracle is to map the all-zero state of a block-encoding ancilla register to a particular superposition state where the squared amplitudes of the computational basis states are weighted to encode the coefficients of the terms in the operator:
 \begin{equation}
     \label{eq:prep-state}
     \textbf{Prepare}\text{:} \ket{0^{\otimes \lceil \log_2 L \rceil}}_\text{index} \rightarrow \sum_{l=0}^{L-1} \sqrt{| \alpha_l | / \lambda} \ket{l}_\text{index}
@@ -123,7 +123,7 @@ where $\lambda$ is given by:
     \label{eq:lambda-lcu}
     \lambda_\text{LCU} = \sum_{l=0}^{L-1} | \alpha_l |
 \end{equation}
-The block-encoding ancillae register is often referred to as the \textit{index register} as the computational basis states of this register $(\ket{l})$ index the $L$ terms in Eq. \ref{eq:lcu}.
+The block-encoding ancilla register is often referred to as the \textit{index register} as the computational basis states of this register $(\ket{l})$ index the $L$ terms in Eq. \ref{eq:lcu}.
 
 The desired action of the \textit{Select} oracle is to apply the unitary $(U_l)$ onto the system register when the index regsiter is in the computation basis state $\ket{l}$:
 \begin{equation}
@@ -241,7 +241,7 @@ The fact that $U_{\Tilde{A}}$ block-encodes $A$ can be seen from the linearity o
     \end{pmatrix} 
 \end{equation}
 It is clear from this form that the block-encodings $\{U_l\}$ must all have the same encoded subspace as they would otherwise not yield the desired linear combination in the encoded subspace of $U_{\Tilde{A}}$.
-It is also worth noting that the block-encodings $\{U_l\}$ may all use the same block-encoding ancillae as long as the implementation of the \textit{Select} oracle ensures that the ancillae begin in the all-zero state in the subspace in which each block-encoding unitary is applied.
+It is also worth noting that the block-encodings $\{U_l\}$ may all use the same block-encoding ancillae as long as the implementation of the \textit{Select} oracle ensures that the block-encoding ancillae begin in the all-zero state in the subspace in which each block-encoding unitary is applied.
 
 As noted in prior works \cite{berry2015simulating, childs2017quantum, gilyen2019quantum, lin2022lecture, jennings2023efficient}, this process can be thought of as producing a linear combination matrices on the quantum computer.
 Alternatively, it may be enlightening to consider an LCU block-encoding as a apecial case of an LCO block-encoding wherein the operators in the linear combination are all unitary.
@@ -262,7 +262,7 @@ with block-encodings $U_B$ and $U_C$.
 Then, the product of $U_B$ and $U_C$ results in a block-encoding of $A$:
 \begin{equation}
     \begin{split}
-        U_B U_C \ket{\psi} \ket{0}_\text{anc,C}\ket{0}_\text{anc,B} &= U_B \big(\bar{C} \ket{\psi} \ket{0}_\text{anc,C} + \beta_{\psi, C} \ket{\perp}\big)\ket{0}_\text{anc,B} \\
+        U_B U_C \ket{\psi} \ket{0}_\text{anc,C}\ket{0}_\text{anc,B} &= U_B \big(\bar{C} \ket{\psi} \ket{0}_\text{anc,C} + \beta_{\psi, C} \ket{\perp^*}\big)\ket{0}_\text{anc,B} \\
         &= \bar{B} \bar{C} \ket{\psi} \ket{0}_\text{anc,C} \ket{0}_\text{anc,B} + \beta_{\psi, C, B} \ket{\perp}
     \end{split}
 \end{equation}

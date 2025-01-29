@@ -8,6 +8,31 @@ The results that we present here are generated based on constructions of LOBE th
 Additionally, the operators are constructed through the use of OpenParticle \cite{openparticle}, a software library for the construction and manipulation of fermionic, antifermionic, and bosonic ladder operators.
 The software library \cite{grover-rudolph-github} is used to determine the rotation angles required for Grover-Rudolph.
 
+\subsection{Components}
+
+In this subsection, the aim is to numerically benchmark the spacetime cost of the LOBE constructions presented in Section \ref{sec:ladder-op-oracles} in comparison with techniques that require expanding the ladder operators in the Pauli basis.
+The spacetime costs associated with these constructions that we analyze include: the number of T gates, the number of non-Clifford single qubit rotations, the number of block-encoding ancillae, the maximum number of qubits required, and the overall rescaling factor.
+
+Block-encodings for various types of operators are considered in this work, however, in this subsection we benchmark a small, yet representative subset of these operators.
+Specifically, we compare the spacetime costs for block-encoding the following classes of operators: a product of fermionic ladder operator plus its hermitian conjugate with increasing numbers of active modes, a single bosonic ladder operator with increasing maximum bosonic occupation, and a product bosonic ladder operators plus its hermitian conjugate with increasing numbers of active modes.
+
+We compare against two different methods that require expanding the operators in the Pauli basis and then block-encoding the resulting form using LCU.
+For fermionic operators, the Jordan-Wigner transformation \cite{} is used to map the operators onto a linear combination of Pauli operators.
+Likewise, the \ws{.... what's the name} transformation \cite{} is used to map bosonic ladder operators onto a linear combination of Pauli operators.
+
+The first LCU-based method we compare against will be referred to as ``LCU - Expansion''.
+In this method, the respective transformations are applied to the lapped operators and then fully expanded.
+The result of the transformation and expansion is a single linear combination of Pauli operators that describes the full operator being block-encoded.
+This resulting linear combination is then directly block-encoded using the LCU framework.
+
+The second LCU-based method we compare against will be referred to as ``LCU - Piecewise''.
+In this method, each ladder operator is transformed into a linear combination of Pauli operators and then block-encoded individually using the LCU framework.
+These block-encodings of these individual operators are then combined together to block-encode the full operator using the techniques described in subsections \ref{subsec:lco} and \ref{subsec:be-products}.
+
+The numerical spacetime costs of these three block-encodings for a linear combination of a product of fermionic ladder operator plus its hermitian conjugate as a function of increasing numbers of active modes ($B$) is shown in Figure \ref{fig:benchmarking-fermionic}.
+
+
+
 \subsection{Yukawa Theory}
 A quantum field theory that models the strong nuclear force between hadrons is Yukawa theory \cite{Peskin:1995ev}. In this theory, hadrons are described by a fermionic field $\psi$, coupled via a scalar boson $\phi$. The interaction term is $\mathcal{L}_{\text{Yukawa}} = g\bar\psi \psi \phi$, which leads to interaction vertices containing fermions and/or antifermions and bosons. The Lagrangian, and thus the Hamiltonian, is written as a sum of free, non-ineteracting fields and the interaction term.
 
