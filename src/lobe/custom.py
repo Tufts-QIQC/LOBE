@@ -12,6 +12,7 @@ def yukawa_4point_pair_term_block_encoding(
     system,
     block_encoding_ancillae,
     active_indices,
+    operator_types,
     sign=1,
     clean_ancillae=[],
     ctrls=([], []),
@@ -140,6 +141,7 @@ def yukawa_3point_pair_term_block_encoding(
     system,
     block_encoding_ancillae,
     active_indices,
+    operator_types,
     sign=1,
     clean_ancillae=[],
     ctrls=([], []),
@@ -165,6 +167,7 @@ def yukawa_3point_pair_term_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
+    assert (operator_types == [0, 0, 1]) or (operator_types == [1, 0, 0])
     gates = []
     block_encoding_metrics = CircuitMetrics()
 
