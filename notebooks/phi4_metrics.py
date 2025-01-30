@@ -311,7 +311,7 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
 
 
 def plot_phi4_changing_occupancy():
-    omegas = [int(2**n - 1) for n in np.arange(5, 6, 1)]
+    omegas = [int(2**n - 1) for n in np.arange(1, 5, 1)]
     resolution = 2
     print("LOBE")
 
@@ -345,7 +345,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -353,7 +353,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(omegas))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -367,7 +367,7 @@ def plot_phi4_changing_occupancy():
             for i in range(len(omegas))
         ],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -375,7 +375,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [LCU_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -386,7 +386,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [GROUPED_LOBE_DATA[i][2] for i in range(len(omegas))],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -394,7 +394,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [LCU_DATA[i][2] for i in range(len(omegas))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -405,7 +405,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [GROUPED_LOBE_DATA[i][1] for i in range(len(omegas))],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -413,7 +413,7 @@ def plot_phi4_changing_occupancy():
         omegas,
         [LCU_DATA[i][1] for i in range(len(omegas))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -449,7 +449,7 @@ def plot_phi4_changing_occupancy():
             for i in range(len(omegas))
         ],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -504,7 +504,7 @@ def plot_phi4_changing_resolution():
         resolutions,
         [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -512,7 +512,7 @@ def plot_phi4_changing_resolution():
         resolutions,
         [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -526,7 +526,7 @@ def plot_phi4_changing_resolution():
             for i in range(len(resolutions))
         ],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -537,7 +537,7 @@ def plot_phi4_changing_resolution():
             for i in range(len(resolutions))
         ],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -548,7 +548,7 @@ def plot_phi4_changing_resolution():
         resolutions,
         [GROUPED_LOBE_DATA[i][2] for i in range(len(resolutions))],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -556,7 +556,7 @@ def plot_phi4_changing_resolution():
         resolutions,
         [LCU_DATA[i][2] for i in range(len(resolutions))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -567,7 +567,7 @@ def plot_phi4_changing_resolution():
         resolutions,
         [GROUPED_LOBE_DATA[i][1] for i in range(len(resolutions))],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -575,7 +575,7 @@ def plot_phi4_changing_resolution():
         resolutions,
         [LCU_DATA[i][1] for i in range(len(resolutions))],
         color=ORANGE,
-        marker="o",
+        marker="^",
         alpha=1,
         label="LCU",
     )
@@ -611,7 +611,7 @@ def plot_phi4_changing_resolution():
             for i in range(len(resolutions))
         ],
         color=BLUE,
-        marker="s",
+        marker="o",
         alpha=1,
         label="LOBE",
     )
@@ -633,5 +633,5 @@ def plot_phi4_changing_resolution():
     plt.show()
 
 
-plot_phi4_changing_occupancy()
-# plot_phi4_changing_resolution()
+# plot_phi4_changing_occupancy()
+plot_phi4_changing_resolution()
