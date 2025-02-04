@@ -163,6 +163,8 @@ def _validate_block_encoding(
         ]
 
         rescaled_upper_left_block = expected_rescaling_factor * upper_left_block
+        print(rescaled_upper_left_block.real.round(2))
+        print(matrix.real.round(2))
         assert np.allclose(rescaled_upper_left_block, matrix)
 
 
