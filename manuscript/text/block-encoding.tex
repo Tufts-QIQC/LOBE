@@ -130,11 +130,13 @@ The desired action of the \textit{Select} oracle is to apply the unitary $(U_l)$
     \label{eq:select}
     \textbf{Select}\text{:} 
     \begin{cases} 
-        \text{Apply $U_l$ on $\ket{\psi}$} & \text{when $\ket{\text{index}}$ is $\ket{l}$ and $l < L$} \\
+        \text{Apply $U_l$ on $\ket{\psi}$} & \text{when $\ket{\text{index}}$ is $\ket{l}$ for $l < L$} \\
         \text{Undefined} & \text{Otherwise} \\
     \end{cases}
 \end{equation}
 and the action of the \textit{Select} oracle is not strictly defined for the computational basis states outside of the range $[0, L)$.
+In the above definition, it is implied that the \textit{Select} operator acts coherently on superposition states of the index register.
+The desired action on such states is defined by linearity following the expansion of the state in the computational basis of the index register.
 
 With these two oracles, a block-encoding for $A$ is given by:
 \begin{equation}
@@ -169,16 +171,6 @@ In certain cases, this can drastically reduce the cost such as is done for the F
 
 \subsubsection{Implementing \textbf{Select}}
 
-% \begin{figure}[h]
-%     \includegraphics[width=6cm]{figures/select-lcu.pdf}
-%     \caption{
-%         \textbf{LCU \textit{Select} Oracle Implementation}
-%         The \textit{Select} oracle applies the $l^\text{th}$ unitary in Eq. \ref{eq:lcu} onto the system when the index register is in the computational basis state $\ket{l}$
-%         This series of operations be achieved using a set of uniformly controlled operations (right subfigure).
-%     }
-%     \label{fig:unstructured-select}
-% \end{figure}
-
 Without any assumptions on the structure of $A$, the \textit{Select} oracle can be implemented by the operator:
 \begin{equation}
     \label{eq:select-naive}
@@ -195,7 +187,6 @@ The construction for \textit{Select} in Eq. \ref{eq:select-naive} is naturally s
 \subsection{Block-Encoding Linear Combinations of Non-Unitary Operators}
 \label{subsec:lco}
 
-% LCU block-encodings provide better rescaling factors, yet there are clearly parallels between the $O_A$ oracle and the \textit{Prepare} oracle, as well as the $O_c$ oracle and the \textit{Select} oracle.
 A natural question to ask is if the structure of an LCU block-encoding can be generalized to a linear combination of non-unitary operators:
 \begin{equation}
     \label{eq:lco}
@@ -221,24 +212,26 @@ Then an LCU block-encoding of $\Tilde{A}$ will also give a block-encoding of $A$
 \ws{Is this paragraph helpful/necessary or should it be removed?}
 The fact that $U_{\Tilde{A}}$ block-encodes $A$ can be seen from the linearity of the operators themselves:
 \begin{equation}
-    U_{\Tilde{A}} = 
-    \begin{pmatrix}
-    \bar{\Tilde{A}} & * \\
-    * & * 
-    \end{pmatrix} \propto
-    \sum_{l}
-    \begin{pmatrix}
-    \Tilde{\alpha_l} U_l & * \\
-    * & * 
-    \end{pmatrix} =
-    \sum_{l}
-    \begin{pmatrix}
-    \begin{pmatrix}
-        \alpha_l O_l & * \\
+    \begin{split}
+        U_{\Tilde{A}} &= 
+        \begin{pmatrix}
+        \bar{\Tilde{A}} & * \\
         * & * 
-    \end{pmatrix} & * \\
-    * & * 
-    \end{pmatrix} 
+        \end{pmatrix} \propto
+        \sum_{l}
+        \begin{pmatrix}
+        \Tilde{\alpha_l} U_l & * \\
+        * & * 
+        \end{pmatrix} \\
+        & =\sum_{l}
+        \begin{pmatrix}
+        \begin{pmatrix}
+            \alpha_l O_l & * \\
+            * & * 
+        \end{pmatrix} & * \\
+        * & * 
+        \end{pmatrix} 
+    \end{split}
 \end{equation}
 It is clear from this form that the block-encodings $\{U_l\}$ must all have the same encoded subspace as they would otherwise not yield the desired linear combination in the encoded subspace of $U_{\Tilde{A}}$.
 It is also worth noting that the block-encodings $\{U_l\}$ may all use the same block-encoding ancillae as long as the implementation of the \textit{Select} oracle ensures that the block-encoding ancillae begin in the all-zero state in the subspace in which each block-encoding unitary is applied.
@@ -262,8 +255,9 @@ with block-encodings $U_B$ and $U_C$.
 Then, the product of $U_B$ and $U_C$ results in a block-encoding of $A$:
 \begin{equation}
     \begin{split}
-        U_B U_C \ket{\psi} \ket{0}_\text{anc,C}\ket{0}_\text{anc,B} &= U_B \big(\bar{C} \ket{\psi} \ket{0}_\text{anc,C} + \beta_{\psi, C} \ket{\perp^*}\big)\ket{0}_\text{anc,B} \\
-        &= \bar{B} \bar{C} \ket{\psi} \ket{0}_\text{anc,C} \ket{0}_\text{anc,B} + \beta_{\psi, C, B} \ket{\perp}
+        &U_B U_C \ket{\psi} \ket{0}_\text{anc,C}\ket{0}_\text{anc,B} = \\
+        &U_B \big(\bar{C} \ket{\psi} \ket{0}_\text{anc,C} + \beta_{\psi, C} \ket{\perp^*}\big)\ket{0}_\text{anc,B} = \\
+        &\bar{B} \bar{C} \ket{\psi} \ket{0}_\text{anc,C} \ket{0}_\text{anc,B} + \beta_{\psi, C, B} \ket{\perp}
     \end{split}
 \end{equation}
 with an overall rescaling factor of $\lambda = \lambda_B \lambda_C$.
