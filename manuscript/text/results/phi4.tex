@@ -20,16 +20,21 @@ Obscuring the coefficients, which can be found in appendix \ref{subsec:lightfron
 Unlike the non-relativistic theories, both relativistic theories are defined over many modes.
 Thus, the results will be given as two sets of plots: one set of cost vs. \textit{resolution} (a discussion on resolution is given in the appendix. For those uninterested, this can be loosely thought of as number of modes), and one set of cost vs occupancy ($\Omega$.)
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width = 15cm]{figures/phi4_resolutions.png}
-    \caption{}
-    \label{}
-\end{figure}
+\begin{figure*}
+    \label{fig:phi4}
+    \includegraphics[width = 16cm]{figures/phi4-resolution.pdf}
+    \caption{
+        \textbf{$\phi^4$}
+        The number of T gates (upper-left), number of non-Clifford rotations (lower-left), block-encoding ancillae (upper-middle), maximum number of qubits used (lower-middle), and rescaling factor (lower-right) are shown as a function of the resolution ($K$).
+        The bosonic cutoff is fixed to $\Omega = 3$ and the parameters $g$ and $m_b$ are set to $1$ for all data points.
+        Results for the Pauli (LCU) method are shown as the orange triangles and results for LOBE are shown as the blue circles.
+        The optimal rescaling factor, which is given by the L2 norm of the Hamiltonian, is shown as the dashed black crosses.
+    }
+\end{figure*}
 
-\begin{figure}[h]
-    \centering
-    \includegraphics[width = 15cm]{figures/phi4_occupancies.png}
-    \caption{}
-    \label{}
-\end{figure}
+% \begin{figure}[h]
+%     \centering
+%     \includegraphics[width = 15cm]{figures/phi4_occupancies.png}
+%     \caption{}
+%     \label{}
+% \end{figure}
