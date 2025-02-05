@@ -14,11 +14,7 @@ from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.rescale import (
     get_number_of_active_bosonic_modes,
 )
-from src.lobe._utils import (
-    get_bosonic_exponents,
-    get_basis_of_full_system,
-    pretty_print,
-)
+from src.lobe._utils import get_bosonic_exponents
 from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from src.lobe.bosonic import (
@@ -30,105 +26,12 @@ from tests._utils import _validate_block_encoding
 from colors import *
 
 
-def _check_unitary(
-    circuit,
-    system,
-    expected_rescaling_factor,
-    operator,
-    full_fock_basis,
-    number_of_block_encoding_ancillae,
-):
-    if len(circuit.all_qubits()) >= 12:
-        print(
-            f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
-        )
-        simulator = cirq.Simulator()
-
-        matrix = generate_matrix(operator, full_fock_basis)
-
-        random_system_state = np.zeros(1 << system.number_of_system_qubits)
-        i, j = np.random.randint(
-            1 << system.number_of_system_qubits
-        ), np.random.randint(1 << system.number_of_system_qubits)
-        random_system_state[i] = 1 / np.sqrt(2)
-        random_system_state[j] = 1 / np.sqrt(2)
-        # while np.isclose(np.linalg.norm(matrix @ random_system_state), 0):
-        #     random_system_state = 1j * np.random.uniform(
-        #         -1, 1, 1 << system.number_of_system_qubits
-        #     )
-        #     random_system_state += np.random.uniform(
-        #         -1, 1, 1 << system.number_of_system_qubits
-        #     )
-        #     random_system_state = random_system_state / np.linalg.norm(
-        #         random_system_state
-        #     )
-        zero_state = np.zeros(
-            1
-            << (
-                len(circuit.all_qubits())
-                - system.number_of_system_qubits
-                - 1
-                - number_of_block_encoding_ancillae
-            ),
-            dtype=complex,
-        )
-        zero_state[0] = 1
-        initial_control_state = [1, 0]
-        initial_block_encoding_ancilla_state = np.zeros(
-            1 << number_of_block_encoding_ancillae
-        )
-        initial_block_encoding_ancilla_state[0] = 1
-        initial_state = np.kron(
-            np.kron(
-                np.kron(initial_control_state, initial_block_encoding_ancilla_state),
-                zero_state,
-            ),
-            random_system_state,
-        )
-        output_state = simulator.simulate(
-            circuit, initial_state=initial_state
-        ).final_state_vector
-        final_state = output_state[: 1 << system.number_of_system_qubits]
-
-        expected_final_state = matrix @ random_system_state
-        expected_final_state = expected_final_state / np.linalg.norm(
-            expected_final_state
-        )
-        normalized_final_state = final_state / np.linalg.norm(final_state)
-        print(
-            "Expected:\n",
-            pretty_print(expected_final_state, [system.number_of_system_qubits]),
-        )
-        print(
-            "Obtained:\n",
-            pretty_print(normalized_final_state, [system.number_of_system_qubits]),
-        )
-        assert np.isclose(
-            1,
-            np.abs(np.dot(expected_final_state.T.conj(), normalized_final_state)) ** 2,
-        )
-        # assert np.allclose(
-        #     np.dot(expected_final_state.T.conj(), normalized_final_state), 1, atol=1e-3
-        # )
-    else:
-        matrix = generate_matrix(operator, full_fock_basis)
-
-        upper_left_block = circuit.unitary(dtype=complex)[
-            : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
-        ]
-
-        rescaled_upper_left_block = expected_rescaling_factor * upper_left_block
-        print(rescaled_upper_left_block.real.round(2))
-        print(matrix.real.round(2))
-        assert np.allclose(rescaled_upper_left_block, matrix)
-
-
 def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
     print("---", resolution, "---", maximum_occupation_number, "---")
-    operator = operator = phi4_Hamiltonian(resolution, g=1, mb=1).normal_order()
+    operator = phi4_Hamiltonian(resolution, g=1, mb=1).normal_order()
     operator.remove_identity()
     lcu = LCU(
-        operator, max_bosonic_occupancy=maximum_occupation_number, zero_threshold=1e-6
+        operator, max_bosonic_occupancy=maximum_occupation_number, zero_threshold=1e-9
     )
     ctrls = ([cirq.LineQubit(-1000000)], [1])
     circuit = cirq.Circuit()
@@ -144,14 +47,14 @@ def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
         False,
         True,
     )
-    basis = get_fock_basis(operator, max_bose_occ=maximum_occupation_number)
-    # _check_unitary(
+    # _validate_block_encoding(
     #     circuit,
     #     system,
     #     lcu.one_norm,
     #     operator,
-    #     basis,
     #     len(lcu.index_register),
+    #     maximum_occupation_number,
+    #     using_pytest=False,
     # )
 
     return lcu.circuit_metrics, lcu.one_norm, len(lcu.index_register), circuit
@@ -281,17 +184,15 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     )
     print("Total metrics of the block encoding: \n")
     metrics.display_metrics()
-    basis = get_basis_of_full_system(
-        operator.max_bosonic_mode + 1, maximum_occupation_number, False, False, True
+    _validate_block_encoding(
+        cirq.Circuit(gates),
+        system,
+        overall_rescaling_factor,
+        operator,
+        len(index_register) + number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+        using_pytest=False,
     )
-    # _check_unitary(
-    #     cirq.Circuit(gates),
-    #     system,
-    #     overall_rescaling_factor,
-    #     operator,
-    #     basis,
-    #     len(index_register) + number_of_block_encoding_ancillae,
-    # )
 
     return (
         metrics,
@@ -306,8 +207,9 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
     basis = get_fock_basis(ham, maximum_occupation_number)
     matrix = generate_matrix(ham, basis)
 
-    vals = np.linalg.eigvalsh(matrix)
-    return max(np.abs(vals))
+    # vals = np.linalg.eigvalsh(matrix)
+    # return max(np.abs(vals))
+    return np.linalg.norm(matrix, ord=2)
 
 
 def plot_phi4_changing_occupancy():
@@ -315,9 +217,7 @@ def plot_phi4_changing_occupancy():
     resolution = 2
     print("LOBE")
 
-    GROUPED_LOBE_DATA = [
-        phi4_LOBE_circuit_metrics(resolution, omega) for omega in omegas
-    ]
+    LOBE_DATA = [phi4_LOBE_circuit_metrics(resolution, omega) for omega in omegas]
     print("LCU")
     LCU_DATA = [phi4_lcu_circuit_metrics(resolution, omega) for omega in omegas]
 
@@ -343,10 +243,10 @@ def plot_phi4_changing_occupancy():
 
     axes[0][0].plot(
         omegas,
-        [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
+        [4 * LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
     axes[0][0].plot(
@@ -354,21 +254,18 @@ def plot_phi4_changing_occupancy():
         [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(omegas))],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[0][0].set_ylabel("Number of T-gates")
+    axes[0][0].set_ylabel("T-gates")
     axes[0][0].set_xlabel("Occupancy ($\Omega$)")
 
     axes[0][1].plot(
         omegas,
-        [
-            GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
-            for i in range(len(omegas))
-        ],
+        [LOBE_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
     axes[0][1].plot(
@@ -376,18 +273,18 @@ def plot_phi4_changing_occupancy():
         [LCU_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[0][1].set_ylabel("Number of Rotations")
+    axes[0][1].set_ylabel("Rotations")
     axes[0][1].set_xlabel("Occupancy ($\Omega$)")
 
     axes[1][0].plot(
         omegas,
-        [GROUPED_LOBE_DATA[i][2] for i in range(len(omegas))],
+        [LOBE_DATA[i][2] for i in range(len(omegas))],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
     axes[1][0].plot(
@@ -395,18 +292,18 @@ def plot_phi4_changing_occupancy():
         [LCU_DATA[i][2] for i in range(len(omegas))],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[1][0].set_ylabel("Number of BE-Ancillae")
+    axes[1][0].set_ylabel("BE-Ancillae")
     axes[1][0].set_xlabel("Occupancy ($\Omega$)")
 
     axes[1][1].plot(
         omegas,
-        [GROUPED_LOBE_DATA[i][1] for i in range(len(omegas))],
+        [LOBE_DATA[i][1] for i in range(len(omegas))],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
     axes[1][1].plot(
@@ -414,7 +311,7 @@ def plot_phi4_changing_occupancy():
         [LCU_DATA[i][1] for i in range(len(omegas))],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
     axes[1][1].plot(
@@ -423,7 +320,7 @@ def plot_phi4_changing_occupancy():
         color="black",
         marker="x",
         ls="--",
-        alpha=1,
+        alpha=0.5,
     )
     axes[1][1].set_ylabel("Rescaling Factor")
     axes[1][1].set_xlabel("Occupancy ($\Omega$)")
@@ -436,25 +333,25 @@ def plot_phi4_changing_occupancy():
         ],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
     axes[2][0].plot(
         omegas,
         [
-            GROUPED_LOBE_DATA[i][0].ancillae_highwater()
-            + GROUPED_LOBE_DATA[i][2]
+            LOBE_DATA[i][0].ancillae_highwater()
+            + LOBE_DATA[i][2]
             + system_qubits[i]
             + 1
             for i in range(len(omegas))
         ],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
     axes[2][0].plot(
-        [], [], color="black", marker="x", ls="--", alpha=1, label="Hamiltonian Norm"
+        [], [], color="black", marker="x", ls="--", alpha=0.5, label="Hamiltonian Norm"
     )
     axes[2][0].set_ylabel("Total Qubit Highwater")
     axes[2][0].set_xlabel("Occupancy ($\Omega$)")
@@ -473,14 +370,14 @@ def plot_phi4_changing_occupancy():
 
 def plot_phi4_changing_resolution():
     omega = 3
-    resolutions = np.arange(2, 7, 1)
+    resolutions = np.arange(2, 8, 1)
     size_of_basis = [
         len(get_fock_basis(phi4_Hamiltonian(res, 1, 1))) for res in resolutions
     ]
     print(size_of_basis)
     print("LOBE")
 
-    GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
+    LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
     print("LCU")
     LCU_DATA = [phi4_lcu_circuit_metrics(res, omega) for res in resolutions]
 
@@ -502,14 +399,14 @@ def plot_phi4_changing_resolution():
         for res in resolutions
     ]
 
-    fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
+    fig, axes = plt.subplots(2, 3, figsize=(16 / 2.54, 8 / 2.54))
 
     axes[0][0].plot(
-        size_of_basis,
-        [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
+        resolutions,
+        [4 * LOBE_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
     axes[0][0].plot(
@@ -517,130 +414,123 @@ def plot_phi4_changing_resolution():
         [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[0][0].set_ylabel("Number of T-gates")
-    axes[0][0].set_xlabel("Size of Basis")
-    axes[0][0].set_xscale("log")
+    axes[0][0].set_ylabel("T-gates")
+    axes[0][0].set_xticklabels([])
 
-    axes[0][1].plot(
-        size_of_basis,
+    axes[1][0].plot(
+        resolutions,
         [
-            GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
+            LOBE_DATA[i][0].number_of_nonclifford_rotations
             for i in range(len(resolutions))
         ],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
-    axes[0][1].plot(
-        size_of_basis,
+    axes[1][0].plot(
+        resolutions,
         [
             LCU_DATA[i][0].number_of_nonclifford_rotations
             for i in range(len(resolutions))
         ],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[0][1].set_ylabel("Number of Rotations")
-    axes[0][1].set_xlabel("Size of Basis")
-    axes[0][1].set_xscale("log")
+    axes[1][0].set_ylabel("Non-Clifford Rotations")
+    axes[1][0].set_xlabel("Resolution ($K$)")
 
-    axes[1][0].plot(
-        size_of_basis,
-        [GROUPED_LOBE_DATA[i][2] for i in range(len(resolutions))],
+    axes[0][1].plot(
+        resolutions,
+        [LOBE_DATA[i][2] for i in range(len(resolutions))],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
-    axes[1][0].plot(
-        size_of_basis,
+    axes[0][1].plot(
+        resolutions,
         [LCU_DATA[i][2] for i in range(len(resolutions))],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[1][0].set_ylabel("Number of BE-Ancillae")
-    axes[1][0].set_xlabel("Size of Basis")
-    axes[1][0].set_xscale("log")
+    axes[0][1].set_ylabel("BE Ancillae")
+    axes[0][1].set_xticklabels([])
+    axes[0][1].set_yticks([0, 10, 20])
 
     axes[1][1].plot(
-        size_of_basis,
-        [GROUPED_LOBE_DATA[i][1] for i in range(len(resolutions))],
-        color=BLUE,
-        marker="o",
-        alpha=1,
-        label="LOBE",
-    )
-    axes[1][1].plot(
-        size_of_basis,
-        [LCU_DATA[i][1] for i in range(len(resolutions))],
-        color=ORANGE,
-        marker="^",
-        alpha=1,
-        label="LCU",
-    )
-    axes[1][1].plot(
-        size_of_basis,
-        [operator_norms[i] for i in range(len(resolutions))],
-        color="black",
-        marker="x",
-        ls="--",
-        alpha=1,
-    )
-    axes[1][1].set_ylabel("Rescaling Factor")
-    axes[1][1].set_xlabel("Size of Basis")
-    axes[1][1].set_xscale("log")
-
-    axes[2][0].plot(
-        size_of_basis,
+        resolutions,
         [
             LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
             for i in range(len(resolutions))
         ],
         color=ORANGE,
         marker="^",
-        alpha=1,
+        alpha=0.5,
         label="LCU",
     )
-    axes[2][0].plot(
-        size_of_basis,
+    axes[1][1].plot(
+        resolutions,
         [
-            GROUPED_LOBE_DATA[i][0].ancillae_highwater()
-            + GROUPED_LOBE_DATA[i][2]
+            LOBE_DATA[i][0].ancillae_highwater()
+            + LOBE_DATA[i][2]
             + system_qubits[i]
             + 1
             for i in range(len(resolutions))
         ],
         color=BLUE,
         marker="o",
-        alpha=1,
+        alpha=0.5,
         label="LOBE",
     )
-    axes[2][0].plot(
-        [], [], color="black", marker="x", ls="--", alpha=1, label="Hamiltonian Norm"
-    )
-    axes[2][0].set_ylabel("Total Qubit Highwater")
-    axes[2][0].set_xlabel("Size of Basis")
-    axes[2][0].set_xscale("log")
+    axes[1][1].set_ylabel("Max Qubit Usage")
+    axes[1][1].set_xlabel("Resolution ($K$)")
+    axes[1][1].set_yticks([0, 20, 40])
 
-    fig.delaxes(axes[2][1])
+    axes[1][2].plot(
+        resolutions,
+        [LOBE_DATA[i][1] for i in range(len(resolutions))],
+        color=BLUE,
+        marker="o",
+        alpha=0.5,
+        label="LOBE",
+    )
+    axes[1][2].plot(
+        resolutions,
+        [LCU_DATA[i][1] for i in range(len(resolutions))],
+        color=ORANGE,
+        marker="^",
+        alpha=0.5,
+        label="LCU",
+    )
+    axes[1][2].plot(
+        resolutions,
+        [operator_norms[i] for i in range(len(resolutions))],
+        color="black",
+        marker="x",
+        ls="--",
+        alpha=0.5,
+    )
+    axes[1][2].set_ylabel("Rescaling Factor")
+    axes[1][2].set_xlabel("Resolution ($K$)")
+
+    fig.delaxes(axes[0][2])
     plt.tight_layout()
-    axes[2][0].legend(
-        loc="upper center",
-        bbox_to_anchor=(1.5, 0.75),
-        fancybox=True,
-        shadow=True,
-        ncol=1,
-    )
-
-    plt.show()
+    # axes[2][0].legend(
+    #     loc="upper center",
+    #     bbox_to_anchor=(1.5, 0.75),
+    #     fancybox=True,
+    #     shadow=True,
+    #     ncol=1,
+    # )
+    plt.savefig("../manuscript/figures/phi4-resolution.pdf", dpi=300)
 
 
 # plot_phi4_changing_occupancy()
