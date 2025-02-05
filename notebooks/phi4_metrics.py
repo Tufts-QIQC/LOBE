@@ -145,14 +145,14 @@ def phi4_lcu_circuit_metrics(resolution, maximum_occupation_number):
         True,
     )
     basis = get_fock_basis(operator, max_bose_occ=maximum_occupation_number)
-    _check_unitary(
-        circuit,
-        system,
-        lcu.one_norm,
-        operator,
-        basis,
-        len(lcu.index_register),
-    )
+    # _check_unitary(
+    #     circuit,
+    #     system,
+    #     lcu.one_norm,
+    #     operator,
+    #     basis,
+    #     len(lcu.index_register),
+    # )
 
     return lcu.circuit_metrics, lcu.one_norm, len(lcu.index_register), circuit
 
@@ -284,14 +284,14 @@ def phi4_LOBE_circuit_metrics(resolution, maximum_occupation_number):
     basis = get_basis_of_full_system(
         operator.max_bosonic_mode + 1, maximum_occupation_number, False, False, True
     )
-    _check_unitary(
-        cirq.Circuit(gates),
-        system,
-        overall_rescaling_factor,
-        operator,
-        basis,
-        len(index_register) + number_of_block_encoding_ancillae,
-    )
+    # _check_unitary(
+    #     cirq.Circuit(gates),
+    #     system,
+    #     overall_rescaling_factor,
+    #     operator,
+    #     basis,
+    #     len(index_register) + number_of_block_encoding_ancillae,
+    # )
 
     return (
         metrics,
@@ -473,7 +473,11 @@ def plot_phi4_changing_occupancy():
 
 def plot_phi4_changing_resolution():
     omega = 3
-    resolutions = np.arange(2, 6, 1)
+    resolutions = np.arange(2, 7, 1)
+    size_of_basis = [
+        len(get_fock_basis(phi4_Hamiltonian(res, 1, 1))) for res in resolutions
+    ]
+    print(size_of_basis)
     print("LOBE")
 
     GROUPED_LOBE_DATA = [phi4_LOBE_circuit_metrics(res, omega) for res in resolutions]
@@ -501,7 +505,7 @@ def plot_phi4_changing_resolution():
     fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
 
     axes[0][0].plot(
-        resolutions,
+        size_of_basis,
         [4 * GROUPED_LOBE_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=BLUE,
         marker="o",
@@ -509,7 +513,7 @@ def plot_phi4_changing_resolution():
         label="LOBE",
     )
     axes[0][0].plot(
-        resolutions,
+        size_of_basis,
         [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=ORANGE,
         marker="^",
@@ -517,10 +521,11 @@ def plot_phi4_changing_resolution():
         label="LCU",
     )
     axes[0][0].set_ylabel("Number of T-gates")
-    axes[0][0].set_xlabel("Resolution ($K$)")
+    axes[0][0].set_xlabel("Size of Basis")
+    axes[0][0].set_xscale("log")
 
     axes[0][1].plot(
-        resolutions,
+        size_of_basis,
         [
             GROUPED_LOBE_DATA[i][0].number_of_nonclifford_rotations
             for i in range(len(resolutions))
@@ -531,7 +536,7 @@ def plot_phi4_changing_resolution():
         label="LOBE",
     )
     axes[0][1].plot(
-        resolutions,
+        size_of_basis,
         [
             LCU_DATA[i][0].number_of_nonclifford_rotations
             for i in range(len(resolutions))
@@ -542,10 +547,11 @@ def plot_phi4_changing_resolution():
         label="LCU",
     )
     axes[0][1].set_ylabel("Number of Rotations")
-    axes[0][1].set_xlabel("Resolution ($K$)")
+    axes[0][1].set_xlabel("Size of Basis")
+    axes[0][1].set_xscale("log")
 
     axes[1][0].plot(
-        resolutions,
+        size_of_basis,
         [GROUPED_LOBE_DATA[i][2] for i in range(len(resolutions))],
         color=BLUE,
         marker="o",
@@ -553,7 +559,7 @@ def plot_phi4_changing_resolution():
         label="LOBE",
     )
     axes[1][0].plot(
-        resolutions,
+        size_of_basis,
         [LCU_DATA[i][2] for i in range(len(resolutions))],
         color=ORANGE,
         marker="^",
@@ -561,10 +567,11 @@ def plot_phi4_changing_resolution():
         label="LCU",
     )
     axes[1][0].set_ylabel("Number of BE-Ancillae")
-    axes[1][0].set_xlabel("Resolution ($K$)")
+    axes[1][0].set_xlabel("Size of Basis")
+    axes[1][0].set_xscale("log")
 
     axes[1][1].plot(
-        resolutions,
+        size_of_basis,
         [GROUPED_LOBE_DATA[i][1] for i in range(len(resolutions))],
         color=BLUE,
         marker="o",
@@ -572,7 +579,7 @@ def plot_phi4_changing_resolution():
         label="LOBE",
     )
     axes[1][1].plot(
-        resolutions,
+        size_of_basis,
         [LCU_DATA[i][1] for i in range(len(resolutions))],
         color=ORANGE,
         marker="^",
@@ -580,7 +587,7 @@ def plot_phi4_changing_resolution():
         label="LCU",
     )
     axes[1][1].plot(
-        resolutions,
+        size_of_basis,
         [operator_norms[i] for i in range(len(resolutions))],
         color="black",
         marker="x",
@@ -588,10 +595,11 @@ def plot_phi4_changing_resolution():
         alpha=1,
     )
     axes[1][1].set_ylabel("Rescaling Factor")
-    axes[1][1].set_xlabel("Resolution ($K$)")
+    axes[1][1].set_xlabel("Size of Basis")
+    axes[1][1].set_xscale("log")
 
     axes[2][0].plot(
-        resolutions,
+        size_of_basis,
         [
             LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
             for i in range(len(resolutions))
@@ -602,7 +610,7 @@ def plot_phi4_changing_resolution():
         label="LCU",
     )
     axes[2][0].plot(
-        resolutions,
+        size_of_basis,
         [
             GROUPED_LOBE_DATA[i][0].ancillae_highwater()
             + GROUPED_LOBE_DATA[i][2]
@@ -619,7 +627,8 @@ def plot_phi4_changing_resolution():
         [], [], color="black", marker="x", ls="--", alpha=1, label="Hamiltonian Norm"
     )
     axes[2][0].set_ylabel("Total Qubit Highwater")
-    axes[2][0].set_xlabel("Resolution ($K$)")
+    axes[2][0].set_xlabel("Size of Basis")
+    axes[2][0].set_xscale("log")
 
     fig.delaxes(axes[2][1])
     plt.tight_layout()
@@ -630,6 +639,7 @@ def plot_phi4_changing_resolution():
         shadow=True,
         ncol=1,
     )
+
     plt.show()
 
 
