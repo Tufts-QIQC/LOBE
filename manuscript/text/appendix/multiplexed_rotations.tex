@@ -39,7 +39,7 @@ However, these zero-angle rotations will become nonzero when using this construc
 There are some edge cases where this reduced multiplexing range can reduce the cost, such as when half of the range has zero-valued rotation angles.
 We do not include these optimizations in this work as they are highly dependent on the operators in the Hamiltonian being block-encoded.
 
-\begin{figure}
+\begin{figure*}
     \centering
     \includegraphics[width=16cm]{figures/controlled-multiplexed-rotations.pdf}
     \caption{
@@ -53,7 +53,7 @@ We do not include these optimizations in this work as they are highly dependent 
         This implementation will likely lead to fewer T gates being required assuming that controlling each rotation is more expensive than a Toffoli.
     }
     \label{fig:controlled-multiplexed-rotations}
-\end{figure}
+\end{figure*}
 
 Applying the bosonic coefficient rotations, however, requires \textit{controlled} multiplexed rotations.
 Naively, this would require controlling each of the arbitrary rotations and allowing the CNOT gates to cancel out with one another when the control is off.

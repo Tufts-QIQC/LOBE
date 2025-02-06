@@ -88,7 +88,7 @@ def get_decomposed_multiplexed_rotation_circuit(
         )
 
     if len(ctrls[0]) > 0:
-        angle = -np.pi * sum(processed_angles)
+        angle = -sum(processed_angles)
         rotation_gadget_metrics.rotation_angles.append(-angle / 2)
         rotation_gadget_metrics.rotation_angles.append(angle / 2)
         gates.append(
@@ -121,10 +121,8 @@ def _recursive_helper(
     gates = []
 
     if level == 1:
-        recursion_metrics.rotation_angles.append(np.pi * angles[rotation_index])
-        gates.append(
-            cirq.Moment(cirq.ry(np.pi * angles[rotation_index]).on(rotation_qubit))
-        )
+        recursion_metrics.rotation_angles.append(angles[rotation_index])
+        gates.append(cirq.Moment(cirq.ry(angles[rotation_index]).on(rotation_qubit)))
 
         if len(ctrls[0]) > 0:
             gates.append(
@@ -138,9 +136,9 @@ def _recursive_helper(
                     .controlled_by(*ctrls[0], control_values=ctrls[1])
                 )
             )
-        recursion_metrics.rotation_angles.append(np.pi * angles[rotation_index + 1])
+        recursion_metrics.rotation_angles.append(angles[rotation_index + 1])
         gates.append(
-            cirq.Moment(cirq.ry(np.pi * angles[rotation_index + 1]).on(rotation_qubit))
+            cirq.Moment(cirq.ry(angles[rotation_index + 1]).on(rotation_qubit))
         )
 
     else:

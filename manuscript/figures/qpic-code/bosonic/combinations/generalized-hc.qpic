@@ -1,0 +1,31 @@
+ctrl W ctrl
+index W index
+anc_0 W anc_0
+anc_1 W anc_1
+anc_series W \vdots
+anc_B W anc_{B-1}
+
+i W \psi_i
+j W \psi_j
+sys_series W \vdots
+m W \psi_m
+
+i / ^{\log_2{\Omega}}
+j / ^{\log_2{\Omega}}
+sys_series / 
+m / ^{\log_2{\Omega}}
+
+ctrl index anc_0 anc_1 anc_series anc_B i j sys_series m LABEL width=-20
+
+index G $H$ 
+
+i G width=50 $+R_i-S_i$ j G width=50 $+R_j-S_j$ sys_series G width=50 $+R-S$ m G width=50 $+R_m-S_m$ ctrl -index
+
+anc_0 G:width=65 $R_y(\theta_w, R_i, S_i)$ i G:width=20 $In_\omega$ ctrl
+anc_1 G:width=65 $R_y(\theta_w, R_j, S_j)$ j G:width=20 $In_\omega$ ctrl
+anc_series G:width=65 $R_y(\theta_w, R, S)$ sys_series G:width=20 $In_\omega$ ctrl
+anc_B G:width=65 $R_y(\theta_w, R_m, S_m)$ m G:width=20 $In_\omega$ ctrl
+
+i G width=50 $-R_i+S_i$ j G width=50 $-R_j+S_j$ sys_series G width=50 $-R+S$ m G width=50 $-R_m+S_m$ ctrl index
+
+index G $H$ 

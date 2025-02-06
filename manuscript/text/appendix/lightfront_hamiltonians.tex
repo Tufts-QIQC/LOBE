@@ -1,0 +1,23 @@
+\section{Quantum Field Theory Hamiltonians}
+\label{subsec:qft-hamiltonians}
+
+The two quantum field theory models studied in section \ref{sec:results} are the $\phi^4$ and Yukawa model.
+In performing a Legendre transformation from the Lagrangian to the Hamiltonian, $\mathcal{L} \rightarrow H$, one must choose an explicit coordinate system.
+Any field theory calculation done in a Hamiltonian approach benefits from using \textit{front form} (lightfront) coordinates \cite{Dirac1949}.
+Lightfront coordinates are defined as $x^\mu = \left(x^+, x^-, x^1, x^2 \right)$, where $x^+ \equiv x^0 + x^3$ acts as the space coordinate and $x^- \equiv x^0 - x^3$ acts as the time coordinate.
+In each model studied above, the transverse spacial coordinates $x^1, x^2$ are discarded, and the only independent coordinates are $x^+$ and $x^-$.
+
+One main benefit of using this set of coordinates is that the Hamiltonian eigenvalue equation, whose eigenvectors are bound states of the theory, is simpler than in instant (standard) coordinates.
+This is because the Hamiltonian operator in instant form coordinates is $H = \sqrt{\vec{P}^2 - m^2}$, where the presence of the square root leads to an ambiguity.
+In front form coordinates, the Hamiltonian operator is given via the lightfront `energy' $\hat P^- = \frac{\left(\vec{P}^\perp\right)^2 + m^2}{P^+}$, where the square root is absent.
+
+In one lightfront space and time dimension, the Hamiltonian eigenvalue equation is given by $\hat P^-|\psi\rangle = \frac{m^2}{P^+}|\psi\rangle$.
+Any state can be expanded as $$\ket{\psi} = \sum_n \int d[\mu_n] \ket{\mu_n}\braket{\mu_n}{\psi},$$ where $\{\ket{\mu_n}\}$ is a set of Fock states with $n$ particles, i.e. $\ket{f}, \ket{ff}, \ket{b}, \ket{fb}, \dots$.
+
+The lightfront `momentum' $P^+$ is a conserved quantity which every constituent's longitudinal momentum in a given Fock state $\in \{\ket{\mu_n}\}$ must sum to $P^+$.
+The `modes' of the ladder operators correspond to discrete longitudinal momentum quantum numbers $k$, where the discretized approximation to a continuous constituent momentum $p^+ = \frac{\pi k}{L}$, where $L$ truncates $x^-$ to a finite region.
+Thus, the conservation of $P^+$ is analogous to $\sum k = K$, labeled the \textit{resolution} \cite{}.
+Increasing the resolution leads to a larger Hilbert space of states, and thus the number of terms in the Hamiltonian that act non-trivially on this set of states also expands.
+This is why increasing $K$ is a metric for `number of terms in the Hamiltonian'.
+
+

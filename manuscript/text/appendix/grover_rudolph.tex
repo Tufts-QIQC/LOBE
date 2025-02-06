@@ -37,7 +37,7 @@ Prior works \cite{mottonen2004transformation, low2021halving} have shown that mu
 In Figure \ref{fig:grover-rudolph} b, we show how implementing Grover-Rudolph using the decomposition for multiplexed rotations of \cite{mottonen2004transformation} leads to requiring $L-1$ uncontrolled rotations when preparing $L$ coefficients.
 \ws{This value of $L-1$ rotations is certainly true when $L$ is a power of 2. It's not clear that when some of the rotation angles are zero before the classical preprocessing that this cost will still be $L-1$ rotations and not the next highest power of 2.}
 
-\begin{figure}
+\begin{figure*}
     \centering
     \includegraphics[width=16cm]{figures/grover-rudolph.pdf}
     % \includegraphics[width=16cm]{figures/grover-rudolph-4-qubits.pdf}
@@ -48,4 +48,4 @@ In Figure \ref{fig:grover-rudolph} b, we show how implementing Grover-Rudolph us
         This circuit requires 7 rotations and the angles of the rotations are changed ($\theta_i \rightarrow \alpha_i$) based on classical preprocessing.
     }
     \label{fig:grover-rudolph}
-\end{figure}
+\end{figure*}

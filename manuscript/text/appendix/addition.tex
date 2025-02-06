@@ -12,7 +12,7 @@ When performing a bosonic occupancy update, the value of $m$ is a known, \textit
 Naively, this could be performed by loading the value of $m$ into a clean register and then performing controlled addition of the two registers as described above.
 However, since the value of $m$ is classial and known, there are a few other options.
 
-\begin{figure}
+\begin{figure*}
     \centering
     \includegraphics[width=16cm]{figures/addition-via-incrementers.pdf}
     \caption{
@@ -23,7 +23,7 @@ However, since the value of $m$ is classial and known, there are a few other opt
         Subtraction by the same value can be achieved by applying Pauli-X gates on each qubit before and after the operation.
     }
     \label{fig:addition-via-incrementers}
-\end{figure}
+\end{figure*}
 
 \begin{figure}
     \centering
@@ -54,7 +54,7 @@ If the number of left (and right) elbows is minimized, the upper bound for the n
 \end{equation} 
 \ws{this scaling was determined numerically, but i think it shouldn't be hard to derive.}
 
-\begin{figure}
+\begin{figure*}
     \centering
     \includegraphics[width=12cm]{figures/ctrl-add-11-qubit-efficient.pdf}
     \caption{
@@ -68,7 +68,7 @@ If the number of left (and right) elbows is minimized, the upper bound for the n
         If the value of $m_0$ is $0$, the circuit can be bit-shifted as shown in Figure \ref{fig:addition-qubit-efficient-12}.
     }
     \label{fig:addition-qubit-efficient-11}
-\end{figure}
+\end{figure*}
 
 \begin{figure}
     \centering
@@ -91,7 +91,7 @@ If the $p$ least significant bits of $m$ are zero, this reduces the cost to $2(N
 
 \begin{figure}
     \centering
-    \includegraphics[width=12cm]{figures/ctrl-add-11-gate-efficient.pdf}
+    \includegraphics[width=8cm]{figures/ctrl-add-11-gate-efficient.pdf}
     \caption{
         \textbf{Gate-Efficient Controlled Addition of 11}
         The construction for controlled quantum addition given in \cite{gidney2018halving} can be modified to reduce the number of gates in the case that one of the values is a classical number.

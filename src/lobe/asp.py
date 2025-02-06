@@ -96,7 +96,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
                     "Our implementation assumes amplitudes are real-valued, therefore angle of rz gates should always be 0."
                 )
             control_values = [int(ctrl) for ctrl in controls]
-            multiplexing_angles[len(control_values)].append(ry_angle / np.pi)
+            multiplexing_angles[len(control_values)].append(ry_angle)
 
     if multiplexing_angles == [[]]:
         return [], CircuitMetrics()
@@ -104,7 +104,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
     if dagger:
         multiplexing_angles[0][0] *= -1
 
-    angle = np.pi * multiplexing_angles[0][0]
+    angle = multiplexing_angles[0][0]
     gates.append(cirq.ry(angle).on(qubits[0]))
     metrics.rotation_angles.append(angle)
 

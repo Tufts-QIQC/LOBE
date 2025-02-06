@@ -28,7 +28,7 @@ def _get_explicit_multiplexed_rotation_circuit(angles, is_controlled):
             control_qubits.append(ctrl)
             index_register_control_values.append(1)
         circuit.append(
-            cirq.ry(np.pi * angles[index])
+            cirq.ry(angles[index])
             .on(rotation_qubit)
             .controlled_by(
                 *control_qubits,
