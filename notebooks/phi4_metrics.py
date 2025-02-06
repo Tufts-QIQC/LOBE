@@ -410,7 +410,7 @@ def plot_phi4_changing_resolution():
         label="LOBE",
     )
     axes[0][0].plot(
-        size_of_basis,
+        resolutions,
         [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(resolutions))],
         color=ORANGE,
         marker="^",
