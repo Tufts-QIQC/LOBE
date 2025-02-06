@@ -4,8 +4,7 @@
 The two quantum field theory models studied in section \ref{sec:results} are the $\phi^4$ and Yukawa model.
 In performing a Legendre transformation from the Lagrangian to the Hamiltonian, $\mathcal{L} \rightarrow H$, one must choose an explicit coordinate system.
 Any field theory calculation done in a Hamiltonian approach benefits from using \textit{front form} (lightfront) coordinates \cite{Dirac1949}.
-Lightfront coordinates are defined as $x^\mu = \left(x^+, x^-, x^1, x^2 \right)$, where $x^+ \equiv x^0 + x^3$ and $x^- \equiv x^0 - x^3$.
-$x^+$ is the `\textit{time-like}' coordinate, while $x^-$ is the `\textit{space-like}' coordinate.
+Lightfront coordinates are defined as $x^\mu = \left(x^+, x^-, x^1, x^2 \right)$, where $x^+ \equiv x^0 + x^3$ acts as the space coordinate and $x^- \equiv x^0 - x^3$ acts as the time coordinate.
 In each model studied above, the transverse spacial coordinates $x^1, x^2$ are discarded, and the only independent coordinates are $x^+$ and $x^-$.
 
 One main benefit of using this set of coordinates is that the Hamiltonian eigenvalue equation, whose eigenvectors are bound states of the theory, is simpler than in instant (standard) coordinates.
@@ -22,83 +21,3 @@ Increasing the resolution leads to a larger Hilbert space of states, and thus th
 This is why increasing $K$ is a metric for `number of terms in the Hamiltonian'.
 
 
-% Here, the Yukawa and $\phi^4$ Hamiltonians will be written out in lightfront coordinates in one space ($x^-$) and one time ($x^+$) dimension.
-% In the continuum, the Hamiltonian, which is derived from the Lagrangian, can be written as integrals of the relevant fields over longitudinal momentum. 
-% In the discrete case, the momentum is discretized, and thus integrals become sums.
-% Each model will have a different $\mathcal{H}$, depending on the fields involved and the interaction term.
-
-% Each model is composed of fields with discrete momenta $k \in \{1/2, 3/2, \dots\}$ for fermions or $k \in \{1, 2, 3, \dots\}$ for bosons due to their symmetry properties. 
-% The discretized fields are given as:
-
-% \begin{equation}
-%     \label{eq:psi_discrete}
-%     \psi(q) = 2L \frac{\theta(k)u(p_k^+)b_k+ \theta(-k)v(p_{-k}^+)d_{-k}^\dagger}{\sqrt{4\pi \abs{k}}}
-% \end{equation}
-% \begin{equation}
-%     \label{eq:psibar_discrete}
-%     \bar \psi(q) = 2L \frac{\theta(k)\bar u(p_k^+)b_k^\dagger + \theta(-k)\bar v(p_{-k}^+)d_{-k}}{\sqrt{4\pi \abs{k}}}
-% \end{equation}
-% \begin{equation}
-%     \label{eq:phi_discrete}
-%     \phi(x) = 2L \frac{\theta(k)a_k + \theta(-k)a_{-k}^\dagger}{\sqrt{4\pi \abs{k}}}
-% \end{equation}
-% The discretized momentum is given by $p_k^+ = \frac{2\pi}{L}k$. 
-% In the discretized Hamiltonians below, the momentum sums run to a value $K$, known as the \textit{resolution}.
-% This is analogous to the mode cutoff discribed throughout the text. 
-% Increasing the resolution $K$ recovers the continuum limit.
-
-% The spinors $u, v$ and gamma matrices $\gamma^+$ have the following definitions in 1+1D lightfront coordinates:
-
-% \begin{align*}
-%     u(p_k^+) = \frac{1}{\sqrt{p_k^+}}\left[\begin{matrix} p^+ \\ m \end{matrix}\right]\\
-%     v(p_k^+) = \frac{1}{\sqrt{p_k^+}}\left[\begin{matrix} -p^+ \\ m \end{matrix}\right]\\
-%     \gamma^+ = \left[\begin{matrix} 0 & 1 \\ 1 & 0 \end{matrix}\right]
-% \end{align*}
-
-
-% \subsection{Yukawa}
-% In the Yukawa model, the discrete Hamiltonian is a sum of three terms: $H = H_0 + H_{\text{3-point}} + H_{\text{inst.}}$.
-% The free part of the Hamiltonian is 
-
-% \begin{equation}
-%     H_0 = \frac{L}{2\pi}\sum_{k = 1/2}^K \frac{m_f^2}{p_k^+}\left(b_k^\dagger b_k + d_k^\dagger d_k \right) + \frac{L}{2\pi}\sum_{k = 1}^K \frac{m_b^2}{p_k^+}a_k^\dagger a_k 
-% \end{equation}
-
-% The 3-body interaction piece comes from a sum over the fields $\bar \psi \psi \phi$:
-
-% \begin{equation}
-%     H_{\text{3-body}} = \frac{2Lg}{(2L)^3}\sum_{\substack{k_1, k_2 \in \mathbb{Z} + \frac{1}{2} \\ k_3 \in \mathbb{Z} \setminus \{0\}}}
-%     \delta_{k1, k2 + k3}:\bar \psi(k_1)\psi(k_2)\phi(k_3):.
-% \end{equation}
-
-% Lastly, the instantaneous interaction, arising from constraints on the spinor fields in lightfront coordinates can be written in terms of fields as:
-% \begin{equation}
-%     H_{\text{inst.}} = \frac{2Lg^2}{(2L)^4}\sum_{\substack{k_1, k_4 \in \mathbb{Z} + \frac{1}{2} \\ k_2, k_3 \in \mathbb{Z} \setminus \{0\}}}
-%     \delta_{k1, k2 + k3 + k4}:\bar \psi(k_1)\phi(k_2)\frac{\gamma^+}{k_3 + k_4}\phi(k_3)\psi(k_4):.
-% \end{equation}
-
-% The explicit form of these Hamiltonians written in the manner of equation \ref{eq:lco} can be found by expanding the fields in the forms found above.
-
-% \subsection{$\phi^4$}
-% The $\phi^4$ Hamiltonian can be written out in lightfront coordinates, similar to Yukawa theory. Using the same field given in equation \ref{eq:phi_discrete}, the discrete Hamiltonian is
-
-
-% \begin{align}
-%     H = 
-% \sum_{k_1 = 1}^{K} \frac{m_B^2}{p_{k_1}^+} a_1^\dagger a_1
-% &+
-% 4 g
-% \frac{1}{2L} \sum_{k_1, k_2, k_3, k_4 = 1}^{K}
-% \frac{1}{\sqrt{p_{k_1}^+ p_{k_2}^+ p_{k_3}^+ p_{k_4}^+}}
-% \delta_{k_1 + k_2 + k_3, k_4}
-% \left(
-%   a_1^\dagger a_2^\dagger a_3^\dagger a_4
-% + a_4^\dagger a_3 a_2 a_1
-% \right)
-% \\ 
-% & +6 g
-% \frac{1}{2L} \sum_{k_1, k_2, k_3, k_4 = 1}^{K}
-% \frac{1}{\sqrt{p_{k_1}^+ p_{k_2}^+ p_{k_3}^+ p_{k_4}^+}}
-% \delta_{k_1 + k_2, k_3 + k_4}
-% a_1^\dagger a_2^\dagger a_3 a_4 \\ \nonumber
-% \end{align}

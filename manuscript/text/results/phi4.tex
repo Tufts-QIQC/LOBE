@@ -9,16 +9,20 @@ Any field theory is defined at the level of a Lagrangian, which for $\phi^4$ the
 
 To obtain a Hamiltonian from a Lagrangian, a Legendre transformation is performed, in which an explicit set of coordinates must be chosen. 
 The set of coordinates used in this paper, which lead to the simplest forms of the corresponding Hamiltonians, are front form (lightfront) coordinates \cite{Dirac1949}.
-A discussion on lightfront coordinates, as well as the corresponding Hamiltonians for each theory studied will be given in appendix \ref{subsec:lightfront-hamiltonian}.
+A discussion on lightfront coordinates will be given in appendix \ref{subsec:qft-hamiltonians}.
 
-Obscuring the coefficients, which can be found in appendix \ref{subsec:lightfront-hamiltonian}, the $\phi^4$ Hamiltonian can be written as:
+Without writing the explicit form of the coefficients, the $\phi^4$ Hamiltonian can be written as:
 
 \begin{align}
-    H = \sum_i c_i a_i^\dagger a_i + \sum_{ijkl}c_{ijkl} \left(a_i^\dagger a_j^\dagger a_k^\dagger a_l + h.c. \right) + \sum_{ijkl}c_{ijkl}a_i^\dagger a_j^\dagger a_k a_l
+    H = \sum_i &c_i a_i^\dagger a_i + \sum_{ijkl}c_{ijkl} \left(a_i^\dagger a_j^\dagger a_k^\dagger a_l + h.c. \right) + \nonumber\\
+    &\sum_{ijkl}c_{ijkl}a_i^\dagger a_j^\dagger a_k a_l
 \end{align}
 
 Unlike the non-relativistic theories, both relativistic theories are defined over many modes.
-Thus, the results will be given as two sets of plots: one set of cost vs. \textit{resolution} (a discussion on resolution is given in the appendix. For those uninterested, this can be loosely thought of as number of modes), and one set of cost vs occupancy ($\Omega$.)
+Thus, the scaling on the plots shows counts versus \textit{resolution} \cite{}.
+In lightfront field theories, resolution dictates the size of the momentum grid, and thus the total number of modes. 
+A further discussion on the physical meaning of resolution will be given in appendix \ref{subsec:qft-hamiltonians}.
+The size of the basis of Fock states that are acted on non-trivially by the Hamiltonian at a given resolution scales exponentially with the resolution.
 
 \begin{figure*}
     \label{fig:phi4}
@@ -31,6 +35,11 @@ Thus, the results will be given as two sets of plots: one set of cost vs. \texti
         The optimal rescaling factor, which is given by the L2 norm of the Hamiltonian, is shown as the dashed black crosses.
     }
 \end{figure*}
+
+For lower values of the resolution, LOBE and LCU exhibit similar results for number of T-gates, number of non-Clifford rotations, and rescaling factor.
+Also, at low resolution, LCU beats LOBE for number of block encoding ancillae needed as well as the maximum number of qubits used.
+However, as the resolution scales up, it is clear that LOBE beats LCU asymptotically. 
+At a resolution $K = 3$, a cross-over in performance occurs for number of block encoding ancillae needed as well as the maximum number of qubits used, as well as the initial deviation in scaling for the other three plots. 
 
 % \begin{figure}[h]
 %     \centering
