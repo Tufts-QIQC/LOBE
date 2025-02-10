@@ -68,11 +68,11 @@ def test_index_lcu():
     ctrls = ([cirq.LineQubit(0)], [1])
     index_register = [cirq.LineQubit(i + 100) for i in range(int(np.ceil(np.log2(3))))]
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
-    system = System(1, 1, 300, True, False, False)
+    system = System(1, 300, number_of_fermionic_modes=1)
 
     def _apply_X(ctrls=([], [])):
         _gates = [
-            cirq.X.on(system.fermionic_register[0]).controlled_by(
+            cirq.X.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
             )
         ]
@@ -80,7 +80,7 @@ def test_index_lcu():
 
     def _apply_Y(ctrls=([], [])):
         _gates = [
-            cirq.Y.on(system.fermionic_register[0]).controlled_by(
+            cirq.Y.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
             )
         ]
@@ -88,7 +88,7 @@ def test_index_lcu():
 
     def _apply_Z(ctrls=([], [])):
         _gates = [
-            cirq.Z.on(system.fermionic_register[0]).controlled_by(
+            cirq.Z.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
             )
         ]
@@ -125,11 +125,11 @@ def test_index_controlled():
     ctrls = ([cirq.LineQubit(0)], [1])
     index_register = [cirq.LineQubit(1)]
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
-    system = System(1, 1, 300, True, False, False)
+    system = System(1, 300, number_of_fermionic_modes=1)
 
     def _apply_X(ctrls=([], [])):
         _gates = [
-            cirq.X.on(system.fermionic_register[0]).controlled_by(
+            cirq.X.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
             )
         ]
@@ -155,11 +155,11 @@ def test_index_controlled():
 def test_index_no_controls():
     index_register = [cirq.LineQubit(1)]
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
-    system = System(1, 1, 300, True, False, False)
+    system = System(1, 300, number_of_fermionic_modes=1)
 
     def _apply_X(ctrls=([], [])):
         _gates = [
-            cirq.X.on(system.fermionic_register[0]).controlled_by(
+            cirq.X.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
             )
         ]

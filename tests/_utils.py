@@ -27,23 +27,26 @@ def _setup(
         cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
         for i in range(number_of_clean_ancillae)
     ]
+    number_of_fermionic_modes = 0
+    number_of_bosonic_modes = 0
+    if operator.max_fermionic_mode is not None:
+        number_of_fermionic_modes = operator.max_fermionic_mode + 1
+    if operator.max_bosonic_mode is not None:
+        number_of_bosonic_modes = operator.max_bosonic_mode + 1
     system = System(
-        number_of_modes=number_of_modes,
-        maximum_occupation_number=maximum_occupation_number,
-        number_of_used_qubits=1
-        + number_of_block_encoding_ancillae
-        + number_of_clean_ancillae,
-        has_fermions=operator.has_fermions,
-        has_bosons=operator.has_bosons,
+        maximum_occupation_number,
+        1 + number_of_block_encoding_ancillae + number_of_clean_ancillae,
+        number_of_fermionic_modes=number_of_fermionic_modes,
+        number_of_bosonic_modes=number_of_bosonic_modes,
     )
     circuit.append(
         cirq.I.on_each(
             control,
             *block_encoding_ancillae,
-            *system.fermionic_register,
+            *system.fermionic_modes,
         )
     )
-    for bosonic_reg in system.bosonic_system:
+    for bosonic_reg in system.bosonic_modes:
         circuit.append(cirq.I.on_each(*bosonic_reg))
 
     if len(circuit.all_qubits()) >= 32:
@@ -52,8 +55,6 @@ def _setup(
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
     # Generate full Block-Encoding circuit
-    if number_of_block_encoding_ancillae == 1:
-        block_encoding_ancillae = block_encoding_ancillae[0]
     gates, metrics = block_encoding_function(
         system,
         block_encoding_ancillae,
@@ -91,16 +92,21 @@ def _validate_block_encoding(
         )
         simulator = cirq.Simulator()
 
+        number_of_fermionic_modes = 0
+        number_of_bosonic_modes = 0
+        if operator.max_fermionic_mode is not None:
+            number_of_fermionic_modes = operator.max_fermionic_mode + 1
+        if operator.max_bosonic_mode is not None:
+            number_of_bosonic_modes = operator.max_bosonic_mode + 1
         full_fock_basis = get_basis_of_full_system(
-            system.number_of_modes,
             maximum_occupation_number,
-            has_fermions=operator.has_fermions,
-            has_antifermions=operator.has_antifermions,
-            has_bosons=operator.has_bosons,
+            number_of_fermionic_modes=number_of_fermionic_modes,
+            number_of_bosonic_modes=number_of_bosonic_modes,
         )
         matrix = generate_matrix(operator, full_fock_basis)
 
         random_system_state = np.zeros(1 << system.number_of_system_qubits)
+        attempts = 0
         while np.isclose(np.linalg.norm(matrix @ random_system_state), 0):
             random_system_state = 1j * np.random.uniform(
                 -1, 1, 1 << system.number_of_system_qubits
@@ -111,6 +117,8 @@ def _validate_block_encoding(
             random_system_state = random_system_state / np.linalg.norm(
                 random_system_state
             )
+            if attempts > 100:
+                break
         zero_state = np.zeros(
             1
             << (
@@ -151,12 +159,16 @@ def _validate_block_encoding(
             print(squared_overlap)
         assert np.allclose(1, squared_overlap, atol=1e-1)
     else:
+        number_of_fermionic_modes = 0
+        number_of_bosonic_modes = 0
+        if operator.max_fermionic_mode is not None:
+            number_of_fermionic_modes = operator.max_fermionic_mode + 1
+        if operator.max_bosonic_mode is not None:
+            number_of_bosonic_modes = operator.max_bosonic_mode + 1
         full_fock_basis = get_basis_of_full_system(
-            system.number_of_modes,
             maximum_occupation_number,
-            has_fermions=operator.has_fermions,
-            has_antifermions=operator.has_antifermions,
-            has_bosons=operator.has_bosons,
+            number_of_fermionic_modes=number_of_fermionic_modes,
+            number_of_bosonic_modes=number_of_bosonic_modes,
         )
         matrix = generate_matrix(operator, full_fock_basis)
 

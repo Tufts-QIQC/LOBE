@@ -312,12 +312,9 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
     ctrls = ([cirq.LineQubit(0)], [1])
     clean_ancillae = [cirq.LineQubit(i + 100) for i in range(100)]
     system = System(
-        operator.max_bosonic_mode + 1,
         maximum_occupation_number,
         1000,
-        False,
-        False,
-        True,
+        number_of_bosonic_modes=operator.max_bosonic_mode + 1,
     )
 
     BE_functions = []
@@ -350,7 +347,7 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
 
     target_state = get_target_state(rescaled_coefficients)
     gates = []
-    for mode in system.bosonic_system:
+    for mode in system.bosonic_modes:
         for qubit in mode:
             gates.append(cirq.I.on(qubit))
 
@@ -388,7 +385,8 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
     )
 
     full_fock_basis = get_basis_of_full_system(
-        operator.max_bosonic_mode + 1, maximum_occupation_number, has_bosons=True
+        maximum_occupation_number,
+        number_of_bosonic_modes=operator.max_bosonic_mode + 1,
     )
     matrix = generate_matrix(operator, full_fock_basis)
 
@@ -405,26 +403,23 @@ def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
     operator = phi4_Hamiltonian(res, 1, 1)
 
     grouped_terms = operator.group()
-    number_of_block_encoding_ancillae = max(
-        get_number_of_active_bosonic_modes(grouped_terms)
+    number_of_block_encoding_ancillae = (
+        max(get_number_of_active_bosonic_modes(grouped_terms)) + 1
     )
 
+    ctrls = ([cirq.LineQubit(0)], [1])
     index_register = [
-        cirq.LineQubit(-i - 2) for i in range(int(np.ceil(np.log2(len(grouped_terms)))))
+        cirq.LineQubit(i + 1) for i in range(int(np.ceil(np.log2(len(grouped_terms)))))
     ]
     block_encoding_ancillae = [
-        cirq.LineQubit(-100 - i - len(index_register))
+        cirq.LineQubit(i + 1 + len(index_register))
         for i in range(number_of_block_encoding_ancillae)
     ]
-    ctrls = ([cirq.LineQubit(0)], [1])
     clean_ancillae = [cirq.LineQubit(i + 100) for i in range(100)]
     system = System(
-        operator.max_bosonic_mode + 1,
         maximum_occupation_number,
         1000,
-        False,
-        False,
-        True,
+        number_of_bosonic_modes=operator.max_bosonic_mode + 1,
     )
 
     block_encoding_functions = []
@@ -438,36 +433,36 @@ def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
             term, operator.max_bosonic_mode + 1
         )
 
-    #         if not plus_hc:
-    #             block_encoding_functions.append(
-    #                 partial(
-    #                     bosonic_product_block_encoding,
-    #                     system=system,
-    #                     block_encoding_ancillae=block_encoding_ancillae,
-    #                     active_indices=active_modes,
-    #                     exponents_list=exponents,
-    #                     clean_ancillae=clean_ancillae[1:],
-    #                 )
-    #             )
-    #             rescaling_factors.append(
-    #                 np.sqrt(maximum_occupation_number) ** (sum(sum(np.asarray(exponents))))
-    #             )
-    #         else:
-    #             block_encoding_functions.append(
-    #                 partial(
-    #                     bosonic_product_plus_hc_block_encoding,
-    #                     system=system,
-    #                     block_encoding_ancillae=block_encoding_ancillae,
-    #                     active_indices=active_modes,
-    #                     exponents_list=exponents,
-    #                     clean_ancillae=clean_ancillae[1:],
-    #                 )
-    #             )
-    #             rescaling_factors.append(
-    #                 2
-    #                 * np.sqrt(maximum_occupation_number)
-    #                 ** (sum(sum(np.asarray(exponents))))
-    #             )
+        if not plus_hc:
+            block_encoding_functions.append(
+                partial(
+                    bosonic_product_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    active_indices=active_modes,
+                    exponents_list=exponents,
+                    clean_ancillae=clean_ancillae[1:],
+                )
+            )
+            rescaling_factors.append(
+                np.sqrt(maximum_occupation_number) ** (sum(sum(np.asarray(exponents))))
+            )
+        else:
+            block_encoding_functions.append(
+                partial(
+                    bosonic_product_plus_hc_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    active_indices=active_modes,
+                    exponents_list=exponents,
+                    clean_ancillae=clean_ancillae[1:],
+                )
+            )
+            rescaling_factors.append(
+                2
+                * np.sqrt(maximum_occupation_number)
+                ** (sum(sum(np.asarray(exponents))))
+            )
 
     rescaled_coefficients = []
     for term, rescaling_factor in zip(grouped_terms, rescaling_factors):
@@ -477,7 +472,7 @@ def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
 
     target_state = get_target_state(rescaled_coefficients)
     gates = []
-    for mode in system.bosonic_system:
+    for mode in system.bosonic_modes:
         for qubit in mode:
             gates.append(cirq.I.on(qubit))
 
@@ -507,20 +502,21 @@ def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
         ]
     )
 
-    unitary = (
-        cirq.Circuit(gates).unitary()[
-            : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
-        ]
-        * overall_rescaling_factor
+    circuit = cirq.Circuit(gates)
+    total_number_of_block_encoding_ancillae = number_of_block_encoding_ancillae + len(
+        index_register
     )
-
-    full_fock_basis = get_basis_of_full_system(
-        operator.max_bosonic_mode + 1, maximum_occupation_number, has_bosons=True
+    _validate_clean_ancillae_are_cleaned(
+        circuit, system, total_number_of_block_encoding_ancillae
     )
-    matrix = generate_matrix(operator, full_fock_basis)
-
-    if not np.allclose(unitary, matrix):
-        print("unitary\n", unitary.real.round(1))
-        print("expected\n", matrix.real.round(1))
-        assert False
-    assert True
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        circuit, system, total_number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding(
+        circuit,
+        system,
+        overall_rescaling_factor,
+        operator,
+        total_number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )

@@ -2,7 +2,7 @@
 \label{sec:theory}
 
 In many models of quantum physics, such as quantum field theory and quantum chemistry, quantum operators are described in second-quantization \cite{Sakurai_Napolitano_2020}.
-In second-quantization, multiparticle state vectors are written in terms of fermionic, antifermionic, and bosonic modes which can be occupied by a dfferent numbers of particles.
+In second-quantization, multiparticle state vectors are written in terms of fermionic, antifermionic, and bosonic modes which can be occupied by different numbers of particles.
 In the occupation number basis, this can be written as $\ket{n} = \ket{n_{I-1}, \dots, n_1, n_0}$ where $n_i \in \mathbb{Z}$ is the number of particles in the $i^\text{th}$ mode.
 
 The space spanned by the second-quantized state vectors is called the \textit{Fock space} ($\mathcal{F}$) and the state vectors are referred to as \textit{Fock states}.
@@ -46,8 +46,8 @@ The fermionic ladder operators also cause a potential sign flip determined by:
 If the parity of the occupation of the fermionic modes with index $j < i$ is odd, then the sign of the output state is flipped.
 Therefore the ordering of the modes in the encoding has an affect on the action of the operator which must be accounted for.
 
-In the above definition, it is implied that the ladder operator acts coherently on superposition state of the corresponding fermionic mode.
-The desired action on such states is defined by linearity following the expansion of the state in the computational basis.
+In the above definition, it is implied that the ladder operator acts coherently on a superposition state of the corresponding fermionic mode.
+The desired action on such states is defined by linearity following the expansion of the state in the fock basis.
 Throughout this work, if the action of the operator is defined by the action on particular basis states (as is done above), then it is implied that the operator will act linearly on superpositions of these basis states. 
 
 The action of the fermionic annihilation operator is defined by:
@@ -61,7 +61,7 @@ The action of the fermionic annihilation operator is defined by:
 \end{equation}
 The action of the annihilation operators is opposite to that of the creation operators.
 If the mode is unoccupied before the operator is applied, then the annihilation operator ``zeroes-out" the state.
-If the mode is already occupied, then the annihilation operator ``annihilates" the fermion in that mode by setting the occupation to zero.
+If the mode is already occupied, then the annihilation operator ``annihilates" the fermion in that mode by updating the occupation of the mode to zero.
 
 The fermionic ladder operators can be reordered arbitrarily with the introduction of additional terms due to the commutation rules.
 These commutation rules are given by:
@@ -72,7 +72,6 @@ These commutation rules are given by:
         & [b_i, b_j] = [b_i^\dagger, b_j^\dagger] = 0 \\
     \end{split}
 \end{equation}
-\ws{@Gus, is this correct? I don't get how this implies a sign flip of the term when you reorder...}
 
 In addition to fermions, antifermions are often included in quantum field theories.
 The properties and commutation rules for antifermions are the same as fermions and the sign flip for antifermions includes the parity of the occupation of the fermionic modes.
@@ -84,8 +83,8 @@ Therefore, for simplicity we will treat antifermionic modes simply as fermionic 
 For bosonic modes, there is no physical limitation on the occupancy of each mode: $n_{i_a} \in [0, 1, 2, \dots)$.
 Hence the Hilbert space of a single bosonic mode is countably infinite dimensional. 
 For discretized computations, a cutoff on the bosonic occupancy ($\Omega$) is chosen to make the dimension of the Hilbert finite: $n_{i_a} \in [0, 1, 2, \dots, \Omega]$.
-The cutoff on the bosonic occupancy can introduce error as some physically allowable states become inaccessible.
-In practice, numerical computations often proceed by increasing $\Omega$ until the error induced by this cutoff is either negligible or well understood.
+The cutoff on the bosonic occupancy can introduce error as some physically allowable states become computationally inaccessible.
+In practice, simulations of bosonic systems often proceed by increasing $\Omega$ until the error induced by this cutoff is either negligible or well understood.
 
 With the imposed bosonic cutoff, the action of bosonic creation operator is defined by:
 \begin{equation}
@@ -96,7 +95,7 @@ With the imposed bosonic cutoff, the action of bosonic creation operator is defi
         0 & {\rm when} \ket{n_{i_a}} = \ket{\Omega}
     \end{cases}
 \end{equation}
-where $a_i$ denotes a bosonic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, $\ket{n_{i_a}}$ is the occupation of the $i^{th}$ bosonic mode, and $\Omega$ is the maximum allowable bosonic occupation.
+where $a_i$ denotes a bosonic ladder operator on the $i^{th}$ mode, the $^\dagger$ indicates a creation operator, $\ket{n_{i_a}}$ is the occupation of the $i^{th}$ bosonic mode, and $\Omega$ is the maximum number of bosons allowed in a single mode.
 
 The bosonic creation operator increases the occupation of the bosonic mode being acted upon by $1$.
 The operator will also multiply the amplitude of the state by the square-root of the updated occupancy of the mode.
@@ -121,24 +120,25 @@ The commutation rules for bosonic ladder operators are given by:
         & [a_i, a_j] = [a_i^\dagger, a_j^\dagger] = 0 \\
     \end{split}
 \end{equation}
-Additionally, bosonic ladder operators commute with fermionic ladder operators.
+Additionally, bosonic ladder operators commute with fermionic (and antifermionic) ladder operators.
 
 \subsection{Observables}
 \label{subsec:observables}
 
-Many observables of interest, such as the Hamiltonian, can be expressed in terms of linear combinations of products of ladder operators that act on both fermionic and bosonic modes.
+Many observables of interest for a particular system, such as the Hamiltonian, can be expressed in terms of linear combinations of products of ladder operators that act on both fermionic and bosonic modes.
 
 In this work, we will default to expressing operators in their \emph{mode ordered} form, which we define as an adaptation of normal ordering.
-We say a term ($T$) is \textit{mode ordered} when all operators acting on a mode are grouped next to eachother and all creation operators appear to the left of all annihilation operators acting on each mode:
+We say a term ($T$) is \textit{mode ordered} when all operators acting on a single mode are grouped next to one another and all creation operators appear to the left of all annihilation operators:
 \begin{equation}
+    \label{eq:mode-ordered}
     T = \Big( \prod_i (b_i^\dagger)^{\delta_{b_i}^{\dagger}} (b_i)^{\delta_{b_i}} \Big) \Big( \prod_i (a_i^\dagger)^{R_i}(a_i)^{S_i} \Big) 
 \end{equation}
-where $i$ index the respective fermionic and bosonic modes, $\delta$ takes the value $0$ or $1$ to denote if the individual ladder operator is included, and the values $R_i$ and $S_i$ are integers in the range $[0, \Omega]$ which denote the exponent of the bosonic ladder operators acting on the $i^{th}$ bosonic mode.
+where $i$ indexes the respective fermionic and bosonic modes, $\delta$ takes the value $0$ or $1$ to denote if the individual ladder operator is included in ther term, and the values $R_i$ and $S_i$ are integers in the range $[0, \Omega]$ which denote the exponent of the bosonic ladder operators acting on the $i^{th}$ bosonic mode.
 
 When ordering an operator, the commutation rules (Eq. \ref{eq:fermionic-commutation} and Eq. \ref{eq:bosonic-commutation}) must be taken into account.
-These commutation relations can also introduce more terms when reordering, meaning that the particular operator is given by a linear combination of products of ladder operators.
+These commutation relations can also introduce more terms when reordering.
 
-Second-quantized hermitian operators are often expressed in the form of linear combinations of products of ladder operators:
+As an example, second-quantized hermitian operators are often expressed in the form of linear combinations of products of ladder operators:
 \begin{equation}
     \label{eq:lclo}
     H = \sum_{l=0}^{L-1} \alpha_l T_l

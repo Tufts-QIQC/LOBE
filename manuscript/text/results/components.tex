@@ -61,3 +61,8 @@ The numerical spacetime costs of the various block-encoding constructions for th
 Notably, the overall time-complexity scales linearly with $B$ for the LOBE and ``Piecewise Pauli'' constructions, while it scales exponentially for ``Pauli Expansion''.
 For the space complexity metrics, all methods scale linearly with $B$, yet the LOBE constructions have both the smallest prefactor and numerical values.
 Finally, the LOBE construction results in the lowest rescaling factor of all constructions.
+
+In certain cases - such as when the number of active modes is small or the bosonic occupation cutoff is low - the ``Pauli Expansion'' construction can lead to lowest spacetime costs.
+However, when the number of active modes is large or the bosonic occupation cutoff is high, the LOBE constructions lead to the lowest spacetime costs.
+For all components analyzed here, the ``Piecewise Pauli'' constructions have similar asymptotic scalings compared to LOBE, but result in larger numerical spacetime costs.
+For this reason, the ``Piecewise Pauli'' construction will be omitted when benchmarking full systems.
