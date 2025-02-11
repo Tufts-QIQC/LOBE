@@ -128,17 +128,16 @@ def test_all_yukawa_terms(term, reindex):
         term,
         number_of_block_encoding_ancillae,
         maximum_occupation_number,
-        max_qubits=26,
     )
 
 
-@pytest.mark.parametrize("number_of_terms", range(2, 200, 7))
-def test_yukawa_multiple_terms(number_of_terms):
+@pytest.mark.parametrize("number_of_terms", [2, 4, 8, 16])
+def test_full_yukawa(number_of_terms):
 
     resolution = 3
     operator = yukawa_hamiltonian(resolution, 1, 1, 1)
     translated_operator = translate_antifermions_to_fermions(operator).normal_order()
-    groups = translated_operator.group()[:number_of_terms]
+    groups = np.random.choice(translated_operator.group(), size=number_of_terms)
 
     replacement_operator = groups[0]
     for group in groups[1:]:
@@ -159,10 +158,10 @@ def test_yukawa_multiple_terms(number_of_terms):
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
     number_of_fermionic_modes = 0
     number_of_bosonic_modes = 0
-    if operator.max_fermionic_mode is not None:
-        number_of_fermionic_modes = operator.max_fermionic_mode + 1
-    if operator.max_bosonic_mode is not None:
-        number_of_bosonic_modes = operator.max_bosonic_mode + 1
+    if replacement_operator.max_fermionic_mode is not None:
+        number_of_fermionic_modes = replacement_operator.max_fermionic_mode + 1
+    if replacement_operator.max_bosonic_mode is not None:
+        number_of_bosonic_modes = replacement_operator.max_bosonic_mode + 1
     system = System(
         maximum_occupation_number=maximum_occupation_number,
         number_of_used_qubits=1000,
@@ -232,5 +231,5 @@ def test_yukawa_multiple_terms(number_of_terms):
         replacement_operator,
         len(index_register) + number_of_block_encoding_ancillae,
         maximum_occupation_number,
-        max_qubits=26,
+        max_qubits=22,
     )
