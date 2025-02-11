@@ -5,7 +5,7 @@ import math
 
 def fermionic_product_block_encoding(
     system,
-    block_encoding_ancilla,
+    block_encoding_ancillae,
     active_indices,
     operator_types,
     sign=1,
@@ -16,7 +16,7 @@ def fermionic_product_block_encoding(
 
     Args:
         system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
+        block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
         operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
@@ -33,6 +33,8 @@ def fermionic_product_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
+    assert len(block_encoding_ancillae) == 1
+    block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
     gates = []
 
@@ -45,7 +47,7 @@ def fermionic_product_block_encoding(
         gates.append(
             cirq.X.on(block_encoding_ancilla).controlled_by(
                 *ctrls[0],
-                system.fermionic_register[active_indices[0]],
+                system.fermionic_modes[active_indices[0]],
                 control_values=ctrls[1] + [int(operator_types[0] % 2)],
             )
         )
@@ -70,7 +72,7 @@ def fermionic_product_block_encoding(
             non_number_op_types.append(type)
             non_number_op_indices.append(index)
         else:
-            number_op_qubits.append(system.fermionic_register[index])
+            number_op_qubits.append(system.fermionic_modes[index])
 
     # Use left-elbow to store temporary logical AND of parity qubits and control
     block_encoding_metrics.add_to_clean_ancillae_usage(len(active_indices) - 1)
@@ -83,7 +85,7 @@ def fermionic_product_block_encoding(
     temporary_computations.append(
         cirq.Moment(
             cirq.X.on(temporary_qbool).controlled_by(
-                *[system.fermionic_register[i] for i in non_number_op_indices],
+                *[system.fermionic_modes[i] for i in non_number_op_indices],
                 *number_op_qubits,
                 control_values=(
                     [int(not i) for i in non_number_op_types]
@@ -124,7 +126,7 @@ def fermionic_product_block_encoding(
 
 def fermionic_plus_hc_block_encoding(
     system,
-    block_encoding_ancilla,
+    block_encoding_ancillae,
     active_indices,
     operator_types,
     sign=1,
@@ -139,7 +141,7 @@ def fermionic_plus_hc_block_encoding(
 
     Args:
         system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancilla (cirq.LineQubit): The single block-encoding ancilla qubit
+        block_encoding_ancillae (List[cirq.LineQubit]): The single block-encoding ancilla qubit
         active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
         operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
@@ -156,6 +158,8 @@ def fermionic_plus_hc_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
+    assert len(block_encoding_ancillae) == 1
+    block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
     gates = []
 
@@ -183,10 +187,10 @@ def fermionic_plus_hc_block_encoding(
             non_number_op_types.append(type)
             non_number_op_indices.append(index)
         else:
-            number_op_qubits.append(system.fermionic_register[index])
+            number_op_qubits.append(system.fermionic_modes[index])
 
     for i, active_mode in enumerate(non_number_op_indices[:-1]):
-        parity_qubit = system.fermionic_register[active_mode]
+        parity_qubit = system.fermionic_modes[active_mode]
         parity_qubits.append(parity_qubit)
         clean_ancillae_index += 1
 
@@ -196,7 +200,7 @@ def fermionic_plus_hc_block_encoding(
         temporary_computations.append(
             cirq.Moment(
                 cirq.X.on(parity_qubit).controlled_by(
-                    system.fermionic_register[non_number_op_indices[i + 1]],
+                    system.fermionic_modes[non_number_op_indices[i + 1]],
                     control_values=[not non_number_op_types[i + 1]],
                 )
             )
@@ -243,7 +247,7 @@ def fermionic_plus_hc_block_encoding(
     # Update system
     number_of_swaps = math.comb(len(non_number_op_indices), 2)
     if number_of_swaps % 2:
-        sign_qubit = system.fermionic_register[non_number_op_indices[0]]
+        sign_qubit = system.fermionic_modes[non_number_op_indices[0]]
         if not non_number_op_types[0]:
             gates.append(cirq.Moment(cirq.X.on(sign_qubit)))
         gates.append(
@@ -283,7 +287,7 @@ def _apply_fermionic_ladder_op(system, index, ctrls=([], [])):
     operator_metrics = CircuitMetrics()
     gates = []
 
-    for system_qubit in system.fermionic_register[:index]:
+    for system_qubit in system.fermionic_modes[:index]:
         gates.append(
             cirq.Moment(
                 cirq.Z.on(system_qubit).controlled_by(
@@ -293,7 +297,7 @@ def _apply_fermionic_ladder_op(system, index, ctrls=([], [])):
         )
     gates.append(
         cirq.Moment(
-            cirq.X.on(system.fermionic_register[index]).controlled_by(
+            cirq.X.on(system.fermionic_modes[index]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
             )
         )

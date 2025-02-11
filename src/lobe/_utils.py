@@ -1,6 +1,6 @@
 import numpy as np
 from typing import List
-import openparticle as op
+from openparticle import ParticleOperator, Fock
 from .rescale import get_active_bosonic_modes
 import cirq
 
@@ -47,56 +47,18 @@ def give_me_state(nn, Lambda, Omega):
     return list(enumerate(result))
 
 
-def generate_bosonic_pairing_hamiltonian_matrix(mode_cutoff, occupancy_cutoff):
-    """
-    Generating bosonic pairing Hamiltonians to test LOBE
-
-    Mode cutoff \Lambda
-
-    H = a_p^\dagger a_q
-
-    Set of states: \{|;;(0, \omega)(0, \omega') \rangle \} for omega, omega' \in Omega
-
-    By choosing some occupancy cutoff, \Omega, this (with \Lambda) defines the size of the Hamiltonian matrix
-
-    Matrix size goes as (Omega + 1) ** Lambda
-
-    """
-
-    H = op.ParticleOperatorSum([])
-    for lambda_p in range(mode_cutoff):
-        for lambda_q in range(mode_cutoff):
-            op_string = "a" + str(lambda_p) + "^ " + "a" + str(lambda_q)
-            H += op.ParticleOperator(op_string)
-    basis = []
-
-    for i in range((occupancy_cutoff + 1) ** mode_cutoff):
-        state = op.Fock([], [], give_me_state(i, mode_cutoff, occupancy_cutoff))
-        basis.append(state)
-
-    matrix = op.utils.generate_matrix_from_basis(H, basis)
-
-    return matrix
-
-
 def get_basis_of_full_system(
-    number_of_modes,
     maximum_occupation_number,
-    has_fermions=False,
-    has_antifermions=False,
-    has_bosons=False,
+    number_of_fermionic_modes=0,
+    number_of_bosonic_modes=0,
 ):
     number_of_occupation_qubits = max(
         int(np.ceil(np.log2(maximum_occupation_number))), 1
     )
 
-    total_number_of_qubits = 0
-    if has_fermions:
-        total_number_of_qubits += number_of_modes
-    if has_antifermions:
-        total_number_of_qubits += number_of_modes
-    if has_bosons:
-        total_number_of_qubits += number_of_modes * number_of_occupation_qubits
+    total_number_of_qubits = number_of_fermionic_modes + (
+        number_of_bosonic_modes * number_of_occupation_qubits
+    )
 
     basis = []
     for basis_state in range(1 << total_number_of_qubits):
@@ -106,31 +68,20 @@ def get_basis_of_full_system(
 
         index = 0
         fermionic_fock_state = []
-        if has_fermions:
-            fermionic_fock_state = [
-                i for i in range(number_of_modes) if qubit_values[i] == 1
-            ]
-            index += number_of_modes
-
-        antifermionic_fock_state = []
-        if has_antifermions:
-            antifermionic_fock_state = [
-                i for i in range(number_of_modes) if qubit_values[index + i] == 1
-            ]
-            index += number_of_modes
+        fermionic_fock_state = [
+            i for i in range(number_of_fermionic_modes) if qubit_values[i] == 1
+        ]
+        index += number_of_fermionic_modes
 
         bosonic_fock_state = []
-        if has_bosons:
-            for mode in range(number_of_modes):
-                occupation = ""
-                for val in qubit_values[index : index + number_of_occupation_qubits]:
-                    occupation += str(val)
-                bosonic_fock_state.append((mode, int(occupation, 2)))
-                index += number_of_occupation_qubits
+        for mode in range(number_of_bosonic_modes):
+            occupation = ""
+            for val in qubit_values[index : index + number_of_occupation_qubits]:
+                occupation += str(val)
+            bosonic_fock_state.append((mode, int(occupation, 2)))
+            index += number_of_occupation_qubits
 
-        basis.append(
-            op.Fock(fermionic_fock_state, antifermionic_fock_state, bosonic_fock_state)
-        )
+        basis.append(Fock(fermionic_fock_state, [], bosonic_fock_state))
     return basis
 
 
@@ -198,3 +149,21 @@ def _apply_negative_identity(target, ctrls=([], [])):
     gates.append(cirq.Z.on(target).controlled_by(*ctrls[0], control_values=ctrls[1]))
 
     return gates
+
+
+def translate_antifermions_to_fermions(operator):
+    translated_operator = ParticleOperator()
+    for term in operator:
+        translated_term = term.coeff
+        for op in term.split():
+            new_op = op
+            if list(op.op_dict.keys())[0][0][0] == 1:
+                expected_tuple = (
+                    0,
+                    op.mode + operator.max_fermionic_mode + 1,
+                    list(op.op_dict.keys())[0][0][2],
+                )
+                new_op = ParticleOperator({(expected_tuple,): op.coeff})
+            translated_term *= new_op
+        translated_operator += translated_term
+    return translated_operator
