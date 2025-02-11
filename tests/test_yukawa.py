@@ -157,11 +157,17 @@ def test_yukawa_multiple_terms(number_of_terms):
     ]
     # index_register = [cirq.LineQubit(100)]
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
+    number_of_fermionic_modes = 0
+    number_of_bosonic_modes = 0
+    if operator.max_fermionic_mode is not None:
+        number_of_fermionic_modes = operator.max_fermionic_mode + 1
+    if operator.max_bosonic_mode is not None:
+        number_of_bosonic_modes = operator.max_bosonic_mode + 1
     system = System(
         maximum_occupation_number=maximum_occupation_number,
         number_of_used_qubits=1000,
-        number_of_fermionic_modes=replacement_operator.max_fermionic_mode + 1,
-        number_of_bosonic_modes=replacement_operator.max_bosonic_mode + 1,
+        number_of_fermionic_modes=number_of_fermionic_modes,
+        number_of_bosonic_modes=number_of_bosonic_modes,
     )
 
     block_encoding_functions = []
