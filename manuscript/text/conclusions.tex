@@ -1,12 +1,14 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-\textbf{Future Directions}
+In this work, we detail a framework which we refer to as LOBE (Ladder Operator Block-Encoding) which constructs block-encoding circuits for operators written in second-quantization.
+We give explicit compilations for operators written as linear combinations of products of ladder operators acting on both fermionic and bosonic modes.
+With this framework, many quantum operators of interest - such as Hamiltonians - can be block-encoded directly in their second-quantized form.
+This avoids expanding operators in the Pauli basis prior to block-encoding which introduces a signficant overhead.
 
-This block-encoding creates an extension of the block-encodings known as LCU (Linear Combination of Unitaries).
-It would be interesting to try to do a side-by-side cost analysis for a traditional LCU block-encoding using standard transformations to map ladder operators to Paulis vs a LOBE block-encoding.
+Additionally, we provide analytical and numerical costs for the relevant quantum resources required by LOBE for various operators of interest.
+We compare our constructions to those that require the Jordan-Wigner and Standard Binary transformations to express ladder operators in the Pauli basis.
+Our numerical results show that in most relevant cases, the LOBE framework produces block-encodings that require signficantly fewer T gates, non-Clifford rotations, block-encoding ancillae and total number of qubits and result in block-encodings with smaller rescaling factors.
+In addition, the LOBE framework has better asymptotic scaling with respect to several parameters such as the maximum occupation of bosonic modes, the number of momentum modes, and the locality of the operator.
+Notably, the LOBE constructions result in exponentially fewer non-Clifford operations for block-encoding products of ladder operators with respect to the locality as compared to a naive expansion of the operator in the Pauli basis.
 
-Separately, an alternative encoding scheme (which we refer to as "unary encoding") creates a "one-hot" encoding for the occupation of the bosonic modes.
-This encoding using $\Lambda (\Omega + 1)$ qubits to encode the bosonic system.
-It would be interesting to also compile the oracles for this encoding and cost it out and compare with the "compact" encoding used in this work.
-  

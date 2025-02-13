@@ -112,6 +112,9 @@ def test_bosonic_product_block_encoding(
         maximum_occupation_number + 3
     )
     assert metrics.clean_ancillae_usage[-1] == 0
+    assert metrics.ancillae_highwater() == np.ceil(
+        np.log2(maximum_occupation_number + 1)
+    )
 
 
 @pytest.mark.parametrize("number_of_active_modes", range(1, MAX_ACTIVE_MODES + 1))
@@ -206,6 +209,10 @@ def test_bosonic_product_plus_hc_block_encoding(
         maximum_occupation_number + 3
     )
     assert metrics.clean_ancillae_usage[-1] == 0
+    assert (
+        metrics.ancillae_highwater()
+        == np.ceil(np.log2(maximum_occupation_number + 1)) + 1
+    )
 
 
 @pytest.mark.parametrize(
@@ -305,12 +312,9 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
     ctrls = ([cirq.LineQubit(0)], [1])
     clean_ancillae = [cirq.LineQubit(i + 100) for i in range(100)]
     system = System(
-        operator.max_bosonic_mode + 1,
         maximum_occupation_number,
         1000,
-        False,
-        False,
-        True,
+        number_of_bosonic_modes=operator.max_bosonic_mode + 1,
     )
 
     BE_functions = []
@@ -343,7 +347,7 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
 
     target_state = get_target_state(rescaled_coefficients)
     gates = []
-    for mode in system.bosonic_system:
+    for mode in system.bosonic_modes:
         for qubit in mode:
             gates.append(cirq.I.on(qubit))
 
@@ -381,7 +385,8 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
     )
 
     full_fock_basis = get_basis_of_full_system(
-        operator.max_bosonic_mode + 1, maximum_occupation_number, has_bosons=True
+        maximum_occupation_number,
+        number_of_bosonic_modes=operator.max_bosonic_mode + 1,
     )
     matrix = generate_matrix(operator, full_fock_basis)
 
@@ -392,129 +397,126 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
     assert np.allclose(unitary, matrix)
 
 
-# @pytest.mark.parametrize("res", np.arange(2, 4, 1))
-# @pytest.mark.parametrize("maximum_occupation_number", [1, 3])
-# def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
-#     print(res)
-#     operator = phi4_Hamiltonian(res, 1, 1)
+@pytest.mark.parametrize("res", np.arange(2, 4, 1))
+@pytest.mark.parametrize("maximum_occupation_number", [1, 3])
+def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
+    operator = phi4_Hamiltonian(res, 1, 1)
 
-#     grouped_terms = operator.group()
-#     number_of_block_encoding_ancillae = (
-#         max(get_number_of_active_bosonic_modes(grouped_terms)) + 1
-#     )
+    grouped_terms = operator.group()
+    number_of_block_encoding_ancillae = (
+        max(get_number_of_active_bosonic_modes(grouped_terms)) + 1
+    )
 
-#     index_register = [
-#         cirq.LineQubit(-i - 2) for i in range(int(np.ceil(np.log2(len(grouped_terms)))))
-#     ]
-#     block_encoding_ancillae = [
-#         cirq.LineQubit(-100 - i - len(index_register))
-#         for i in range(number_of_block_encoding_ancillae)
-#     ]
-#     ctrls = ([cirq.LineQubit(0)], [1])
-#     clean_ancillae = [cirq.LineQubit(i + 100) for i in range(100)]
-#     system = System(
-#         operator.max_bosonic_mode + 1,
-#         maximum_occupation_number,
-#         1000,
-#         False,
-#         False,
-#         True,
-#     )
+    ctrls = ([cirq.LineQubit(0)], [1])
+    index_register = [
+        cirq.LineQubit(i + 1) for i in range(int(np.ceil(np.log2(len(grouped_terms)))))
+    ]
+    block_encoding_ancillae = [
+        cirq.LineQubit(i + 1 + len(index_register))
+        for i in range(number_of_block_encoding_ancillae)
+    ]
+    clean_ancillae = [cirq.LineQubit(i + 100) for i in range(100)]
+    system = System(
+        maximum_occupation_number,
+        1000,
+        number_of_bosonic_modes=operator.max_bosonic_mode + 1,
+    )
 
-#     block_encoding_functions = []
-#     rescaling_factors = []
-#     for term in grouped_terms:
-#         plus_hc = False
-#         if len(term) == 2:
-#             plus_hc = True
-#             term = term.to_list()[0]
-#         active_modes, exponents = get_bosonic_exponents(
-#             term, operator.max_bosonic_mode + 1
-#         )
+    block_encoding_functions = []
+    rescaling_factors = []
+    for term in grouped_terms:
+        plus_hc = False
+        if len(term) == 2:
+            plus_hc = True
+            term = term.to_list()[0]
+        active_modes, exponents = get_bosonic_exponents(
+            term, operator.max_bosonic_mode + 1
+        )
 
-#         if not plus_hc:
-#             block_encoding_functions.append(
-#                 partial(
-#                     bosonic_product_block_encoding,
-#                     system=system,
-#                     block_encoding_ancillae=block_encoding_ancillae,
-#                     active_indices=active_modes,
-#                     exponents_list=exponents,
-#                     clean_ancillae=clean_ancillae[1:],
-#                 )
-#             )
-#             rescaling_factors.append(
-#                 np.sqrt(maximum_occupation_number) ** (sum(sum(np.asarray(exponents))))
-#             )
-#         else:
-#             block_encoding_functions.append(
-#                 partial(
-#                     bosonic_product_plus_hc_block_encoding,
-#                     system=system,
-#                     block_encoding_ancillae=block_encoding_ancillae,
-#                     active_indices=active_modes,
-#                     exponents_list=exponents,
-#                     clean_ancillae=clean_ancillae[1:],
-#                 )
-#             )
-#             rescaling_factors.append(
-#                 2
-#                 * np.sqrt(maximum_occupation_number)
-#                 ** (sum(sum(np.asarray(exponents))))
-#             )
+        if not plus_hc:
+            block_encoding_functions.append(
+                partial(
+                    bosonic_product_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    active_indices=active_modes,
+                    exponents_list=exponents,
+                    clean_ancillae=clean_ancillae[1:],
+                )
+            )
+            rescaling_factors.append(
+                np.sqrt(maximum_occupation_number) ** (sum(sum(np.asarray(exponents))))
+            )
+        else:
+            block_encoding_functions.append(
+                partial(
+                    bosonic_product_plus_hc_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    active_indices=active_modes,
+                    exponents_list=exponents,
+                    clean_ancillae=clean_ancillae[1:],
+                )
+            )
+            rescaling_factors.append(
+                2
+                * np.sqrt(maximum_occupation_number)
+                ** (sum(sum(np.asarray(exponents))))
+            )
 
-#     rescaled_coefficients = []
-#     for term, rescaling_factor in zip(grouped_terms, rescaling_factors):
-#         rescaled_coefficients.append(
-#             term.coeffs[0] * rescaling_factor / max(rescaling_factors)
-#         )
+    rescaled_coefficients = []
+    for term, rescaling_factor in zip(grouped_terms, rescaling_factors):
+        rescaled_coefficients.append(
+            term.coeffs[0] * rescaling_factor / max(rescaling_factors)
+        )
 
-#     target_state = get_target_state(rescaled_coefficients)
-#     gates = []
-#     for mode in system.bosonic_system:
-#         for qubit in mode:
-#             gates.append(cirq.I.on(qubit))
+    target_state = get_target_state(rescaled_coefficients)
+    gates = []
+    for mode in system.bosonic_modes:
+        for qubit in mode:
+            gates.append(cirq.I.on(qubit))
 
-#     gates.append(cirq.X.on(ctrls[0][0]))
+    gates.append(cirq.X.on(ctrls[0][0]))
 
-#     _gates, _ = add_prepare_circuit(
-#         index_register, target_state, clean_ancillae=clean_ancillae
-#     )
-#     gates += _gates
+    _gates, _ = add_prepare_circuit(
+        index_register, target_state, clean_ancillae=clean_ancillae
+    )
+    gates += _gates
 
-#     _gates, _ = index_over_terms(
-#         index_register, block_encoding_functions, clean_ancillae, ctrls=ctrls
-#     )
-#     gates += _gates
+    _gates, _ = index_over_terms(
+        index_register, block_encoding_functions, clean_ancillae, ctrls=ctrls
+    )
+    gates += _gates
 
-#     _gates, _ = add_prepare_circuit(
-#         index_register, target_state, dagger=True, clean_ancillae=clean_ancillae
-#     )
-#     gates += _gates
+    _gates, _ = add_prepare_circuit(
+        index_register, target_state, dagger=True, clean_ancillae=clean_ancillae
+    )
+    gates += _gates
 
-#     gates.append(cirq.X.on(ctrls[0][0]))
+    gates.append(cirq.X.on(ctrls[0][0]))
 
-#     overall_rescaling_factor = sum(
-#         [
-#             term.coeffs[0] * rescaling_factor
-#             for term, rescaling_factor in zip(grouped_terms, rescaling_factors)
-#         ]
-#     )
+    overall_rescaling_factor = sum(
+        [
+            term.coeffs[0] * rescaling_factor
+            for term, rescaling_factor in zip(grouped_terms, rescaling_factors)
+        ]
+    )
 
-#     unitary = (
-#         cirq.Circuit(gates).unitary()[
-#             : 1 << system.number_of_system_qubits, : 1 << system.number_of_system_qubits
-#         ]
-#         * overall_rescaling_factor
-#     )
-
-#     full_fock_basis = get_basis_of_full_system(
-#         operator.max_bosonic_mode + 1, maximum_occupation_number, has_bosons=True
-#     )
-#     matrix = generate_matrix(operator, full_fock_basis)
-
-#     if not np.allclose(unitary, matrix):
-#         print("unitary\n", unitary.real.round(1))
-#         print("expected\n", matrix.real.round(1))
-#         assert False
-#     assert True
+    circuit = cirq.Circuit(gates)
+    total_number_of_block_encoding_ancillae = number_of_block_encoding_ancillae + len(
+        index_register
+    )
+    _validate_clean_ancillae_are_cleaned(
+        circuit, system, total_number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        circuit, system, total_number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding(
+        circuit,
+        system,
+        overall_rescaling_factor,
+        operator,
+        total_number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )

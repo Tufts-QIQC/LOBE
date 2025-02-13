@@ -3,5 +3,5 @@ b W \psi_i
 c W \psi_j
 
 b / ^{i<j}
-a b c LABEL
+a b c LABEL width=-10
 b G $\vec{Z}$ a +c

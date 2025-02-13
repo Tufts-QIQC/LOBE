@@ -1,0 +1,34 @@
+\section{Standard Binary Bosonic Encoding}
+\label{sec:SB}
+
+An explicit encoding must be chosen to map bosonic ladder operators to qubit operators.
+This is necessary to construct LCU circuits of the Hamiltonians in section \ref{sec:results}.
+The encoding chosen matches the encoding of LOBE circuits is the standard binary \cite{standard-binary} encoding.
+
+The encoding starts by noting that 
+
+\begin{align}
+    a^\dagger &= \sum_{s = 0}^{\Omega - 1}\sqrt{s + 1}|s + 1\rangle \langle s| = \ket{1}\bra{0} + \sqrt{2}\ket{2}\bra{1} + \dots\\
+    a &= \sum_{s = 0}^{\Omega - 1}\sqrt{s + 1}|s\rangle \langle s + 1| = \ket{0}\bra{1} + \sqrt{2}\ket{1}\bra{2} + \dots\\
+\end{align}
+
+From here, each state in the expansion of $a, a^\dagger$ is converted into binary, e.g. $|3\rangle = |...11\rangle$, where the $\dots$ are zeros depending on $\Omega$.
+Now, at each qubit index, the outer product can be computed by computing the outer product of the zeros and ones tensored together.
+For example, take $\Omega = 3$,$$
+\ket{2}\bra{3} = \ket{10}\bra{11} = \ket{1}\bra{1} \otimes \ket{0}\bra{1}.
+$$
+The last step is to work out the following outer products by noting that:
+
+\begin{align}
+    \ket{0}\bra{0} &= \frac12 \left(I + Z \right)\\
+    \ket{0}\bra{1} &= \frac12 \left(X + iY \right)\\
+    \ket{1}\bra{0} &= \frac12 \left(X - iY \right)\\
+    \ket{1}\bra{1} &= \frac12 \left(I - Z \right)\\ 
+\end{align}
+
+Thus, as an example, with $\Omega = 3$, 
+
+\begin{align}
+    a_0^\dagger \rightarrow &0.683IX -0.183 ZX - 0.683\mathrm{i} IY + 0.183\mathrm{i} ZY \\
+    & +0.354 XX - 0.354\mathrm{i} YX + 0.354\mathrm{i} XY + 0.354 YY
+\end{align}

@@ -54,7 +54,9 @@ def get_grover_rudolph_instructions(target_state):
     return parsed_instructions
 
 
-def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
+def add_prepare_circuit(
+    qubits, target_state, dagger=False, clean_ancillae=[], ctrls=([], [])
+):
     """Add a quantum circuit that prepares the target state (arbitrary quantum state) when acting on the all-zero state.
 
     Implementation based on: https://arxiv.org/abs/quant-ph/0208112
@@ -64,6 +66,8 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
         target_state (np.ndarray): A numpy array describing the arbitrary quantum state
         dagger (bool): Flag to determine if daggered operation is desired
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
 
     Returns:
         - List of cirq operations representing the gates to be applied in the circuit
@@ -96,7 +100,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
                     "Our implementation assumes amplitudes are real-valued, therefore angle of rz gates should always be 0."
                 )
             control_values = [int(ctrl) for ctrl in controls]
-            multiplexing_angles[len(control_values)].append(ry_angle / np.pi)
+            multiplexing_angles[len(control_values)].append(ry_angle)
 
     if multiplexing_angles == [[]]:
         return [], CircuitMetrics()
@@ -104,9 +108,15 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
     if dagger:
         multiplexing_angles[0][0] *= -1
 
-    angle = np.pi * multiplexing_angles[0][0]
-    gates.append(cirq.ry(angle).on(qubits[0]))
-    metrics.rotation_angles.append(angle)
+    angle = multiplexing_angles[0][0]
+    gates.append(
+        cirq.ry(angle).on(qubits[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    if len(ctrls[0]) > 0:
+        metrics.rotation_angles.append(-angle / 2)
+        metrics.rotation_angles.append(angle / 2)
+    else:
+        metrics.rotation_angles.append(angle)
 
     for qubit_index, angles in enumerate(multiplexing_angles[1:]):
         rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
@@ -115,6 +125,7 @@ def add_prepare_circuit(qubits, target_state, dagger=False, clean_ancillae=[]):
             angles,
             dagger=dagger,
             clean_ancillae=clean_ancillae,
+            ctrls=ctrls,
         )
         gates += rotation_gates
         metrics += rotation_metrics

@@ -6,24 +6,23 @@ k W \psi_k
 l W \psi_l
 m W \psi_m
 n W \psi_n
-c0 W 0 0
-c1 W 0 0
+clean W 0 0
 
 i / ^{i<j}
 k / ^{j<k<l}
 m / ^{l<m<n}
-c a i j k l m n c0 c1 LABEL
-c0 START
-j +c0
--l +c0
-c1 START
-n -c0 +c1
-c -c1 +a
-n -c0 +c1
-c1 END
--l +c0
-j +c0
-c0 END
+c a i j k l m n clean LABEL width=-20
+
++l
+j +l
+clean START
+n -l +clean
+c -clean +a
+n -l +clean
+clean END
+j +l
++l
+
 c -j
 
 i j k G $\vec{Z}$ c +l

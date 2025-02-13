@@ -85,8 +85,7 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         assert metrics.clean_ancillae_usage[-1] == 0
         assert (
             max(metrics.clean_ancillae_usage)
-            == (len(active_modes[::-1]) - number_of_number_ops - 1)  # parity qubits
-            + (len(active_modes[::-1]) - 2)  # elbows for qbool
+            == (len(active_modes[::-1]) - 2)  # elbows for qbool
             + 1  # elbow to apply toff that flips ancilla
         )
     else:

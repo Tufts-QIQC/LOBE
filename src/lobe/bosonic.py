@@ -117,7 +117,7 @@ def bosonic_product_plus_hc_block_encoding(
     for i, active_index in enumerate(active_indices):
         Ri, Si = exponents_list[i][0], exponents_list[i][1]
         adder_gates, adder_metrics = add_classical_value(
-            system.bosonic_system[active_index],
+            system.bosonic_modes[active_index],
             Ri - Si,
             clean_ancillae=clean_ancillae[1:],
             ctrls=([clean_ancillae[0]], [1]),
@@ -127,7 +127,7 @@ def bosonic_product_plus_hc_block_encoding(
 
         rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
             block_encoding_ancillae[i + 1],
-            system.bosonic_system[active_index],
+            system.bosonic_modes[active_index],
             Ri,
             Si,
             clean_ancillae=clean_ancillae[1:],
@@ -143,7 +143,7 @@ def bosonic_product_plus_hc_block_encoding(
     for i, active_index in enumerate(active_indices):
         Ri, Si = exponents_list[i][0], exponents_list[i][1]
         adder_gates, adder_metrics = add_classical_value(
-            system.bosonic_system[active_index],
+            system.bosonic_modes[active_index],
             -Ri + Si,
             clean_ancillae=clean_ancillae[1:],
             ctrls=([clean_ancillae[0]], [1]),
@@ -234,7 +234,7 @@ def _get_bosonic_rotation_angles(
                 )
 
     rotation_angles = [
-        2 / np.pi * np.arccos(intended_coefficient)
+        2 * np.arccos(intended_coefficient)
         for intended_coefficient in intended_coefficients
     ]
     return rotation_angles
@@ -280,7 +280,7 @@ def _single_bosonic_mode_block_encoding(
 
     R, S = exponents[0], exponents[1]
     adder_gates, adder_metrics = add_classical_value(
-        system.bosonic_system[active_index],
+        system.bosonic_modes[active_index],
         R - S,
         clean_ancillae=clean_ancillae,
         ctrls=ctrls,
@@ -290,7 +290,7 @@ def _single_bosonic_mode_block_encoding(
 
     rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
         block_encoding_ancilla,
-        system.bosonic_system[active_index],
+        system.bosonic_modes[active_index],
         R,
         S,
         clean_ancillae=clean_ancillae,
