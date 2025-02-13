@@ -1,0 +1,28 @@
+l2 W l_2
+l1 W l_1
+l0 W l_0
+
+l2 G:width=30 $R_y (\alpha_0)$
+l1 G:width=35 $R_y (\alpha_{l^\prime})$ l2 G:width=20 $In_{l^\prime}$
+l0 G:width=35 $R_y (\alpha_{l^{\prime\prime}})$ l2 l1 G:width=20 $In_{l^{\prime\prime}}$
+
+=
+
+l2 G:width=30 $R_y (\alpha_0)$
+
+l1 G:width=30 $R_y (\theta_1)$
+l2 +l1
+l1 G:width=30 $R_y (\theta_2)$
+l2 +l1
+
+l0 LABEL
+l0 LABEL
+l0 LABEL
+l0 G:width=30 $R_y (\theta_3)$
+l1 +l0
+l0 G:width=30 $R_y (\theta_4)$
+l2 +l0
+l0 G:width=30 $R_y (\theta_5)$
+l1 +l0
+l0 G:width=30 $R_y (\theta_6)$
+l2 +l0

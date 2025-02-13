@@ -1,24 +1,31 @@
-\section{Standard Binary Bosonic Encoding}
+\section{Pauli Expansion of Fermionic and Bosonic Ladder Operators}
 \label{sec:SB}
 
-An explicit encoding must be chosen to map bosonic ladder operators to qubit operators.
-This is necessary to construct LCU circuits of the Hamiltonians in section \ref{sec:results}.
-The encoding chosen matches the encoding of LOBE circuits is the standard binary \cite{standard-binary} encoding.
+In this Section, we review the two different operator transformations that are used in this work to express the ladder operators in the Pauli basis.
 
-The encoding starts by noting that 
+\subsection{Jordan-Wigner Transformation}
 
+\subsection{Standard Binary}
+
+In this work, the registers encoding the occupation of the bosonic modes store the value of the occupation in binary notation.
+The Standard Binary encoding \cite{standard-binary} provides a method for expanding the bosonic ladder operators in the Pauli basis when this binary encoding is used.
+
+The expansion in the Pauli basis begins by noting the following definitions of the bosonic creation and annihilation operators:
 \begin{align}
+    \label{eq:sb-expansion}
     a^\dagger &= \sum_{s = 0}^{\Omega - 1}\sqrt{s + 1}|s + 1\rangle \langle s| = \ket{1}\bra{0} + \sqrt{2}\ket{2}\bra{1} + \dots\\
     a &= \sum_{s = 0}^{\Omega - 1}\sqrt{s + 1}|s\rangle \langle s + 1| = \ket{0}\bra{1} + \sqrt{2}\ket{1}\bra{2} + \dots\\
 \end{align}
 
-From here, each state in the expansion of $a, a^\dagger$ is converted into binary, e.g. $|3\rangle = |...11\rangle$, where the $\dots$ are zeros depending on $\Omega$.
-Now, at each qubit index, the outer product can be computed by computing the outer product of the zeros and ones tensored together.
-For example, take $\Omega = 3$,$$
-\ket{2}\bra{3} = \ket{10}\bra{11} = \ket{1}\bra{1} \otimes \ket{0}\bra{1}.
-$$
-The last step is to work out the following outer products by noting that:
+From here, each state in the expansion of $a$ and $a^\dagger$ is converted into binary, e.g. $|3\rangle = |0\hdots011\rangle$, where the preceeding (most-significant) qubits are zeros and the total length of the register is given by $\lceil \log_2 (\Omega+1) \rceil$.
 
+Now, each outer product in Eq. \ref{eq:sb-expansion} can be expanded by computing the outer product of the individual qubit values tensored together.
+For example, with $\Omega = 3$ the outer product of $\ket{2}$ and $\ket{3}$ is given by:
+\begin{equation}
+    \ket{2}\bra{3} = \ket{10}\bra{11} = \ket{1}\bra{1} \otimes \ket{0}\bra{1}.
+\end{equation}
+
+Each single-qubit outer product can be mapped onto the Pauli basis using the following relations:
 \begin{align}
     \ket{0}\bra{0} &= \frac12 \left(I + Z \right)\\
     \ket{0}\bra{1} &= \frac12 \left(X + iY \right)\\
@@ -26,9 +33,11 @@ The last step is to work out the following outer products by noting that:
     \ket{1}\bra{1} &= \frac12 \left(I - Z \right)\\ 
 \end{align}
 
-Thus, as an example, with $\Omega = 3$, 
+Finally, these single-qubit outer products can be tensored together to give the expansion of the multi-qubit outer products, thereby representing the ladder operators as a linear combination of Pauli operators.
 
+An explicit example with $\Omega = 3$ is shown below: 
 \begin{align}
-    a_0^\dagger \rightarrow &0.683IX -0.183 ZX - 0.683\mathrm{i} IY + 0.183\mathrm{i} ZY \\
-    & +0.354 XX - 0.354\mathrm{i} YX + 0.354\mathrm{i} XY + 0.354 YY
+    a_0^\dagger = &0.683IX -0.183 ZX - 0.683\mathrm{i} IY \\
+                + &0.183\mathrm{i} ZY +0.354 XX - 0.354\mathrm{i} YX \\
+                + &0.354\mathrm{i} XY + 0.354 YY
 \end{align}

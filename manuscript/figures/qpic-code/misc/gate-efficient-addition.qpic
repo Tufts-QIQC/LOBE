@@ -1,0 +1,30 @@
+ctrl W ctrl
+n W n
+m4 W 0 0
+m3 W 0 0
+m2 W 0 0
+m1 W 0 0
+m0 W 0 0
+
+n / ^5
+
+n G width=20 $+11$ ctrl
+
+=
+
+n / ^5
+
+m4 START
+m3 START
+m2 START
+m1 START
+m0 START
+ctrl +m3 +m2 +m0
+n m4 m3 m2 m1 m0 G width=22 $\textit{Add}$
+ctrl +m3 +m2 +m0
+m4 LABEL
+m4 END
+m3 END
+m2 END
+m1 END
+m0 END

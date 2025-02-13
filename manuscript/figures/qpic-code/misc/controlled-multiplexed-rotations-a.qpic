@@ -1,0 +1,17 @@
+ctrl W \text{(a) }ctrl
+l1 W l_1
+l0 W l_0
+sys W \psi
+
+l1 l0 G:width=20 $In_l$ sys G:width=30 $R_y (\alpha_l)$ ctrl
+
+=
+
+sys G width=30 $R_y (\theta_0)$ ctrl
++sys l0
+sys G width=30 $R_y (\theta_1)$ ctrl
++sys l1
+sys G width=30 $R_y (\theta_2)$ ctrl
++sys l0
+sys G width=30 $R_y (\theta_3)$ ctrl
++sys l1
