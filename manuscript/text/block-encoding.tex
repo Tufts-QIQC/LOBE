@@ -13,7 +13,7 @@ If $A$ represents some $N_A \times N_A$ non-unitary operator, then a block-encod
     * & * 
     \end{pmatrix}
 \end{equation}
-where $U_A$ is a unitary operator, $\bar{A}$ is a rescaled form of $A$ such that the spectral norm ($||\bar{A}||$) is less than or equal to $1$, and matrix entries $*$ denote matrix elements that ensure $U_A$ is unitary.
+where $U_A$ is a unitary operator, $\bar{A}$ is a rescaled form of $A$ such that the L2 norm ($||\bar{A}||$) is less than or equal to $1$, and matrix entries $*$ denote matrix elements that ensure $U_A$ is unitary.
 
 The action of $U_A$ on an arbitrary quantum state ($\ket{\psi}$) with dimension $N_A$ can be defined as:
 \begin{equation}
@@ -235,7 +235,7 @@ It is also worth noting that the block-encodings $\{U_l\}$ may all use the same 
 
 In this work, we will refer to a block-encoding of this form as a Linear Combination of Operators (LCO).
 As noted in prior works \cite{berry2015simulating, childs2017quantum, gilyen2019quantum, lin2022lecture, jennings2023efficient}, an LCO can be thought of as generalization of LCU to produce a block-encoding for a linear combination of matrices.
-Alternatively, it may be enlightening to consider an LCU block-encoding as a special case of an LCO block-encoding wherein the operators in the linear combination are all unitary.
+Alternatively, it may be enlightening to consider an LCU block-encoding as a special case of an LCO block-encoding wherein the operators in the linear combination are all unitary and thus block-encode themselves.
 
 \subsection{Block-Encoding Products of Non-Uniatry Operators}
 \label{subsec:be-products}

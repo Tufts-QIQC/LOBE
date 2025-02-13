@@ -8,8 +8,8 @@ We compare the LOBE constructions presented in Section \ref{sec:ladder-op-oracle
 The Jordan-Wigner transformation \cite{jordan-wigner} is used to expand fermionic ladder operators in the basis of Pauli operators, while the Standard Binary encoding \cite{standard-binary} is used to expand bosonic ladder operators.
 
 The first Pauli-based method we compare against will be referred to as ``Pauli Expansion''.
-In this method, the respective Pauli transformations are applied to the ladder operators and fully expanded, resulting in a single linear combination of Pauli operators.
-This linear combination, which describes the full operator, is then block-encoded using the LCU framework.
+In this method, the respective Pauli transformations are applied to all ladder operators within a term and the product is fully expanded.
+This results in a single linear combination of Pauli operators, which is then block-encoded using the LCU framework.
 
 The second Pauli-based method we compare against will be referred to as ``Piecewise Pauli''.
 In this method, each product of ladder operators acting on a single mode is expanded in the Pauli basis and then block-encoded using the LCU framework.
@@ -25,8 +25,8 @@ The identity term is removed since it artificially inflates the rescaling factor
 
 The results presented in this section are generated using a software library called LOBE which has been made open-source \cite{}.
 The circuits are implemented using Cirq \cite{cirq} and block-encodings are numerically verified for circuits of up to 18 qubits.
-OpenParticle \cite{openparticle}, a software library for the construction and manipulation of fermionic, antifermionic, and bosonic ladder operators, is used to define the operators.
-The Symmer software library \cite{} is also used for various subroutines, including, but not limited to, expanding the ladder operators in the Pauli basis.
+OpenParticle \cite{openparticle} is used to construct and manipulate the operators in terms of fermionic, antifermionic, and bosonic ladder operators.
+The Symmer software library \cite{} is used for various subroutines, including expanding the ladder operators in the Pauli basis.
 The software library \cite{grover-rudolph-github} is used to determine the rotation angles required for arbitrary state-preparation using Grover-Rudolph.
 
 \input{text/results/components}

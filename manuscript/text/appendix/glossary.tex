@@ -5,24 +5,28 @@ Here we explicitly define the technical phrases and symbols used throughout this
 
 \begin{itemize}
     \item \textit{term} ($T$): An operator defined as a product of ladder operators.
+    \item \textit{Active Mode}: A fermionic or bosonic mode upon which a ladder operator is being non-trivially applied. 
+    \item \textit{block-encoding ancillae}: A register of qubits that give additional degrees of freedom to produce a block-encoding for the operator in a larger Hilbert space.
+    \item \textit{"zeroed-out"}: When the coefficient of a state becomes zero due to the application of an operator.
+    \item \textit{encoded subspace}: The chosen subspace of the block-encoding ancillae that denotes the subspace in which the non-unitary operator is encoded. Typically, this is the subspace where all block-encoding ancillae are in the $\ket{0}$ state.
+    \item \textit{clean ancillae}: A register of qubits that are promised to begin in the $\ket{0}$ and are returned to the $\ket{0}$ state at the end of a particular operation. 
+    \item \textit{all-zero state}: A state of a register where all qubits are in the $\ket{0}$ state.
     \item $L$: The number of terms in the Hamiltonian.
+    \item $\alpha_l$: The coefficient of the $l^\text{th}$ term in a linear combination. Assumed to be real and positive unless otherwise stated.
     \item $\Omega$: The occupation cutoff for the bosonic modes. $\Omega$ gives the maximum number of bosons that can be present in a single mode. 
-    \item $I$: The number of momentum modes. The subscripts $b$, $d$, and $a$ will be used to denote the number of modes for a particular particle type.
+    \item $I$: The number of fermionic or bosonic modes. The subscripts $b$ and $a$ will be used to denote the number of fermionic and bosonic modes respectively.
     \item $b_i$: Fermionic annihilation (creation - $b_i^\dagger$) operator acting on mode $i$.
     \item $d_i$: Antifermionic annihilation (creation - $d_i^\dagger$) operator acting on mode $i$.
     \item $a_i$: Bosonic annihilation (creation - $a_i^\dagger$) operator acting on mode $i$.
     \item $n_{i_b}$: The number of fermions ($b$) occupying the $i^{th}$ mode. $n_{i_d}$ and $n_{i_a}$ give the occupancy for antifermions and bosons respectively.
-    \item $B_l$: The number of fermionic modes with ladder operators acting on them within the term $T_l$.
-    \item $D_l$: The number of antifermionic modes with ladder operators acting on them within the term $T_l$.
-    \item $B$: The maximum number of fermionic \& antifermionic modes with ladder operators acting on them within a single term ($\max{b_l + d_l}$).
-    \item $A_l$: The number of bosonic ladder operators within the term $T_l$. Operators raised to an exponent ($p$) count as $p$ operators.
-    \item $A$: The maximum number of bosonic ladder operators acting within a single term ($\max_l A_l$). 
-    \item $M_l$: The number of bosonic modes with ladder operators acting on them within the term $T_l$.
-    \item $M$: The maximum number of bosonic modes with ladder operators acting on them within a single term ($\max_l M_l$).
+    \item $\omega_{i}$: The number of bosons occupying the $i^{th}$ bosonic mode.
+    \item $N_A$: The dimension of a matrix $A$.
+    \item $\beta_\psi$: The amplitude of a state that is outside of the encoded subspace after a block-encoding unitary is applied to $\ket{\psi}$.
+    \item $\lambda$: The rescaling factor imposed on the operator for a given block-encoding.
+    \item $w$: The index of the $w^\text{th}$ least-significant bit in a binary encoding.
+    \item $B$: The number of active modes within a term. The  with ladder operators acting on them within the term $T_l$.
+    \item $C$: The number of active modes within a term \textit{excluding} modes upon which a number operator is being applied.
     \item $S_{l, i}$: The exponent of bosonic annihilation operators acting on the $i^{th}$ bosonic mode within the $l^{th}$ term.
     \item $R_{l, i}$: The exponent of bosonic creation operators acting on the $i^{th}$ bosonic mode within the $l^{th}$ term.
-    \item \textit{"zeroed-out"}: When the coefficient of a state becomes zero.
-    \item \textit{encoded subspace}: The chosen subspace of the ancilla qubits used in the block-encoding to denote where the non-unitary operator is stored. Typically, this is the subspace where all ancillae are in the $\ket{0}$ state.
-    \item \textit{block-encoding ancillae}: A register of qubits that give additional degrees of freedom to produce a block-encoding for the operator in a larger Hilbert space.
-    \item \textit{clean ancillae}: A register of qubits that are guaranteed to begin in the $\ket{0}$ and are returned to the $\ket{0}$ state at the end of a particular operation. 
+    \item $P$: The sum of the exponents of bosonic ladder operators acting on all modes within a single term.
 \end{itemize}
