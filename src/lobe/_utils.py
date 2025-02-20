@@ -11,7 +11,17 @@ def pretty_print(
     amplitude_cutoff=1e-12,
     decimal_places=3,
 ) -> str:
+    """Get a human-readable description of the quantum state.
 
+    Args:
+        - wavefunction (np.ndarray): The amplitudes of the wavefunction
+        - register_lengths (List[int]): The number of qubits in each separate register
+        - amplitude_cutoff (float): The minimum mangitude for an amplitude to be considered nonzero
+        - decimal_places (int): The number of decimal points to print
+
+    Returns:
+        - str: A string representing the wavefunction that can be printed
+    """
     left_padding = 2 * (4 + decimal_places) + 1
     right_padding = sum(register_lengths) + len(register_lengths) + 1
     pretty_string = ""
@@ -35,23 +45,21 @@ def pretty_print(
     return pretty_string
 
 
-def give_me_state(nn, Lambda, Omega):
-    # Credit to Kamil Serafin
-    n = nn
-    result = list()
-    for i in range(Lambda):
-        r = n % (Omega + 1)
-        n = n // (Omega + 1)
-        result += [r]
-
-    return list(enumerate(result))
-
-
 def get_basis_of_full_system(
     maximum_occupation_number,
     number_of_fermionic_modes=0,
     number_of_bosonic_modes=0,
 ):
+    """Get the Fock basis of the system
+
+    Args:
+        - maximum_occupation_number (int): The maximum number of bosons allowed in each mode
+        - number_of_fermionic_modes (int): The number of fermionic modes
+        - number_of_bosonic_modes (int): The number of bosonic modes
+
+    Returns:
+        - List[Fock]: A list of Fock states
+    """
     number_of_occupation_qubits = max(
         int(np.ceil(np.log2(maximum_occupation_number))), 1
     )
@@ -85,7 +93,8 @@ def get_basis_of_full_system(
     return basis
 
 
-def get_parsed_dictionary(operator, number_of_modes=None):
+def _get_parsed_dictionary(operator, number_of_modes=None):
+    """Helper function to parse active modes and exponents"""
     if number_of_modes is None:
         number_of_modes = operator.max_mode + 1
     parsed_operator_array = {
@@ -113,8 +122,22 @@ def get_parsed_dictionary(operator, number_of_modes=None):
 
 
 def get_bosonic_exponents(operator, number_of_modes=None):
+    """Get exponents of bosonic ladder operators acting on unique modes within one term
+
+    NOTE:
+        Example: a_0^\dagger a_0^\dagger a_0 a_1 -> ([0, 1], [(2, 1), (0, 1)])
+
+    Args:
+        - operator (ParticleOperator): A single term to parse out the bosonic operators
+        - number_of_modes (Optional[int]): The total number of modes in the operator
+
+    Returns:
+        - List[int]: A list of the active bosonic modes
+        - List[Tuple(int, int)]: A list of tuples corresponding to the exponents on each active mode. Each tuple
+            contains the exponent on the creation operator, followed by the exponent on the annihilation operator
+    """
     active_bosonic_modes = get_active_bosonic_modes(operator)
-    parsed_operator_array = get_parsed_dictionary(
+    parsed_operator_array = _get_parsed_dictionary(
         operator, number_of_modes=number_of_modes
     )
     exponents_list = []
@@ -152,6 +175,14 @@ def _apply_negative_identity(target, ctrls=([], [])):
 
 
 def translate_antifermions_to_fermions(operator):
+    """Translate all antifermionic modes to fermionic modes with higher index
+
+    Args:
+        - operator (ParticleOperator): The operation which potentially contains antifermions
+
+    Returns:
+        - ParticleOperator: The operator where antifermionic modes are replaced with distinct fermionic modes
+    """
     translated_operator = ParticleOperator()
     for term in operator:
         translated_term = term.coeff
