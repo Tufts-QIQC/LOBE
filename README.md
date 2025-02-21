@@ -3,8 +3,8 @@
 # Ladder Operator Block Encoding (LOBE)
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="LOBE-logo-dm.png">
-  <source media="(prefers-color-scheme: dark)" srcset="LOBE-logo.png">
+  <source media="(prefers-color-scheme: light)" srcset="LOBE-logo.png">
+  <source media="(prefers-color-scheme: dark)" srcset="LOBE-logo-dm.png">
   <img alt="Shows a black logo in light color mode and a white one in dark color mode.">
 </picture>
 
