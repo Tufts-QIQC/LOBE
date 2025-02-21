@@ -1,2 +1,60 @@
-\section{Elbows}
+\section{Compiling Toffoli Gates}
 \label{sec:elbows}
+
+
+\begin{figure}
+    \include{figures/qpic-code/misc/uniformly-controlled-ops}
+    \caption{
+        \textbf{Uniformly Controlled Operations}
+        A series of operations that are subsequently controlled on the computational basis states of a register are referred to as \textit{uniformly controlled operations}.
+    }
+    \label{fig:uniformly-controlled-ops}
+\end{figure}
+
+
+\begin{figure*}
+    \include{figures/qpic-code/misc/multi-controlled-op}
+    \caption{
+        \textbf{Multi-Controlled Operations}
+        Operations with multiple controls are referred to as \textit{multi-controlled operations}.
+        An $N$-controlled operation can be decomposed into $2(N-2)$ Toffoli gates using $N-1$ clean ancillae.
+    }
+    \label{fig:multi-controlled-op}
+\end{figure*}
+
+
+The Toffoli gate is a ubiquitous operation in quantum algorithms and is often a significant contributor to the number of non-Clifford resources.
+In many algorithms - including those described in this work - a series of Toffoli gates are used to perform an operation that is coherently controlled on the logical-AND of several variables (Figure \ref{fig:multi-controlled-op}).
+Therefore, even small reductions in the cost of compiling a Toffoli gate can have a significant impact on the overall spacetime cost of an algorithm.
+In an effort to keep this work self-contained, we review a specific compilation technique that can reduce the number of T gates required to synthesize a pair of $N$-controlled Toffoli gates. 
+
+In Nielsen and Chuang \cite{nielsen2001quantum}, a method for synthesizing a single Toffoli gate from $7$ T gates is shown which is likely derived from the methods proposed by Barenco et al. \cite{barenco1995elementary}.
+Selinger \cite{selinger2013quantum} and Jones \cite{jones2013low} reduce this cost for a single Toffoli gate from $7$ T gates to $4$ using one clean ancilla.
+To the best of our knowledge, this is the most T-gate efficient compilation for a single Toffoli gate.
+
+
+\begin{figure}
+    \includegraphics[width=8cm]{figures/elbows}
+    \caption{
+        \textbf{Elbows}
+        In (a), a compilation scheme for a Toffoli gate acting on a clean ancillae is shown that uses four T gates.
+        This is sometimes referred to as a ``left-elbow''.
+        In (b), a compilation scheme for a Toffoli gate that uncomputes a clean ancillae is shown that uses a measurement and classically conditioned operation.
+        This is sometimes referred to as a ``right-elbow''.
+    }
+    \label{fig:elbows}
+\end{figure}
+
+Gidney \cite{gidney2018halving} showed that a pair of Toffoli gates which subsequently compute and uncompute the logical-AND of two variables can be synthesized using $4$ T gates, a measurement, and a classically conditioned operation (Figure 3 of \cite{gidney2018halving}).
+This compilation scheme is sometimes referred to as ``elbows'' and is depicted in Figure \ref{fig:elbows}.
+
+Following the methods shown by Barenco et al. \cite{barenco1995elementary} and Gidney \cite{gidney2018halving}, a pair of $N$-controlled Toffoli gates that are used to compute and uncompute the logical-AND of the same variables can be composed using $4(N-1)$ T gates and $N-1$ clean ancilla using a series of elbows.
+It is important to note that this technique does not always apply to neighboring Toffoli gates, but sufficient conditions are given in Figure 5 of \cite{gidney2018halving}.
+The spacetime costs for the block-encoding circuits used in this work assume this strategy when applicable.
+
+Additionally, there are several optimizations that can reduce the cost of neighboring pairs of elbows which are shown in Figure 6 of Babbush et al. \cite{babbush2018encoding}.
+These optimizations are particularly useful when compiling uniformly controlled operations (Figure \ref{fig:uniformly-controlled-ops}).
+With these optimizations, the control structure for applying $L$ uniformly controlled operations uses $4(L-1)$ T gates.
+The spacetime costs quoted throughout this work assume this strategy when applicable, including in cases such as Figures \ref{fig:lc-bosonic-general} and \ref{fig:be-term-example}.
+
+

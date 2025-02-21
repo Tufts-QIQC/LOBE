@@ -7,7 +7,7 @@ In this section, we provide a framework for compiling controlled block-encodings
 The framework for generating these block-encodings primarily relies on infering the action of the operators on the fermionic and bosonic modes upon which the operator acts nontrivially. 
 The compilations presented below are optimized primarily to reduce the number of non-Clifford operations and secondarily to reduce the number of block-encoding ancillae.
 
-Although controlled applications of block-encodings are not always required in quantum algorithms, control qubits are included throughout this section to demonstrate that controlling the block-encoding does not significantly affect the cost of the block-encoding.
+Although controlled applications of block-encodings are not always required in quantum algorithms, control qubits are included throughout this section to demonstrate that controlling the block-encoding does not significantly increase the cost of the block-encoding.
 For applications that do not require a controlled application of the block-encoding, the control qubits can simply be omitted and the cost associated with the uncontrolled block-encoding will be reduced accordingly.
 
 \subsection{Encoding}
@@ -23,7 +23,7 @@ In this work, we use the same qubit encoding to represent the occupation of ferm
 The number of qubits required for the fermionic system is equal to the number of fermionic modes.
 
 The encoding scheme for bosons must be able to represent a number of bosons in the range $\psi_{i_a} \in [0, \Omega]$ for each bosonic mode.
-We choose to represent store the occupancy of a bosonic mode in binary notation following \cite{rhodes2024exponential}:
+We choose to represent the occupancy of a bosonic mode in binary notation following \cite{rhodes2024exponential}:
 \begin{equation}
     \ket{\psi_{i_a}} \rightarrow \ket{q_{i_a}^{w-1} \hdots q_{i_a}^{1} q_{i_a}^0}
 \end{equation}
@@ -38,7 +38,7 @@ Fock states of multiple bosonic modes can be expressed as follows:
     \end{split}
 \end{equation}
 In this work, we assume that the maximum bosonic occupancy for each bosonic mode is identical.
-However, this encoding scheme and the block-encoding constructions presented below can be easily adapted to allow for bosonic modes to have different maximum occupation numbers.
+However, this encoding scheme and the block-encoding constructions presented below can be easily adapted to allow for bosonic modes to have different bosonic cutoffs.
 
 \subsection{Fermionic Ladder Operators}
 \label{subsec:fermionic-be}
@@ -48,7 +48,7 @@ As these are block-encodings of non-unitary operators, we define the associated 
 \begin{equation}
     U_{b^\dagger_j} \ket{\psi} \ket{0}_\text{anc} = b^\dagger_j \ket{\psi}\ket{0}_\text{anc} + \beta \ket{\perp}
 \end{equation}
-The fermionic ladder operators have spectral norm of $1$ and therefore do not need to be rescaled.
+The L2 norm of the fermionic ladder operators in the Fock basis is $1$ and therefore do not need to be rescaled.
 
 The definition of the fermionic creation operator (Eq. \ref{eq:fermionic-creation}) results in two implications.
 If the mode is \textit{unoccupied}, then the mode should become occupied and a potential phase flip should be applied, determined by the occupancy of the preceeding fermionic modes.
@@ -140,8 +140,7 @@ Otherwise, the state of the system and the block-encoding ancilla are left uncha
 
 Block-encoding this operator as the product of the block-encodings for $b_i$ and $b_i^\dagger$ would require two block-encoding ancillae and use $8$ T gates.
 Meanwhile, this construction has an optimal rescaling factor ($\lambda = 1$), requires one block-encoding ancilla and one clean ancilla, and uses four T gates.
-For circuit diagrams shown throughout this section, an $N$-controlled Toffoli gate acting on a clean ancilla is intended to denote a ``left-elbow'' as described in more detail in Appendix \ref{sec:elbows}.
-Likewise, $N$-controlled Toffoli gates that result in a clean ancilla being returned to the zero-state denote ``right-elbows''.
+The spacetime quantum resources quoted in this work assume that an $N$-controlled Toffoli gate acting on a clean ancilla is decomposed using the strategies discussed in Appendix \ref{sec:elbows}.
 
 A block-encoding circuit for the operator $b_j^\dagger b_l$ is given in subfigure \ref{fig:fermionic-products-be}c.
 For this operator, we can infer that the state will be zeroed-out \textit{unless} both the $j^\text{th}$ mode is unoccupied and the $l^\text{th}$ mode is occupied.
@@ -325,7 +324,7 @@ where $\omega_i$ here in comparison with $\omega_i + 1$ in Eq. \ref{eq:be-bos-cr
 An implementation of a controlled incrementer circuit is given in \cite{Gidney_2015} which requires $\lceil \log_2\Omega \rceil - 1$ clean ancillae and $3 \lceil \log_2\Omega \rceil$ T gates.
 The series of uniformly controlled rotations can be decomposed via the protocol given in Möttönen et. al \cite{mottonen2004transformation}.
 A discussion of different schemes to construct a \textit{controlled} set of uniformly controlled rotations is given in Appendix \ref{sec:multiplexed-rotations}.
-The resource estimates quoted in the remainder of this work assume the decomposition that requires $\Omega + 3$ uncontrolled rotations and $4 \lceil{\log_2{\Omega}}\rceil$ T gates (Figure \ref{fig:gate-optimized-controlled-multiplexed-rotations}).
+The resource estimates quoted in the remainder of this work assume the decomposition that requires (at most) $\Omega + 3$ uncontrolled rotations and $4 \lceil{\log_2{\Omega}}\rceil$ T gates (Figure \ref{fig:gate-optimized-controlled-multiplexed-rotations}).
 In total, this block-encoding has an optimal rescaling factor ($\sqrt{\Omega}$), requires one block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil$ clean ancillae, and uses $7 \lceil \log_2\Omega \rceil$ T gates and (at most) $\Omega + 3$ arbitrary rotations.
 
 
@@ -378,7 +377,7 @@ The angles of the $R_y$ rotations are determined classically by the following fu
 where $\omega_i - r$ here in comparison with $\omega_i + r$ in Eq. \ref{eq:be-S-creation-ops} is due to the occupation of the state being updated prior to the controlled rotations.
 
 A block-encoding for a bosonic annihilation operator being applied $S$ times can be achieved using a similar construction shown in subfigue \ref{fig:products-bosonic-operators}b.
-The occupation of the mode is first decreased by $S$ and then the controlled multiplexed rotations are applied to pick up the corresponding coefficient on the block-encoding ancilla.
+The occupation of the mode is first decreased by $S$ and then the uniformly controlled rotations are applied to pick up the corresponding coefficient on the block-encoding ancilla.
 The function to determine the rotation angles is given by:
 \begin{equation}
     \begin{split}
@@ -391,7 +390,7 @@ The function to determine the rotation angles is given by:
 \end{equation}
 
 Likewise, a block-encoding for an operator of the form $(a_i^\dagger)^R (a_i)^S$ can be constructed using a similar form (subfigue \ref{fig:products-bosonic-operators}c).
-The occupation of the mode is updated by a value of $+ R - S$ and then the controlled multiplexed rotations are applied to pick up the corresponding coefficient on the block-encoding ancilla.
+The occupation of the mode is updated by a value of $+ R - S$ and then the uniformly controlled rotations are applied to pick up the corresponding coefficient on the block-encoding ancilla.
 The function to determine the rotation angles is given by:
 \begin{widetext}
 \begin{equation}

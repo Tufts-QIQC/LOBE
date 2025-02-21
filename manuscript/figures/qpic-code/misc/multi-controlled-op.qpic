@@ -1,0 +1,31 @@
+0 W
+1 W
+2 W
+c0 W 0 0 0 0
+c1 W 0 0
+sys W \psi
+
+sys /
+
+sys G width=20 $U$ 0 1 2
+
+=
+
+c0 START
+0 1 2 +c0
+sys G width=20 $U$ c0
+0 1 2 +c0
+c0 END
+
+=
+
+c0 START
+0 1 +c0
+c1 START
+c0 2 +c1
+sys G width=20 $U$ c1
+c0 2 +c1
+c1 END
+0 1 +c0
+c0 END
+
