@@ -1,6 +1,6 @@
-from .metrics import CircuitMetrics
-from .decompose import decompose_controls_left, decompose_controls_right
 import numpy as np
+from .decompose import decompose_controls_left, decompose_controls_right
+from .metrics import CircuitMetrics
 
 
 def index_over_terms(
@@ -9,11 +9,11 @@ def index_over_terms(
     """Create a block-encoding of a linear combination of block-encodings
 
     Args:
-        index_register (List[cirq.LineQubit]): The qubit register that indexes the terms
-        block_encoding_functions (List[Callable]): A list of functions that apply the block-encoding for each operator
+        - index_register (List[cirq.LineQubit]): The qubit register that indexes the terms
+        - block_encoding_functions (List[Callable]): A list of functions that apply the block-encoding for each operator
             in the list when called. Function signature should only accept ctrls
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:

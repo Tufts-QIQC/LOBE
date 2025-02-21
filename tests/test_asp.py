@@ -1,6 +1,6 @@
+import cirq
 import pytest
 import numpy as np
-import cirq
 from src.lobe.asp import (
     add_prepare_circuit,
     get_target_state,

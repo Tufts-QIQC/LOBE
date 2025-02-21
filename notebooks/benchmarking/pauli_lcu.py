@@ -1,8 +1,6 @@
 from openparticle import ParticleOperator
 import numpy as np
 import cirq
-import matplotlib.pyplot as plt
-
 import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../.."))
@@ -10,18 +8,15 @@ from src.lobe.system import System
 from src.lobe.lcu import (
     pauli_lcu_block_encoding,
     estimate_pauli_lcu_rescaling_factor_and_number_of_be_ancillae,
-    _select_paulis,
 )
-from src.lobe.lcu import LCU
 from src.lobe._utils import _apply_negative_identity
 from colors import *
 from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.index import index_over_terms
 from src.lobe.rescale import rescale_coefficients
 from src.lobe.metrics import CircuitMetrics
-from src.lobe.fermionic import fermionic_plus_hc_block_encoding
 from tests._utils import _validate_block_encoding
-from functools import partial
+from copy import deepcopy
 
 
 def lcuify(operator, max_bosonic_occupancy=1, zero_threshold=1e-6):
@@ -94,9 +89,6 @@ def lcuify(operator, max_bosonic_occupancy=1, zero_threshold=1e-6):
         number_of_block_encoding_ancillae,
         system.number_of_system_qubits,
     )
-
-
-from copy import deepcopy
 
 
 def get_lcu_helper(
@@ -178,19 +170,6 @@ def get_lcu_helper(
 
 
 def piecewise_lcu(operator, max_bosonic_occupancy=1, zero_threshold=1e-6):
-
-    # max_number_of_be_ancillae = 0
-    # for term in operator.to_list():
-    #     _number_of_be_ancillae = 0
-    #     for op in term.split():
-    #         if op.particle_type == "fermionic":
-    #             _number_of_be_ancillae += 1
-    #         else:
-    #             _number_of_be_ancillae += max_bosonic_occupancy
-    #     max_number_of_be_ancillae = max(
-    #         max_number_of_be_ancillae, _number_of_be_ancillae
-    #     )
-
     ctrls = ([cirq.LineQubit(0)], [1])
     index_register = [
         cirq.LineQubit(i + 1)

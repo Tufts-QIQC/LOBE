@@ -1,22 +1,21 @@
-from src.lobe._utils import translate_antifermions_to_fermions
-from src.lobe.yukawa import _determine_block_encoding_function
-from src.lobe.system import System
-from src.lobe.rescale import rescale_coefficients
-from src.lobe.asp import get_target_state, add_prepare_circuit
-from src.lobe.metrics import CircuitMetrics
-from src.lobe.index import index_over_terms
+import cirq
+import pytest
+import numpy as np
 from cirq.contrib.svg import SVGCircuit
+from openparticle import ParticleOperator
+from openparticle.hamiltonians.yukawa_hamiltonians import yukawa_hamiltonian
+from src.lobe.asp import get_target_state, add_prepare_circuit
+from src.lobe.index import index_over_terms
+from src.lobe.metrics import CircuitMetrics
+from src.lobe.rescale import rescale_coefficients
+from src.lobe.system import System
+from src.lobe.yukawa import _determine_block_encoding_function
+from src.lobe._utils import translate_antifermions_to_fermions
 from _utils import (
     _validate_block_encoding,
     _validate_block_encoding_does_nothing_when_control_is_off,
     _validate_clean_ancillae_are_cleaned,
 )
-
-from openparticle import ParticleOperator
-from openparticle.hamiltonians.yukawa_hamiltonians import yukawa_hamiltonian
-import cirq
-import pytest
-import numpy as np
 
 
 @pytest.mark.parametrize(

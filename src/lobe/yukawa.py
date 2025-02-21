@@ -1,17 +1,16 @@
-from .fermionic import fermionic_product_block_encoding, _apply_fermionic_ladder_op
+import cirq
+import numpy as np
+from functools import partial
+from .addition import add_classical_value
 from .bosonic import (
     bosonic_product_block_encoding,
     _get_bosonic_rotation_angles,
 )
-from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
-from .addition import add_classical_value
-from ._utils import get_bosonic_exponents, _apply_negative_identity
 from .decompose import decompose_controls_left, decompose_controls_right
+from .fermionic import fermionic_product_block_encoding, _apply_fermionic_ladder_op
 from .metrics import CircuitMetrics
-
-import cirq
-import numpy as np
-from functools import partial
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
+from ._utils import get_bosonic_exponents, _apply_negative_identity
 
 
 def yukawa_term_block_encoding(

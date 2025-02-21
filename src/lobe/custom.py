@@ -1,11 +1,10 @@
-from .metrics import CircuitMetrics
-from .addition import add_classical_value
-from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
-from .bosonic import _get_bosonic_rotation_angles
-from .fermionic import _apply_fermionic_ladder_op
-from .decompose import decompose_controls_left, decompose_controls_right
-
 import cirq
+from .addition import add_classical_value
+from .bosonic import _get_bosonic_rotation_angles
+from .decompose import decompose_controls_left, decompose_controls_right
+from .fermionic import _apply_fermionic_ladder_op
+from .metrics import CircuitMetrics
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 
 
 def _custom_fermionic_plus_nonhc_block_encoding(
@@ -21,13 +20,13 @@ def _custom_fermionic_plus_nonhc_block_encoding(
     NOTE: Input arguements should correspond to only one term. The form of the hermitian conjugate will be inferred.
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
+        - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left): [k, j, i].
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
@@ -109,13 +108,13 @@ def _custom_term_block_encoding(
     NOTE: Input arguements should correspond to only one term. The form of the hermitian conjugate will be inferred.
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
+        - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left): [j, i].
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:

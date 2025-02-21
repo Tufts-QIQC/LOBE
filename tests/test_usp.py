@@ -1,7 +1,7 @@
-import pytest
 import cirq
+import pytest
 import numpy as np
-from src.lobe.usp import add_naive_usp
+from src.lobe.usp import diffusion_operator
 
 
 @pytest.mark.parametrize("number_of_operators", range(1, 17))
@@ -12,7 +12,7 @@ def test_naive_usp_prepares_correct_state(number_of_operators):
     circuit = cirq.Circuit()
     qubits = [cirq.LineQubit(i) for i in range(number_of_qubits)]
 
-    circuit.append(add_naive_usp(qubits))
+    circuit.append(diffusion_operator(qubits))
 
     wavefunction = simulator.simulate(circuit).final_state_vector
 

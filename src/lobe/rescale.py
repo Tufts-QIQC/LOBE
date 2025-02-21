@@ -1,5 +1,5 @@
-from copy import deepcopy
 import numpy as np
+from copy import deepcopy
 from openparticle import BosonOperator, OccupationOperator
 
 
@@ -38,31 +38,6 @@ def rescale_terms_usp(terms):
     max_coeff = max([np.abs(term.coeff) for term in terms])
     rescaled_terms = [(1 / max_coeff) * term for term in deepcopy(terms)]
     return rescaled_terms, max_coeff
-
-
-def get_numbers_of_bosonic_operators_in_terms(terms):
-    """Get a list of the number of bosonic operators in each term.
-
-    Args:
-        terms (List[ParticleOperator]): The terms comprising the original Hamiltonian
-            given as a linear combination of ladder operators.
-
-    Returns:
-        List[int]: A list of the number of bosonic operators in each term
-    """
-    numbers_of_bosonic_ops = []
-    for term in terms:
-        numbers_of_bosonic_ops.append(0)
-        for operator in term.parse():
-            if isinstance(operator, BosonOperator):
-                numbers_of_bosonic_ops[-1] += 1
-            elif (
-                isinstance(operator, OccupationOperator)
-                and operator.particle_type == "a"
-            ):
-                numbers_of_bosonic_ops[-1] += 2 * operator.power
-
-    return numbers_of_bosonic_ops
 
 
 def get_active_bosonic_modes(operator):

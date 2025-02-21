@@ -1,11 +1,11 @@
+import cirq
 import pytest
 import numpy as np
-import cirq
+from copy import copy
 from src.lobe.multiplexed_rotations import (
     get_decomposed_multiplexed_rotation_circuit,
 )
 from src.lobe.system import System
-from copy import copy
 from _utils import _validate_clean_ancillae_are_cleaned
 
 

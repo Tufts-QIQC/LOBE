@@ -1,6 +1,6 @@
-from .metrics import CircuitMetrics
 import cirq
 import math
+from .metrics import CircuitMetrics
 
 
 def fermionic_product_block_encoding(
@@ -15,16 +15,16 @@ def fermionic_product_block_encoding(
     """Obtain operations for a block-encoding circuit for a product of fermionic ladder operators
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
+        - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
-        operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
+        - operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
             number operator
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
@@ -137,19 +137,19 @@ def fermionic_plus_hc_block_encoding(
 
     NOTE: Input arguements should correspond to only one term. The form of the hermitian conjugate will be inferred.
 
-    TODO: Include number operators
+    TODO: Include operators of the form b_i b_i^
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): The single block-encoding ancilla qubit
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): The single block-encoding ancilla qubit
+        - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
-        operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
+        - operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
             number operator
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
@@ -275,9 +275,9 @@ def _apply_fermionic_ladder_op(system, index, ctrls=([], [])):
     """Apply the controlled $\\vec{Z}X$ operator to apply a fermionic ladder operator to the system.
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        index (int): The mode index upon which the ladder operator acts
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - system (lobe.system.System): The system object holding the system registers
+        - index (int): The mode index upon which the ladder operator acts
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:

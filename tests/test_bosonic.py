@@ -1,15 +1,18 @@
+import cirq
+import pytest
+import numpy as np
+from functools import partial
 from openparticle import ParticleOperator, generate_matrix
 from openparticle.hamiltonians.phi4_hamiltonian import phi4_Hamiltonian
-import numpy as np
-import cirq
-from src.lobe.system import System
+from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.bosonic import (
     bosonic_product_block_encoding,
     bosonic_product_plus_hc_block_encoding,
 )
+from src.lobe.index import index_over_terms
 from src.lobe.rescale import get_number_of_active_bosonic_modes
-import pytest
-from functools import partial
+from src.lobe.system import System
+from src.lobe._utils import get_bosonic_exponents
 
 from _utils import (
     _setup,
@@ -18,9 +21,6 @@ from _utils import (
     _validate_block_encoding_does_nothing_when_control_is_off,
     get_basis_of_full_system,
 )
-from src.lobe._utils import get_bosonic_exponents
-from src.lobe.asp import get_target_state, add_prepare_circuit
-from src.lobe.index import index_over_terms
 
 
 MAX_ACTIVE_MODES = 5

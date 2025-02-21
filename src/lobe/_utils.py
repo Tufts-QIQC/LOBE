@@ -1,8 +1,8 @@
-import numpy as np
-from typing import List
-from openparticle import ParticleOperator, Fock
-from .rescale import get_active_bosonic_modes
 import cirq
+import numpy as np
+from openparticle import ParticleOperator, Fock
+from typing import List
+from .rescale import get_active_bosonic_modes
 
 
 def pretty_print(
