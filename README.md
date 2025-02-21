@@ -3,9 +3,8 @@
 # Ladder Operator Block Encoding (LOBE)
 
 <picture>
-  <source media="(prefers-color-scheme: light)" srcset="LOBE-logo.png">
-  <source media="(prefers-color-scheme: dark)" srcset="LOBE-logo-dm.png">
-  <img alt="Shows a black logo in light color mode and a white one in dark color mode.">
+  <source srcset="LOBE-logo-dm.png" media="(prefers-color-scheme: dark)">
+  <img src="LOBE-logo.png" alt="Theme-aware image">
 </picture>
 
 This repository serves as a library to generate quantum circuits that create Block Encodings of second-quantized operators written in terms of creation and annihilation (ladder) operators.
