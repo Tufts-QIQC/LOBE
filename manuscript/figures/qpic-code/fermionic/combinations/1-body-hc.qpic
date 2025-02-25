@@ -1,7 +1,0 @@
-a W \text{(a) }ctrl
-b W n_i
-c W n_j
-
-b / ^{i<j}
-a b c LABEL width=-10
-b G $\vec{Z}$ a +c
