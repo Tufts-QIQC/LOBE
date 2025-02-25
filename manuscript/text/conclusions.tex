@@ -1,14 +1,21 @@
 \section{Conclusions}
 \label{sec:conclusions}
 
-In this work, we detail a framework which we refer to as LOBE (Ladder Operator Block-Encoding) which constructs block-encoding circuits for operators written in second-quantization.
-We give explicit compilations for operators written as linear combinations of products of ladder operators acting on both fermionic and bosonic modes.
-With this framework, many quantum operators of interest - such as Hamiltonians - can be block-encoded directly in their second-quantized form.
+In this work, we detail a framework - which we refer to as LOBE (Ladder Operator Block-Encoding) - that constructs quantum circuits to block-encode operators written directly in second-quantization.
+We give explicit compilations for operators written as linear combinations of products of ladder operators acting on both fermionic and bosonic modes and detail how these constructions can be generalized to other types of operators.
 This avoids expanding operators in the Pauli basis prior to block-encoding which introduces a signficant overhead.
+Additionally, we provide an open-source library to build these block-encoding circuits for various second-quantized operators.
 
-Additionally, we provide analytical and numerical costs for the relevant quantum resources required by LOBE for various operators of interest.
-We compare our constructions to those that require the Jordan-Wigner and Standard Binary transformations to express ladder operators in the Pauli basis.
+We provide analytical and numerical spaectime costs for the relevant quantum resources required by LOBE.
+We compare our constructions to those that require expressing the operators in the Pauli basis using the Jordan-Wigner and Standard Binary transformations.
 Our numerical results show that in most relevant cases, the LOBE framework produces block-encodings that require signficantly fewer T gates, non-Clifford rotations, block-encoding ancillae and total number of qubits and result in block-encodings with smaller rescaling factors.
-In addition, the LOBE framework has better asymptotic scaling with respect to several parameters such as the maximum occupation of bosonic modes, the number of momentum modes, and the locality of the operator.
-Notably, the LOBE constructions result in exponentially fewer non-Clifford operations for block-encoding products of ladder operators with respect to the locality as compared to a naive expansion of the operator in the Pauli basis.
+In addition, the LOBE framework has favorable scaling with respect to several key parameters such as the maximum occupation of bosonic modes, the number of momentum modes, and the locality of the operator.
+
+In certain cases, such as when block-encoding a product of fermionic operators with its Hermitian conjugate, LOBE results in exponentially fewer non-Clifford operations with respect to the locality as compared to a naive expansion of the operator in the Pauli basis.
+However, when considering a linear combination of such operators with the same active modes, the Pauli transformation can lead to cancellations which make expanding in the Pauli basis favorable.
+A more thorough comparison between these frameworks for operators with this form, such as those arising in quantum chemistry, is needed and we leave this for future work.
+
+The framework presented in this work allows for the construction of block-encodings for operators acting on fermionic, antifermionic, and bosonic modes written directly in their second-quantized form.
+Many operators arising in both quantum chemistry and quantum field theories are expressed efficiently in second-quantization, making this framework particularly well-suited for these operators.
+By reducing the quatnum resources required to block-encode these operators, this work paves the way for compiling efficient quantum algorithms such as the simulation of these quantum systems.
 

@@ -1,7 +1,7 @@
 ctrl W \text{(b) }ctrl
 anc W anc
-i W \psi_i
-j W \psi_j
+i W n_i
+j W n_j
 
 i / ^{i<j}
 ctrl anc i j LABEL width=-10

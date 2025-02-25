@@ -5,7 +5,10 @@ In this work, we focus on generating block-encodings for second-quantized operat
 In this section, we provide a framework for compiling controlled block-encodings of products and linear combinations of fermionic and bosonic ladder operators.
 
 The framework for generating these block-encodings primarily relies on infering the action of the operators on the fermionic and bosonic modes upon which the operator acts nontrivially. 
-The compilations presented below are optimized primarily to reduce the number of non-Clifford operations and secondarily to reduce the number of block-encoding ancillae.
+The compilations presented below are optimized primarily to reduce the number of non-Clifford operations and secondarily to reduce the number of block-encoding ancillae at the expense of ``clean ancillae".
+
+Clean ancillae refer to ancillae qubits that are used temporarily in a computation such that they begin and end in the zero-state and can be reused on subsequent operations.
+Reducing the number of block-encoding ancillae makes these constructions favorable for spacetime metrics that distinguish between block-encoding ancillae and clean ancillae such as Active Volume \cite{litinski2022active}.
 
 Although controlled applications of block-encodings are not always required in quantum algorithms, control qubits are included throughout this section to demonstrate that controlling the block-encoding does not significantly increase the cost of the block-encoding.
 For applications that do not require a controlled application of the block-encoding, the control qubits can simply be omitted and the cost associated with the uncontrolled block-encoding will be reduced accordingly.
@@ -29,7 +32,7 @@ We choose to represent the occupancy of a bosonic mode in binary notation follow
 \end{equation}
 where the subscript denotes the index of the bosonic mode and the superscripts denote the index of the qubit storing the $w^{th}$ least-significant bit of the binary representation of $\psi_{i_a}$.
 Due to the binary encoding, the number of qubits needed to represent each mode is $w = \lceil \log_2{(\Omega + 1)} \rceil$.
-Fock states of multiple bosonic modes can be expressed as follows:
+Fock states of multiple bosonic modes can be expressed as tensor products of the individual Fock states:
 \begin{equation}
     \begin{split}
         &\ket{\psi_{I_a - 1}} \otimes \hdots \otimes \ket{\psi_{1_a}} \otimes \ket{\psi_{0_a}} \rightarrow \\
@@ -38,7 +41,7 @@ Fock states of multiple bosonic modes can be expressed as follows:
     \end{split}
 \end{equation}
 In this work, we assume that the maximum bosonic occupancy for each bosonic mode is identical.
-However, this encoding scheme and the block-encoding constructions presented below can be easily adapted to allow for bosonic modes to have different bosonic cutoffs.
+However, this encoding scheme and the block-encoding constructions presented below can be adapted to allow for bosonic modes with different bosonic cutoffs.
 
 \subsection{Fermionic Ladder Operators}
 \label{subsec:fermionic-be}
@@ -48,10 +51,11 @@ As these are block-encodings of non-unitary operators, we define the associated 
 \begin{equation}
     U_{b^\dagger_j} \ket{\psi} \ket{0}_\text{anc} = b^\dagger_j \ket{\psi}\ket{0}_\text{anc} + \beta \ket{\perp}
 \end{equation}
-The L2 norm of the fermionic ladder operators in the Fock basis is $1$ and therefore do not need to be rescaled.
+The L2 norm of the fermionic ladder operators in the Fock basis is $1$. 
+Therefore these operators do not need to be rescaled.
 
 The definition of the fermionic creation operator (Eq. \ref{eq:fermionic-creation}) results in two implications.
-If the mode is \textit{unoccupied}, then the mode should become occupied and a potential phase flip should be applied, determined by the occupancy of the preceeding fermionic modes.
+If the mode is \textit{unoccupied}, then the mode should become occupied and a potential phase flip - determined by the occupancy of the preceeding fermionic modes - should be applied.
 If the mode is occupied, then state should be zeroed-out. 
 Therefore, the non-trivial action of the unitary will be dependent on the occupation of the associated fermionic mode:
 \begin{equation}
@@ -93,13 +97,17 @@ The fermionic creation operator ($b^\dagger$) only acts nontrivially when the mo
 Inversely, the fermionic annihilation operator ($b$) will only act nontrivially if the mode it acts upon is \textit{occupied}.
 Therefore, the block-encoding ancilla is flipped outside of the encoded subspace if the control qubit is on ($\ket{1}$) and the fermionic mode is unoccupied ($\ket{0}$).
 
-As noted in Appendix \ref{sec:elbows}, each Toffoli gate can be implemented with four T gates using one clean ancilla.
-These block-encodings have an optimal rescaling factor ($\lambda = 1$), require one block-encoding ancilla and one clean ancillae, and use four T gates.
+Each Toffoli gate can be implemented with four T gates using one clean ancilla \cite{selinger2013quantum,jones2013low}.
+Likewise, an $N$-controlled Toffoli gate acting on a clean ancilla can be decomposed into a series of Toffoli gates acting on several clean ancillae \cite{barenco1995elementary}.
+The spacetime costs for these decompositions are discussed in more detail in Appendix \ref{sec:elbows}.
+Throughout the remainder of this section, we will assume these strategies are used to implement Toffoli gates.
+
+In total, these block-encoding circuits have a rescaling factor of $\lambda = 1$, require one block-encoding ancilla and one clean ancillae, and use four T gates.
 
 \subsection{Products of Fermionic Ladder Operators}
 
-As discussed in subsection \ref{subsec:be-products}, a block-encoding for a product of operators can be constructed using a product of the unitaries that block-encode each operator.
-In this subsection, we construct block-encodings for a product of fermionic ladder operators that use fewer quantum resources than are required by this naive strategy.
+In this subsection, we construct block-encodings for a product of fermionic ladder operators.
+These constructions use fewer quantum resources than would be required by combining the block-encodings of the individual operators using the strategy outlined in Subsection \ref{subsec:be-products}.
 
 \begin{figure}[h]
     \mbox{
@@ -139,14 +147,13 @@ The Toffoli gate flips the block-encoding ancilla outside of the encoded subspac
 Otherwise, the state of the system and the block-encoding ancilla are left unchanged.
 
 Block-encoding this operator as the product of the block-encodings for $b_i$ and $b_i^\dagger$ would require two block-encoding ancillae and use $8$ T gates.
-Meanwhile, this construction has an optimal rescaling factor ($\lambda = 1$), requires one block-encoding ancilla and one clean ancilla, and uses four T gates.
-The spacetime quantum resources quoted in this work assume that an $N$-controlled Toffoli gate acting on a clean ancilla is decomposed using the strategies discussed in Appendix \ref{sec:elbows}.
+Meanwhile, this construction has a rescaling factor of $\lambda = 1$, requires one block-encoding ancilla and one clean ancilla, and uses four T gates.
 
 A block-encoding circuit for the operator $b_j^\dagger b_l$ is given in subfigure \ref{fig:fermionic-products-be}c.
 For this operator, we can infer that the state will be zeroed-out \textit{unless} both the $j^\text{th}$ mode is unoccupied and the $l^\text{th}$ mode is occupied.
 If the control qubit is on and these two conditions are not both true, then the block-encoding ancilla is flipped outside of the encoded subspace.
 The state of the system is updated based on the two operators in the order in which they would act upon the quantum state: $\vec{Z}X_l$ ($b_l$) then $\vec{Z}X_j$ ($b_j^\dagger$).
-This block-encoding circuit has an optimal rescaling factor ($\lambda = 1$), requires one block-encoding ancilla and two clean ancillae, and uses $8$ T gates.
+This block-encoding circuit has a rescaling factor of $\lambda = 1$, requires one block-encoding ancilla and two clean ancillae, and uses $8$ T gates.
 
 
 This construction can be generalized to an arbitrary product of ladder operators.
@@ -154,14 +161,15 @@ Let $B$ represent the number of active modes in an operator.
 We define the number of ``active modes" as the number of unique modes upon which an operator is applied nontrivially.
 For example, the operator $b_i b_j^\dagger b_k b_l^\dagger b_l$ has $4$ active modes: $i, j, k, l$.
 Each active mode will contribute a new control condition on the state of the corresponding mode.
-Therefore, a block-encoding circuit for a general product of fermionic ladder operators with $B$ active modes will have an optimal rescaling factor ($\lambda = 1$), require one block-encoding ancilla and $B$ clean ancillae, and use $4B$ T gates.
+
+A block-encoding circuit of this form for a general product of fermionic ladder operators with $B$ active modes will have a rescaling factor of $\lambda = 1$, require one block-encoding ancilla and $B$ clean ancillae, and use $4B$ T gates.
 
 
 \subsection{Linear Combinations of Fermionic Ladder Operators}
 
-As discussed in subsection \ref{subsec:lco}, a block-encoding for a linear combination of operators can be constructed using the LCO framework.
-In this subsection, we show how to construct block-encodings of linear combinations of products of fermionic ladder operators that use fewer quantum resources than are required by an LCO construction.
-In particular, we give a generalized construction for a product of fermionic ladder operators plus its hermitian conjugate, however, we note that the strategies we present here are not restricted to a linear combination of hermitian conjugates.
+In this subsection, we show how to construct block-encodings of linear combinations of products of fermionic ladder operators.
+These constructions use fewer quantum resources than are required by an LCO construction.
+In particular, we give a generalized construction for a product of fermionic ladder operators plus its Hermitian conjugate, however, we note that the strategies we present here are not restricted to a linear combination of Hermitian conjugates.
 
 \begin{figure*}
     \mbox{
@@ -179,7 +187,7 @@ In particular, we give a generalized construction for a product of fermionic lad
 \end{figure*}
 
 
-Consider a linear combination of an individual fermionic ladder operator with its hermitian conjugate: $b_j^\dagger + b_j$.
+Consider a linear combination of an individual fermionic ladder operator with its Hermitian conjugate: $b_j^\dagger + b_j$.
 The action of this operator on the two possible occupation states of the $j^\text{th}$ fermionic mode is given by:
 \begin{equation}
     \label{eq:action-of-fermionic-op-plus-hc}
@@ -196,9 +204,9 @@ However, by considering the action of this operator (Eq. \ref{eq:action-of-fermi
 A Pauli $X$ gate can be applied to the $j^\text{th}$ mode to flip the occupation and a string of Pauli $Z$ gates can be applied on each fermionic mode with index $i < j$ to apply the potential phase flip induced by $p(\psi)$.
 This results in the same decomposition one would arrive at using the Jordan-Wigner transformation ($\vec{Z}X_j$).
 A circuit diagram for this block-encoding is shown in subfigure \ref{fig:fermionic-be-lc-small}a.
-This block-encoding circuit has an optimal rescaling factor ($\lambda = 1$), requires zero block-encoding ancillae and zero clean ancillae, and uses zero non-Clifford operations.
+This block-encoding circuit has a rescaling factor of $\lambda = 1$, requires zero block-encoding ancillae and zero clean ancillae, and uses zero non-Clifford operations.
 
-For a two-body fermionic operator and its hermitian conjugate ($b_j b_l + b_l^\dagger b_j^\dagger$) with $j \neq l$ we arrive at a construction that differs from the Jordan-Wigner transformation.
+For a two-body fermionic operator and its Hermitian conjugate ($b_j b_l + b_l^\dagger b_j^\dagger$) with $j \neq l$ we arrive at a construction that differs from the Jordan-Wigner transformation.
 We begin by swapping the operators in the second term using the anticommutation relations to ensure that the order in which the corresponding operators appear in each term is the same: $b_j b_l - b_j^\dagger b_l^\dagger$.
 In the circuit, the order in which the system is updated based on the ladder operators is fixed so it must be consistent for both terms.
 This reordering means that the potential phase flips caused by each ladder operator will be consistent for both terms since the order at which the operators are applied onto the system is consistent.
@@ -252,10 +260,10 @@ An example circuit diagram for an operator including a number operator is given 
     \label{fig:fermionic-be-lc}
 \end{figure*}
 
-The construction of these block-encoding circuits can be generalized to any operator that is a product of fermionic operators plus its hermitian conjugate.
+The construction of these block-encoding circuits can be generalized to any operator that is a product of fermionic operators plus its Hermitian conjugate.
 An example circuit diagram for this generalized construction is shown in Figure \ref{fig:fermionic-be-lc}.
 If $C$ represents the number of active modes excluding modes where a number operator is acting on the mode, then the $CZ$ gate is present only if $(C \text{ choose } 2)$ is odd.
-These block-encoding circuits will all have optimal rescaling factors ($\lambda=1$), require one block-encoding ancilla and $B - 1$ clean ancillae, and use $4(B-1)$ T gates.
+These block-encoding circuits will all have rescaling factors of $\lambda=1$, require one block-encoding ancilla and $B - 1$ clean ancillae, and use $4(B-1)$ T gates.
 
 \begin{figure}
     \include{figures/qpic-code/fermionic/combinations/non-conjugate}
@@ -266,11 +274,11 @@ These block-encoding circuits will all have optimal rescaling factors ($\lambda=
     \label{fig:fermionic-be-lc-not-conjugate}
 \end{figure}
 
-As mentioned, the strategy employed here to construct block-encodings of a linear combination of fermionic ladder operators is not restricted to hermitian conjugates.
+As mentioned, the strategy employed here to construct block-encodings of a linear combination of fermionic ladder operators is not restricted to Hermitian conjugates.
 Consider the action of the operator $b_i b_j b_k^\dagger + b_j^\dagger b_i^\dagger b_k^\dagger$ on the occupation states of the fermionic modes.
 This operator will zero-out the state \textit{unless} both $\ket{\psi_{b_i}} \oplus \ket{\psi_{b_j}}$ and $\ket{\psi_{b_k}}$ are $\ket{0}$.
 The implementation of the block-encoding for this operator is given in Figure \ref{fig:fermionic-be-lc-not-conjugate}.
-This block-encoding circuit has an optimal rescaling factor ($\lambda = 1$), requires one block-encoding ancilla and two clean ancillae, and uses $8$ T gates.
+This block-encoding circuit has a rescaling factor of $\lambda = 1$, requires one block-encoding ancilla and two clean ancillae, and uses $8$ T gates.
 
 \subsection{Bosonic Ladder Operators}
 
@@ -299,13 +307,18 @@ where $\omega_i$ is the occupation number of the $i^\text{th}$ bosonic mode and 
         \textbf{Bosonic Ladder Operator Block-Encoding}
         In (a), a block-encoding for the bosonic creation operator ($a_i^\dagger$) is given.
         In (b), a block-encoding for the bosonic annihilation operator ($a_i$) is given.
+        The ``$\plus 1$'' operation depicts an incrementer.
+        The ``$\minus 1$'' operation depicts a decrementer.
+        The ``$In_\omega - R_y(\alpha_\omega)$'' operation depicts a series of uniformly controlled $R_y$ rotations.
     }
     \label{fig:bosonic-ladder-op-be}
 \end{figure}
 
 The desired action of the block-encoding circuit for the bosonic creation operator is to increase the occupation of the bosonic mode by $1$ and rotate the block-encoding ancilla such that it has a coefficient of $\sqrt{\omega_i + 1 / \Omega}$ in the $\ket{0}$ state when the initial occupation of the $i^\text{th}$ bosonic mode is $w_i$.
-This can be achieved by applying an incrementer to the the bosonic mode which increases the occupation by $1 \mod \Omega$ in each branch of the wavefunction.
-The desired amplitudes of the block-encoding ancilla can be obtained using a series of $R_y$ gates that are controlled on the corresponding bosonic occupation.
+This can be achieved by applying an incrementer circuit to the bosonic mode.
+This incrementer increases the occupation by $1 \mod \Omega$ in each branch of the wavefunction.
+The desired amplitudes of the block-encoding ancilla can be obtained using a series of uniformly controlled $R_y$ gates that are controlled on the corresponding bosonic occupation.
+
 An example circuit diagram is given in subfigure \ref{fig:bosonic-ladder-op-be}a.
 A block-encoding for the bosonic annihilation operator can be constructed similarly, but with the block-encoding ancilla rotated prior to the occupation of the mode being decremented (subfigure \ref{fig:bosonic-ladder-op-be}b).
 
@@ -321,11 +334,13 @@ The angles of the $R_y$ gates are determined classically by the following functi
 where $\omega_i$ here in comparison with $\omega_i + 1$ in Eq. \ref{eq:be-bos-creation} is due to the occupation of the state being updated prior to the controlled rotations.
 
 
-An implementation of a controlled incrementer circuit is given in \cite{Gidney_2015} which requires $\lceil \log_2\Omega \rceil - 1$ clean ancillae and $3 \lceil \log_2\Omega \rceil$ T gates.
+An implementation of a controlled incrementer circuit is given in \cite{Gidney_2015} and depicted here in Figure \ref{fig:incrementer}.
+This implementation requires $\lceil \log_2\Omega \rceil - 1$ clean ancillae and $3 \lceil \log_2\Omega \rceil$ T gates.
 The series of uniformly controlled rotations can be decomposed via the protocol given in Möttönen et. al \cite{mottonen2004transformation}.
 A discussion of different schemes to construct a \textit{controlled} set of uniformly controlled rotations is given in Appendix \ref{sec:multiplexed-rotations}.
-The resource estimates quoted in the remainder of this work assume the decomposition that requires (at most) $\Omega + 3$ uncontrolled rotations and $4 \lceil{\log_2{\Omega}}\rceil$ T gates (Figure \ref{fig:gate-optimized-controlled-multiplexed-rotations}).
-In total, this block-encoding has an optimal rescaling factor ($\sqrt{\Omega}$), requires one block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil$ clean ancillae, and uses $7 \lceil \log_2\Omega \rceil$ T gates and (at most) $\Omega + 3$ arbitrary rotations.
+The resource estimates quoted in the remainder of this work assume the decomposition that requires (at most) $\Omega + 3$ uncontrolled rotations and $4 \lceil{\log_2{\Omega}}\rceil$ T gates (Figure \ref{fig:controlled-multiplexed-rotations}).
+
+In total, this block-encoding has a rescaling factor of $\lambda = \sqrt{\Omega}$, requires one block-encoding ancilla and $\lceil{\log_2{\Omega}}\rceil$ clean ancillae, and uses $7 \lceil \log_2\Omega \rceil$ T gates and (at most) $\Omega + 3$ arbitrary rotations.
 
 
 \subsection{Products of Bosonic Ladder Operators}
@@ -335,18 +350,20 @@ Unlike fermions, multiple bosons can occupy the same bosonic mode and a series o
 Products of bosonic ladder operators acting on different modes can be block-encoded using the methods described in subsection \ref{subsec:be-products}.
 
 Consider the desired action of a block-encoding for series of $R$ bosonic creation operators acting on the $i^\text{th}$ bosonic mode:
-\begin{widetext}
 \begin{equation}
     \label{eq:be-S-creation-ops}
     \begin{split}
-        U_{(a^\dagger_i)^R} \ket{\psi_{i_a}} \ket{0}_\text{anc} =
+        U_{(a^\dagger_i)^R} \ket{\psi_{i_a}} \ket{0}_\text{anc} = \\
         \begin{cases}
-            \prod_{r=1}^{R} \sqrt{(\omega_i + r) / \Omega} \ket{\omega_i + R} \ket{0}_\text{anc} + \beta \ket{\perp} & \text{when } \omega_i \leq \Omega - R \\
+            f(\omega_i) \ket{\omega_i + R} \ket{0}_\text{anc} + \beta \ket{\perp} & \text{when } \omega_i \leq \Omega - R \\
             \ket{\perp} & \text{when } \omega_i > \Omega - R \\
         \end{cases}
     \end{split}
 \end{equation}
-\end{widetext}
+where
+\begin{equation}
+    f(\omega_i) = \prod_{r=1}^{R} \sqrt{(\omega_i + r) / \Omega}
+\end{equation}
 
 \begin{figure}
     \include{figures/qpic-code/bosonic/products/R-creation}
@@ -409,7 +426,7 @@ In total, these block-encoding circuits have a rescaling factor of $\lambda = \O
 
 \subsection{Linear Combinations of Bosonic Ladder Operators}
 
-In this subsection, we discuss constructing block-encodings for a linear combination of a product of bosonic ladder operators with its hermitian conjugate.
+In this subsection, we discuss constructing block-encodings for a linear combination of a product of bosonic ladder operators with its Hermitian conjugate.
 
 
 \begin{figure*}
@@ -441,7 +458,7 @@ A block-encoding for the generalized operator $\big((a_i^\dagger)^R (a_i)^S + (a
     \label{fig:lc-bosonic-general}
 \end{figure*}
 
-Likewise, this construction can be generalized to a linear combination of a product of bosonic operators acting on different modes plus its hermitian conjugate.
+Likewise, this construction can be generalized to a linear combination of a product of bosonic operators acting on different modes plus its Hermitian conjugate.
 An example circuit diagram for this construction is shown in Figure \ref{fig:lc-bosonic-general}.
 For an operator acting on $B$ bosonic modes, these block-encodings have a rescaling factor of $\lambda = 2 \Omega^{P/2}$ where $P$ is the sum of the exponents of the operators in a term: $P = \sum_{b=0}^{B-1}(R_b+S_b)$.
 Additionally, they require $B+1$ block-encoding ancillae and $\lceil{\log_2{\Omega}}\rceil + 1$ clean ancillae, and use (at most) \ws{double check this} $12B \lceil \log_2 \Omega \rceil - 4(B - 1)$ T gates and $B(\Omega + 3)$ arbitrary rotations.

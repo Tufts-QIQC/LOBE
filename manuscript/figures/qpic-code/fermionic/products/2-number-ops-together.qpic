@@ -1,7 +1,7 @@
 ctrl W \text{(b) }ctrl
 anc W anc
-i W \psi_i
-j W \psi_j
+i W n_i
+j W n_j
 clean0 W 0 0
 
 i j +clean0

@@ -1,11 +1,11 @@
 c W \text{(b) }ctrl
 a W anc
-i W \psi_i
-j W \psi_j
-k W \psi_k
-l W \psi_l
-m W \psi_m
-n W \psi_n
+i W n_i
+j W n_j
+k W n_k
+l W n_l
+m W n_m
+n W n_n
 clean W 0 0
 
 i / ^{i<j}

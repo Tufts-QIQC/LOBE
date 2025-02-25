@@ -3,10 +3,10 @@ PREAMBLE \definecolor{torange}{RGB}{253,143,41}
 
 ctrl W ctrl
 anc W anc
-i W \psi_i
-j W \psi_j
+i W n_i
+j W n_j
 sys W \vdots
-m W \psi_m
+m W n_m
 clean W 0 0 
 
 sys +m

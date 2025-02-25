@@ -108,7 +108,7 @@ An alternative framework proposed by Childs et. al \cite{childs2012hamiltonian} 
     A = \sum_{l=0}^{L-1} \alpha_l U_l
 \end{equation}
 where $\alpha_l$ are positive, real-valued coefficients and each $U_l$ is a unitary operator.
-For terms with negative or imaginary coefficients, the sign and imaginary phase can be absorbed into the operator: $-i \alpha_l U_l = \alpha_l (-i U_l)$.
+Without loss of generality, the phase of an operator can be absorbed into the operator such that the coefficient is positive and real: $-i \alpha_l U_l = \alpha_l (-i U_l)$.
 Likewise, a term with a complex coefficient can be treated as two distinct terms, each with a real coefficient.
 
 To generate an LCU block-encoding, two oracles, \textit{Prepare} and \textit{Select}, are required. The \textit{Prepare} oracle serves a similar role to the $O_A$ oracle in that it loads the coefficients or the values of the matrix elements onto the quantum computer.
@@ -189,7 +189,7 @@ A natural question to ask is if the structure of an LCU block-encoding can be ge
     \label{eq:lco}
     A = \sum_{l=0}^{L-1} \alpha_l O_l
 \end{equation}
-where $O_l$ are operators and we again restrict the coefficients $\alpha_l$ to be positive and real-valued for clarity.
+where $O_l$ are operators and we again restrict the coefficients $\alpha_l$ to be positive and real-valued without loss of generality.
 
 Let the set of unitary operators $\{U_l\}$ represent block-encodings of the operators $O_l$:
 \begin{equation}
@@ -206,7 +206,6 @@ Then an LCU block-encoding of $\Tilde{A}$ will also give a block-encoding of $A$
     \lambda = \sum_{l=0}^{L-1} |\alpha_l \lambda_l|
 \end{equation}
 
-\ws{Is this paragraph helpful/necessary or should it be removed?}
 The fact that $U_{\Tilde{A}}$ block-encodes $A$ can be seen from the linearity of the operators themselves:
 \begin{equation}
     \begin{split}
@@ -231,7 +230,7 @@ The fact that $U_{\Tilde{A}}$ block-encodes $A$ can be seen from the linearity o
     \end{split}
 \end{equation}
 It is clear from this form that the block-encodings $\{U_l\}$ must all have the same encoded subspace as they would otherwise not yield the desired linear combination in the encoded subspace of $U_{\Tilde{A}}$.
-It is also worth noting that the block-encodings $\{U_l\}$ may all use the same block-encoding ancillae as long as the implementation of the \textit{Select} oracle ensures that the block-encoding ancillae begin in the all-zero state in the subspace in which each block-encoding unitary is applied.
+It is also worth noting that the block-encodings $\{U_l\}$ may all use the same block-encoding ancillae as long as the implementation of the \textit{Select} oracle ensures that the block-encoding ancillae begin in the all-zero state in the subspace in which each individual block-encoding unitary is applied.
 
 In this work, we will refer to a block-encoding of this form as a Linear Combination of Operators (LCO).
 As noted in prior works \cite{berry2015simulating, childs2017quantum, gilyen2019quantum, lin2022lecture, jennings2023efficient}, an LCO can be thought of as generalization of LCU to produce a block-encoding for a linear combination of matrices.

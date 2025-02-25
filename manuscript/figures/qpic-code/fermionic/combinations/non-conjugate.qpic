@@ -1,8 +1,8 @@
 ctrl W ctrl
 anc W anc
-i W \psi_i
-j W \psi_j
-k W \psi_k
+i W n_i
+j W n_j
+k W n_k
 c1 W 0 0
 
 

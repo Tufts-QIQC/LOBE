@@ -13,12 +13,12 @@
 % Line 4: anc_l W anc_{a_l}
 \draw[color=black] (0.000000,60.000000) -- (327.000000,60.000000);
 \draw[color=black] (0.000000,60.000000) node[left] {$anc_{a_l}$};
-% Line 5: i W b_i
+% Line 5: i W n_i
 \draw[color=black] (0.000000,45.000000) -- (327.000000,45.000000);
-\draw[color=black] (0.000000,45.000000) node[left] {$b_i$};
-% Line 6: j W b_j
+\draw[color=black] (0.000000,45.000000) node[left] {$n_i$};
+% Line 6: j W n_j
 \draw[color=black] (0.000000,30.000000) -- (327.000000,30.000000);
-\draw[color=black] (0.000000,30.000000) node[left] {$b_j$};
+\draw[color=black] (0.000000,30.000000) node[left] {$n_j$};
 % Line 7: k W \omega_k
 \draw[color=black] (0.000000,15.000000) -- (327.000000,15.000000);
 \draw[color=black] (0.000000,15.000000) node[left] {$\omega_k$};
@@ -33,7 +33,7 @@
 \draw (6.000000, -6.000000) -- (14.000000, 6.000000);
 \draw (12.000000, 3.000000) node[right] {$\scriptstyle{^{\log_2{\Omega}}}$};
 % Line 12: ctrl i j anc_b anc_k anc_l k l LABEL width=1
-% Line 14: k G width=20 $+1$ l G width=20 $+1$ ctrl -i
+% Line 14: k G width=20 $+1$ l G width=20 $+1$ ctrl i
 \draw (49.000000,105.000000) -- (49.000000,0.000000);
 \begin{scope}
 \draw[fill=white] (49.000000, 15.000000) +(-45.000000:14.142136pt and 8.485281pt) -- +(45.000000:14.142136pt and 8.485281pt) -- +(135.000000:14.142136pt and 8.485281pt) -- +(225.000000:14.142136pt and 8.485281pt) -- cycle;
@@ -46,7 +46,7 @@
 \draw (49.000000, -0.000000) node {$+1$};
 \end{scope}
 \filldraw (49.000000, 105.000000) circle(1.500000pt);
-\draw[fill=white] (49.000000, 45.000000) circle(2.250000pt);
+\filldraw (49.000000, 45.000000) circle(1.500000pt);
 % Line 15: anc_k G:width=35 $R_y(\theta_w)$ k G:width=20 $In_\omega$ ctrl
 \draw (88.500000,105.000000) -- (88.500000,15.000000);
 \begin{scope}
@@ -73,7 +73,7 @@
 \draw (135.500000, -0.000000) node {$In_\omega$};
 \end{scope}
 \filldraw (135.500000, 105.000000) circle(1.500000pt);
-% Line 17: k G width=20 $-1$ l G width=20 $-1$ ctrl i
+% Line 17: k G width=20 $-1$ l G width=20 $-1$ ctrl -i
 \draw (175.000000,105.000000) -- (175.000000,0.000000);
 \begin{scope}
 \draw[fill=white] (175.000000, 15.000000) +(-45.000000:14.142136pt and 8.485281pt) -- +(45.000000:14.142136pt and 8.485281pt) -- +(135.000000:14.142136pt and 8.485281pt) -- +(225.000000:14.142136pt and 8.485281pt) -- cycle;
@@ -86,7 +86,7 @@
 \draw (175.000000, -0.000000) node {$-1$};
 \end{scope}
 \filldraw (175.000000, 105.000000) circle(1.500000pt);
-\filldraw (175.000000, 45.000000) circle(1.500000pt);
+\draw[fill=white] (175.000000, 45.000000) circle(2.250000pt);
 % Line 19: i +j
 \draw (200.000000,45.000000) -- (200.000000,30.000000);
 \filldraw (200.000000, 45.000000) circle(1.500000pt);

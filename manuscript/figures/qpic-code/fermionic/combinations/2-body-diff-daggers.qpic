@@ -1,9 +1,9 @@
 c W \text{(a) }ctrl
 a W anc
-i W \psi_i
-j W \psi_j
-k W \psi_k
-l W \psi_l
+i W n_i
+j W n_j
+k W n_k
+l W n_l
 
 i / ^{i<j}
 k / ^{j<k<l}

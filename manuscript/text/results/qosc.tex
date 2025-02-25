@@ -1,4 +1,4 @@
-\subsection{Quartic Harmonic Oscillator Results}
+\subsection{Quartic Harmonic Oscillator}
 \label{sec:qosc_results}
 
 The quartic harmonic oscillator \cite{PhysRev.184.1231, girguś2024spiralflowquantumquartic, wójcik2012applicationnumericalrenormalizationgroup} is an extension of the standard harmonic oscillator with an additional non-linearity of the form $g \varphi^4$, where $g$ is an arbitrary constant that dictates the strength of the interaction, and $\phi$ is a bosonic field.
@@ -12,7 +12,7 @@ In a second-quantized, dimensionless form, the Hamiltonian can be written as:
 \end{equation}
 where there is only one bosonic mode.
 
-After expanding the product, normal ordering all terms, and removing the constant offset, this Hamiltonian can be written as a linear combination of $8$ terms consisting of three pairs of operators plus their hermitian conjugates and two operators that are their own hermitian conjugates:
+After expanding the product, normal ordering all terms, and removing the constant offset, this Hamiltonian can be written as a linear combination of $8$ terms consisting of three pairs of operators plus their Hermitian conjugates and two operators that are their own Hermitian conjugates:
 \begin{equation}
     \begin{split}
         H = &(12g + 1) a^\dagger a + 6g a^{\dagger^2} a^2 + 6g \left(a^{\dagger^2} + a^2 \right) \\
@@ -28,7 +28,7 @@ After expanding the product, normal ordering all terms, and removing the constan
         The number of T gates (upper-left), number of non-Clifford rotations (lower-left), block-encoding ancillae (upper-middle), maximum number of qubits used (lower-middle), and rescaling factor (lower-right) are shown as a function of the bosonic occupation cutoff ($\Omega$).
         The parameter $g$ is set to $1$ for all data points.
         Results for the Pauli Expansion method are shown as the orange triangles and results for LOBE are shown as the blue circles.
-        The optimal rescaling factor, which is given by the L2 norm of the Hamiltonian, is shown as the dashed black crosses.
+        The L2 norm of the Hamiltonian is shown as the dashed black crosses.
     }
 \end{figure*}
 

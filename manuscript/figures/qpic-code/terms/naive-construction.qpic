@@ -1,7 +1,7 @@
 ctrl W \text{(a) }ctrl
 index W index
 anc_b W anc_b
-i W b_i
+i W n_i
 anc_a W anc_{a_j}
 j W \omega_j
 
