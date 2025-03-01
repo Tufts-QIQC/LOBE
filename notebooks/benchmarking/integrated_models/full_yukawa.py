@@ -17,7 +17,10 @@ from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from tests._utils import _validate_block_encoding
 from openparticle import generate_matrix
-from src.lobe._utils import get_basis_of_full_system
+from src.lobe._utils import (
+    get_basis_of_full_system,
+    predict_number_of_block_encoding_ancillae,
+)
 
 
 def _blank_be_func(ctrls=([], [])):
@@ -27,7 +30,9 @@ def _blank_be_func(ctrls=([], [])):
 def lobeify(operator, max_bosonic_occupancy):
     terms = operator.group()
 
-    number_of_block_encoding_anillae = 3
+    number_of_block_encoding_anillae = max(
+        [predict_number_of_block_encoding_ancillae(group) for group in terms]
+    )
     index_register = [
         cirq.LineQubit(-i - 2) for i in range(int(np.ceil(np.log2(len(terms)))))
     ]
@@ -128,7 +133,7 @@ def _get_hamiltonian_norm(operator, maximum_occupation_number):
     return np.linalg.norm(matrix, ord=2)
 
 
-def get_phi4_data_changing_resolution(omega, resolutions):
+def get_data_varying_resolution(omega, resolutions):
     LCU_DATA = []
     LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
@@ -141,15 +146,15 @@ def get_phi4_data_changing_resolution(omega, resolutions):
         LCU_DATA.append(lcuify(operator, omega))
         LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
         LOBE_DATA.append(lobeify(operator, omega))
-        operator_norms.append(_get_hamiltonian_norm(operator, omega))
+        # operator_norms.append(_get_hamiltonian_norm(operator, omega))
 
     return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms
 
 
-resolution_range = np.arange(2, 7, 1)
-omega = 3
-LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = (
-    get_phi4_data_changing_resolution(omega, resolution_range)
+resolution_range = np.arange(2, 9, 1)
+omega = 7
+LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = get_data_varying_resolution(
+    omega, resolution_range
 )
 
 import pickle

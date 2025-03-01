@@ -192,7 +192,7 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
     return np.linalg.norm(matrix, ord=2)
 
 
-def get_phi4_data_changing_resolution(omega, resolutions):
+def get_data(omega, resolutions):
     LCU_DATA = []
     LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
@@ -211,8 +211,8 @@ def get_phi4_data_changing_resolution(omega, resolutions):
 
 resolution_range = np.arange(2, 8, 1)
 omega = 3
-LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = (
-    get_phi4_data_changing_resolution(omega, resolution_range)
+LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = get_data(
+    omega, resolution_range
 )
 
 import pickle

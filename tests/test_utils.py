@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
-from src.lobe._utils import pretty_print
+from openparticle import ParticleOperator
+from src.lobe._utils import pretty_print, predict_number_of_block_encoding_ancillae
 
 
 def test_pretty_print_all_zeros():
@@ -49,3 +50,21 @@ def test_pretty_print_separates_registers_properly():
     pretty_print_string = pretty_print(wavefunction, [1, 2]).replace(" ", "")
     expected_string = "1.0|0|01>\n"
     assert pretty_print_string == expected_string
+
+
+@pytest.mark.parametrize(
+    ["operator", "expected_be_ancillae"],
+    [
+        (ParticleOperator("b0 b1 b2 b3^"), 1),
+        (ParticleOperator("b0 b1 b2 b3^") + ParticleOperator("b3^ b2 b1 b0"), 1),
+        (ParticleOperator("a0 a1 b2 b3^") + ParticleOperator("a1^ a0 b1 b0"), 3),
+        (ParticleOperator("a0 a1^ a1 a1 a3"), 3),
+        (
+            ParticleOperator("a0 a1^ a1 a1 a3")
+            + ParticleOperator("a3^ a1^ a1^ a1 a0^"),
+            4,
+        ),
+    ],
+)
+def test_predict_number_of_block_encoding_ancillae(operator, expected_be_ancillae):
+    assert predict_number_of_block_encoding_ancillae(operator) == expected_be_ancillae

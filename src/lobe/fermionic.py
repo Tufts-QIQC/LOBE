@@ -19,9 +19,9 @@ def fermionic_product_block_encoding(
         - block_encoding_ancillae (List[cirq.LineQubit]): A list with a single block-encoding ancilla qubit
         - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
-        - operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set to
-            0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
-            number operator
+        - operator_types (List[int]): A list of ints indicating the type of ladder operators acting on each mode. Set
+            to 0 if operator is a annihilation/lowering ladder operator (b_i). 1 if creation/raising ladder operator
+            (b_i^\dagger). 2 if b_i^\dagger b_i. 3 if b_i b_i^dagger
         - sign (int): Either 1 or -1 to indicate the sign of the term
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
@@ -52,7 +52,7 @@ def fermionic_product_block_encoding(
             )
         )
         block_encoding_metrics.add_to_clean_ancillae_usage(-1)
-        if operator_types[0] != 2:
+        if (operator_types[0] != 2) and (operator_types[0] != 3):
             op_gates, op_metrics = _apply_fermionic_ladder_op(
                 system, active_indices[0], ctrls=ctrls
             )
@@ -67,12 +67,17 @@ def fermionic_product_block_encoding(
     non_number_op_indices = []
     non_number_op_types = []
     number_op_qubits = []
+    number_op_controls = []
     for type, index in zip(operator_types, active_indices):
-        if type != 2:
+        if (type != 2) and (type != 3):
             non_number_op_types.append(type)
             non_number_op_indices.append(index)
         else:
             number_op_qubits.append(system.fermionic_modes[index])
+            if type == 2:
+                number_op_controls.append(1)
+            elif type == 3:
+                number_op_controls.append(0)
 
     # Use left-elbow to store temporary logical AND of parity qubits and control
     block_encoding_metrics.add_to_clean_ancillae_usage(len(active_indices) - 1)
@@ -90,7 +95,7 @@ def fermionic_product_block_encoding(
                 control_values=(
                     [int(not i) for i in non_number_op_types]
                 )  # controlled by occupancies of the active modes
-                + ([1] * len(number_op_qubits)),
+                + number_op_controls,
             )
         )
     )

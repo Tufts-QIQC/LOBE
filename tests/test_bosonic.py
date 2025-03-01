@@ -10,9 +10,8 @@ from src.lobe.bosonic import (
     bosonic_product_plus_hc_block_encoding,
 )
 from src.lobe.index import index_over_terms
-from src.lobe.rescale import get_number_of_active_bosonic_modes
 from src.lobe.system import System
-from src.lobe._utils import get_bosonic_exponents
+from src.lobe._utils import get_bosonic_exponents, get_number_of_active_bosonic_modes
 
 from _utils import (
     _setup,
