@@ -1,12 +1,11 @@
-from openparticle import ParticleOperator
-import numpy as np
 import cirq
+import numpy as np
+from functools import partial
 from symmer import PauliwordOp
 from symmer.operators.utils import symplectic_to_string
-from .metrics import CircuitMetrics
 from .asp import get_target_state, add_prepare_circuit
 from .index import index_over_terms
-from functools import partial
+from .metrics import CircuitMetrics
 
 
 def estimate_pauli_lcu_rescaling_factor_and_number_of_be_ancillae(
@@ -144,97 +143,6 @@ GATE_SELECTION = {
     ("I", -1j): [cirq.rz(np.pi), cirq.Z],
     ("I", -1): [cirq.rz(2 * np.pi)],
 }
-
-
-class LCU:
-
-    def __init__(
-        self,
-        operator: ParticleOperator,
-        max_bosonic_occupancy: int,
-        zero_threshold: float = 1e-15,
-    ):
-        self.operator = operator
-        self.zero_threshold = zero_threshold
-        paulis = operator.to_paulis(
-            max_fermionic_mode=operator.max_fermionic_mode,
-            max_antifermionic_mode=operator.max_antifermionic_mode,
-            max_bosonic_mode=operator.max_bosonic_mode,
-            max_bosonic_occupancy=max_bosonic_occupancy,
-            zero_threshold=zero_threshold,
-        )
-
-        self.paulis = seperate_real_imag(paulis, zero_threshold=zero_threshold)
-
-        self.coeffs = self.paulis.coeff_vec
-
-        self.prep_coeffs, self.one_norm = _get_prep_vector(self.coeffs)
-
-        self.target_state = get_target_state(self.coeffs)
-        self.number_of_index_qubits = max(int(np.ceil(np.log2(self.paulis.n_terms))), 1)
-        self.index_register = [
-            cirq.LineQubit(i) for i in range(self.number_of_index_qubits)
-        ]
-        self.system_register = [
-            cirq.LineQubit(1000 + i + self.number_of_index_qubits)
-            for i in range(self.paulis.n_qubits)
-        ]
-        self.number_of_system_qubits = len(self.system_register)
-        self.clean_ancillae = [cirq.LineQubit(-1 - i) for i in range(100)]
-        self.circuit_metrics = CircuitMetrics()
-
-    @classmethod
-    def add_select_oracle(
-        cls, index_register, paulis, system_register, clean_ancillae=[], ctrls=([], [])
-    ):
-        return _select_paulis(
-            index_register,
-            paulis,
-            system_register,
-            clean_ancillae=clean_ancillae,
-            ctrls=ctrls,
-        )
-
-    def get_circuit(self, ctrls=([], [])):
-        self.circuit = cirq.Circuit()
-        self.circuit_metrics = CircuitMetrics()
-
-        _gates, _metrics = add_prepare_circuit(
-            self.index_register,
-            target_state=self.target_state,
-            clean_ancillae=self.clean_ancillae,
-        )
-        self.circuit.append(_gates)
-        self.circuit_metrics += _metrics
-
-        _gates, _metrics = _select_paulis(
-            self.index_register,
-            self.paulis,
-            system_register=self.system_register,
-            clean_ancillae=self.clean_ancillae,
-            ctrls=ctrls,
-        )
-        self.circuit.append(_gates)
-        self.circuit_metrics += _metrics
-
-        _gates, _metrics = add_prepare_circuit(
-            self.index_register,
-            target_state=self.target_state,
-            dagger=True,
-            clean_ancillae=self.clean_ancillae,
-        )
-        self.circuit.append(_gates)
-        self.circuit_metrics += _metrics
-
-        return self.circuit
-
-    @property
-    def unitary(self):
-        circuit = self.get_circuit()
-        upper_left_block = circuit.unitary(dtype=complex)[
-            : 1 << self.number_of_system_qubits, : 1 << self.number_of_system_qubits
-        ]
-        return upper_left_block * self.one_norm
 
 
 def _map_complex_to_key(complex_number):

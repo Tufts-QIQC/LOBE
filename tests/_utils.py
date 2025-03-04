@@ -188,7 +188,15 @@ def _validate_clean_ancillae_are_cleaned(
     circuit,
     system,
     number_of_block_encoding_ancillae,
+    max_qubits=18,
+    using_pytest=True,
 ):
+    if len(circuit.all_qubits()) >= max_qubits:
+        if using_pytest:
+            pytest.skip(f"Too many qubits to validate: {len(circuit.all_qubits())}")
+        else:
+            print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
+
     simulator = cirq.Simulator()
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
@@ -250,7 +258,15 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     circuit,
     system,
     number_of_block_encoding_ancillae,
+    max_qubits=18,
+    using_pytest=True,
 ):
+    if len(circuit.all_qubits()) >= max_qubits:
+        if using_pytest:
+            pytest.skip(f"Too many qubits to validate: {len(circuit.all_qubits())}")
+        else:
+            print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
+
     simulator = cirq.Simulator()
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits

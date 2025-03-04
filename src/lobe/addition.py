@@ -4,6 +4,21 @@ from .metrics import CircuitMetrics
 
 
 def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], [])):
+    """Coherently increment a quantum register encoding an integer in binary by a known classical value.
+
+    Args:
+        - register (List[cirq.LineQubit]): The register of qubits encoding the integer in binary
+        - classical_value (int): The known classical value to increment the register by. Integer can be positive or
+            negative
+        - clean_ancillae (List[cirq.LineQubit]): A list of clean ancillae that are promised to begin and end in the
+            all zero state when adding these operations to a circuit
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
+    """
     incrementers_circuit, incrementers_metrics = add_classical_value_incrementers(
         register, classical_value, clean_ancillae, ctrls=ctrls
     )
@@ -20,6 +35,20 @@ def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], []
 def add_classical_value_incrementers(
     register, classical_value, clean_ancillae, ctrls=([], [])
 ):
+    """Coherently increment a quantum register by a known classical value using several incrementer circuits.
+
+    Args:
+        - register (List[cirq.LineQubit]): The register of qubits encoding the integer in binary
+        - classical_value (int): The known classical value to increment the register by
+        - clean_ancillae (List[cirq.LineQubit]): A list of clean ancillae that are promised to begin and end in the
+            all zero state when adding these operations to a circuit
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
+    """
     classical_value = classical_value % (1 << len(register))
     adder_metrics = CircuitMetrics()
 
@@ -65,10 +94,23 @@ def add_classical_value_incrementers(
     return outcomes[0], metrics_list[0]
 
 
-def add_incrementer(register, clean_ancilla, decrement=False, ctrls=([], [])):
-    """This function adds an oracle to our circuit that increments the binary value of the register by +/- 1.
+def add_incrementer(register, clean_ancillae, decrement=False, ctrls=([], [])):
+    """Coherently increment a quantum register encoding an integer in binary by 1.
 
-    Implementation: https://algassert.com/circuits/2015/06/12/Constructing-Large-Increment-Gates.html
+    NOTE:
+        Implementation based on https://algassert.com/circuits/2015/06/12/Constructing-Large-Increment-Gates.html
+
+    Args:
+        - register (List[cirq.LineQubit]): The register of qubits encoding the integer in binary
+        - clean_ancillae (List[cirq.LineQubit]): A list of clean ancillae that are promised to begin and end in the
+            all zero state when adding these operations to a circuit
+        - decrement (bool): If True, decrements the register by 1. If falls, increments the register by 1.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
     """
     assert len(ctrls[0]) <= 1
     gates = []
@@ -77,7 +119,7 @@ def add_incrementer(register, clean_ancilla, decrement=False, ctrls=([], [])):
     if decrement:
         gates.append(cirq.Moment(cirq.X.on_each(*register)))
         _gates, _metrics = add_incrementer(
-            register, clean_ancilla, decrement=False, ctrls=ctrls
+            register, clean_ancillae, decrement=False, ctrls=ctrls
         )
         gates += _gates
         incrementer_metrics += _metrics
@@ -87,7 +129,7 @@ def add_incrementer(register, clean_ancilla, decrement=False, ctrls=([], [])):
     if len(ctrls[0]) == 1:
         if ctrls[1][0] == 0:
             gates.append(cirq.X.on(ctrls[0][0]))
-        _gates, _metrics = add_incrementer(register + ctrls[0], clean_ancilla)
+        _gates, _metrics = add_incrementer(register + ctrls[0], clean_ancillae)
         gates += _gates
         incrementer_metrics += _metrics
         gates.append(cirq.Moment(cirq.X.on(ctrls[0][0])))
@@ -113,20 +155,20 @@ def add_incrementer(register, clean_ancilla, decrement=False, ctrls=([], [])):
         first_control = register[0]
         second_control = register[1]
         while counter < len(register) - 2:
-            clean = clean_ancilla[counter]
+            clean = clean_ancillae[counter]
             _gates, _metrics = _incremeneter_helper_left(
                 first_control, second_control, clean
             )
             gates += _gates
             incrementer_metrics += _metrics
             first_control = register[counter + 2]
-            second_control = clean_ancilla[counter]
+            second_control = clean_ancillae[counter]
             counter += 1
         counter -= 1
         while counter >= 1:
             first_control = register[counter + 1]
-            second_control = clean_ancilla[counter - 1]
-            clean = clean_ancilla[counter]
+            second_control = clean_ancillae[counter - 1]
+            clean = clean_ancillae[counter]
             target = register[counter + 2]
             _gates, _metrics = _incremeneter_helper_right(
                 first_control,
@@ -141,7 +183,7 @@ def add_incrementer(register, clean_ancilla, decrement=False, ctrls=([], [])):
         _gates, _metrics = _incremeneter_helper_right(
             register[0],
             register[1],
-            clean_ancilla[0],
+            clean_ancillae[0],
             register[2],
         )
         gates += _gates
@@ -155,6 +197,21 @@ def add_incrementer(register, clean_ancilla, decrement=False, ctrls=([], [])):
 def add_classical_value_gate_efficient(
     register, classical_value, clean_ancillae, ctrls=([], [])
 ):
+    """Coherently increment a quantum register encoding an integer in binary by a known classical value.
+
+    Args:
+        - register (List[cirq.LineQubit]): The register of qubits encoding the integer in binary
+        - classical_value (int): The known classical value to increment the register by. Integer can be positive or
+            negative
+        - clean_ancillae (List[cirq.LineQubit]): A list of clean ancillae that are promised to begin and end in the
+            all zero state when adding these operations to a circuit
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
+    """
     assert len(ctrls[0]) <= 1
     gates = []
     adder_metrics = CircuitMetrics()

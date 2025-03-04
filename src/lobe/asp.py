@@ -1,11 +1,20 @@
 import cirq
 import numpy as np
-from ._grover_rudolph import _grover_rudolph
-from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 from .metrics import CircuitMetrics
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
+from ._grover_rudolph import _grover_rudolph
 
 
 def get_target_state(coefficients):
+    """Obtain the target state to prepare based on the input coefficients
+
+    Args:
+        - coefficients (List[float]): The list of coefficients
+
+    Returns:
+        - np.ndarray: A list of complex amplitudes such that the squared magnitude of each element corresponds to
+            coefficient at the same index of the input list
+    """
     number_of_qubits = max(int(np.ceil(np.log2(len(coefficients)))), 1)
     norm = sum(np.abs(coefficients))
     target_state = np.zeros(1 << number_of_qubits, dtype=complex)
@@ -19,10 +28,10 @@ def get_grover_rudolph_instructions(target_state):
     """Helper function to parse the instructions returned by the grover-rudolph package.
 
     Args:
-        target_state (np.ndarray): The target state to prepare
+        - target_state (np.ndarray): The target state to prepare
 
     Returns:
-        List[List[Tuple[int, List[int], float, float]]]: A list of the rotations to perform
+        - List[List[Tuple[int, List[int], float, float]]]: A list of the rotations to perform
     """
     num_qubits = int(np.ceil(np.log2(len(target_state))))
     reordered_target_state = np.zeros(1 << num_qubits, dtype=complex)
@@ -62,11 +71,11 @@ def add_prepare_circuit(
     Implementation based on: https://arxiv.org/abs/quant-ph/0208112
 
     Args:
-        qubits (List[cirq.LineQubit]): The qubits that the circuit acts upon
-        target_state (np.ndarray): A numpy array describing the arbitrary quantum state
-        dagger (bool): Flag to determine if daggered operation is desired
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - qubits (List[cirq.LineQubit]): The qubits that the circuit acts upon
+        - target_state (np.ndarray): A numpy array describing the arbitrary quantum state
+        - dagger (bool): Flag to determine if daggered operation is desired
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:

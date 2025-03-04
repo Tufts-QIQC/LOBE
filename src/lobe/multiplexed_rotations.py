@@ -1,5 +1,5 @@
-import numpy as np
 import cirq
+import numpy as np
 from .metrics import CircuitMetrics
 
 
@@ -14,12 +14,12 @@ def get_decomposed_multiplexed_rotation_circuit(
     """Get the operations to add multiplexed rotations based on arXiv:0407010.
 
     Args:
-        indexing_register (List[cirq.LineQubit]): The qubit register on which the multiplexed rotations are indexed over.
-        rotation_qubit (cirq.LineQubit): The qubit on which the rotations are applied.
-        angles (np.array): A list of the rotation angles (alpha_i in arXiv:0407010)
-        dagger (bool): Flag to indicate if the circuit should be of the daggered form.
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - indexing_register (List[cirq.LineQubit]): The qubit register on which the multiplexed rotations are indexed over.
+        - rotation_qubit (cirq.LineQubit): The qubit on which the rotations are applied.
+        - angles (np.array): A list of the rotation angles (alpha_i in arXiv:0407010)
+        - dagger (bool): Flag to indicate if the circuit should be of the daggered form.
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
     Returns:
         - List[cirq.Moment]: A list of the circuit operations required for implementing multiplexed

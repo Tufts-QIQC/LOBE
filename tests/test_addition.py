@@ -1,5 +1,5 @@
-import pytest
 import cirq
+import pytest
 import numpy as np
 from src.lobe.addition import (
     add_incrementer,

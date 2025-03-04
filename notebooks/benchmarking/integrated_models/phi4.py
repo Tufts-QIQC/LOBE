@@ -30,7 +30,11 @@ from tests._utils import _validate_block_encoding
 from colors import *
 
 
-def phi4_LOBE_circuit_metrics(operator, maximum_occupation_number):
+def _blank_be_func(ctrls=([], [])):
+    return [], CircuitMetrics()
+
+
+def lobeify(operator, maximum_occupation_number):
 
     grouped_terms = operator.group()
 
@@ -40,7 +44,6 @@ def phi4_LOBE_circuit_metrics(operator, maximum_occupation_number):
     if len(grouped_terms) != len(operator.to_list()):
         number_of_block_encoding_ancillae += 1  # For grouped terms, need an additional BE ancilla to index between the group
 
-    # print(resolution, number_of_block_encoding_ancillae)
     index_register = [
         cirq.LineQubit(-i - 2) for i in range(int(np.ceil(np.log2(len(grouped_terms)))))
     ]
@@ -67,6 +70,12 @@ def phi4_LOBE_circuit_metrics(operator, maximum_occupation_number):
     block_encoding_functions = []
     rescaling_factors = []
     for term in grouped_terms:
+
+        if term.has_identity():
+            block_encoding_functions.append(_blank_be_func)
+            rescaling_factors.append(1)
+            continue
+
         plus_hc = False
         if len(term) == 2:
             plus_hc = True
@@ -75,7 +84,9 @@ def phi4_LOBE_circuit_metrics(operator, maximum_occupation_number):
             term, operator.max_bosonic_mode + 1
         )
 
-        if not plus_hc:
+        if term.has_identity():
+            pass
+        elif not plus_hc:
             block_encoding_functions.append(
                 partial(
                     bosonic_product_block_encoding,
@@ -178,168 +189,10 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
     basis = get_fock_basis(ham, maximum_occupation_number)
     matrix = generate_matrix(ham, basis)
 
-    # vals = np.linalg.eigvalsh(matrix)
-    # return max(np.abs(vals))
     return np.linalg.norm(matrix, ord=2)
 
 
-def plot_phi4_changing_occupancy():
-    omegas = [int(2**n - 1) for n in np.arange(1, 5, 1)]
-    resolution = 2
-    print("LOBE")
-
-    LOBE_DATA = [phi4_LOBE_circuit_metrics(resolution, omega) for omega in omegas]
-    print("LCU")
-    LCU_DATA = [phi4_lcu_circuit_metrics(resolution, omega) for omega in omegas]
-
-    operator_norms = []
-    for omega in omegas:
-        operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
-        operator.remove_identity()
-        operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
-        print(resolution, omega, operator_norms[-1])
-    system_qubits = [
-        System(
-            phi4_Hamiltonian(omega, 1, 1).max_bosonic_mode,
-            omega,
-            1000,
-            False,
-            False,
-            True,
-        ).number_of_system_qubits
-        for omega in omegas
-    ]
-
-    fig, axes = plt.subplots(3, 2, figsize=(16 / 2.54, 18 / 2.54))
-
-    axes[0][0].plot(
-        omegas,
-        [4 * LOBE_DATA[i][0].number_of_elbows for i in range(len(omegas))],
-        color=BLUE,
-        marker="o",
-        alpha=0.5,
-        label="LOBE",
-    )
-    axes[0][0].plot(
-        omegas,
-        [4 * LCU_DATA[i][0].number_of_elbows for i in range(len(omegas))],
-        color=ORANGE,
-        marker="^",
-        alpha=0.5,
-        label="LCU",
-    )
-    axes[0][0].set_ylabel("T-gates")
-    axes[0][0].set_xlabel("Occupancy ($\Omega$)")
-
-    axes[0][1].plot(
-        omegas,
-        [LOBE_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
-        color=BLUE,
-        marker="o",
-        alpha=0.5,
-        label="LOBE",
-    )
-    axes[0][1].plot(
-        omegas,
-        [LCU_DATA[i][0].number_of_nonclifford_rotations for i in range(len(omegas))],
-        color=ORANGE,
-        marker="^",
-        alpha=0.5,
-        label="LCU",
-    )
-    axes[0][1].set_ylabel("Rotations")
-    axes[0][1].set_xlabel("Occupancy ($\Omega$)")
-
-    axes[1][0].plot(
-        omegas,
-        [LOBE_DATA[i][2] for i in range(len(omegas))],
-        color=BLUE,
-        marker="o",
-        alpha=0.5,
-        label="LOBE",
-    )
-    axes[1][0].plot(
-        omegas,
-        [LCU_DATA[i][2] for i in range(len(omegas))],
-        color=ORANGE,
-        marker="^",
-        alpha=0.5,
-        label="LCU",
-    )
-    axes[1][0].set_ylabel("BE-Ancillae")
-    axes[1][0].set_xlabel("Occupancy ($\Omega$)")
-
-    axes[1][1].plot(
-        omegas,
-        [LOBE_DATA[i][1] for i in range(len(omegas))],
-        color=BLUE,
-        marker="o",
-        alpha=0.5,
-        label="LOBE",
-    )
-    axes[1][1].plot(
-        omegas,
-        [LCU_DATA[i][1] for i in range(len(omegas))],
-        color=ORANGE,
-        marker="^",
-        alpha=0.5,
-        label="LCU",
-    )
-    axes[1][1].plot(
-        omegas,
-        [operator_norms[i] for i in range(len(omegas))],
-        color="black",
-        marker="x",
-        ls="--",
-        alpha=0.5,
-    )
-    axes[1][1].set_ylabel("Rescaling Factor")
-    axes[1][1].set_xlabel("Occupancy ($\Omega$)")
-
-    axes[2][0].plot(
-        omegas,
-        [
-            LCU_DATA[i][0].ancillae_highwater() + LCU_DATA[i][2] + system_qubits[i] + 1
-            for i in range(len(omegas))
-        ],
-        color=ORANGE,
-        marker="^",
-        alpha=0.5,
-        label="LCU",
-    )
-    axes[2][0].plot(
-        omegas,
-        [
-            LOBE_DATA[i][0].ancillae_highwater()
-            + LOBE_DATA[i][2]
-            + system_qubits[i]
-            + 1
-            for i in range(len(omegas))
-        ],
-        color=BLUE,
-        marker="o",
-        alpha=0.5,
-        label="LOBE",
-    )
-    axes[2][0].plot(
-        [], [], color="black", marker="x", ls="--", alpha=0.5, label="Hamiltonian Norm"
-    )
-    axes[2][0].set_ylabel("Total Qubit Highwater")
-    axes[2][0].set_xlabel("Occupancy ($\Omega$)")
-
-    fig.delaxes(axes[2][1])
-    plt.tight_layout()
-    axes[2][0].legend(
-        loc="upper center",
-        bbox_to_anchor=(1.5, 0.75),
-        fancybox=True,
-        shadow=True,
-        ncol=1,
-    )
-    plt.show()
-
-
-def get_phi4_data_changing_resolution(omega, resolutions):
+def get_data(omega, resolutions):
     LCU_DATA = []
     LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
@@ -347,27 +200,25 @@ def get_phi4_data_changing_resolution(omega, resolutions):
     for resolution in resolutions:
         print("---", resolution, "---", omega, "---")
         operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
-        operator.remove_identity()
 
         LCU_DATA.append(lcuify(operator, omega))
         LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
-        LOBE_DATA.append(phi4_LOBE_circuit_metrics(operator, omega))
+        LOBE_DATA.append(lobeify(operator, omega))
         operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
 
     return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms
 
 
-# plot_phi4_changing_occupancy()
 resolution_range = np.arange(2, 8, 1)
 omega = 3
-LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = (
-    get_phi4_data_changing_resolution(omega, resolution_range)
+LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = get_data(
+    omega, resolution_range
 )
 
 import pickle
 
 with open(
-    f"phi4_{omega}_{resolution_range[0]}_{resolution_range[-1]}.pickle", "wb"
+    f"phi4_data/phi4_{omega}_{resolution_range[0]}_{resolution_range[-1]}.pickle", "wb"
 ) as handle:
     pickle.dump(
         (

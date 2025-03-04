@@ -3,6 +3,7 @@ import numpy as np
 
 
 class System:
+    """Object representing the 'system' register and other relevant system metrics."""
 
     def __init__(
         self,

@@ -4,6 +4,7 @@ CLIFFORD_ROTATION_ANGLES = [i * np.pi / 2 for i in range(9)]
 
 
 class CircuitMetrics:
+    """Object containing relevant circuit metrics to count."""
 
     def __init__(self):
         self.number_of_elbows = 0
@@ -12,7 +13,6 @@ class CircuitMetrics:
         self.rotation_angles = []
 
     def __add__(self, other):
-
         joined_metrics = CircuitMetrics()
         joined_metrics.number_of_elbows += (
             self.number_of_elbows + other.number_of_elbows
@@ -34,12 +34,22 @@ class CircuitMetrics:
         return joined_metrics
 
     def add_to_clean_ancillae_usage(self, change):
+        """Account for clean ancillae being used or freed
+
+        Args:
+            - change (int): The number of clean ancillae used (positive) or freed (negative)
+        """
         if len(self.clean_ancillae_usage) == 0:
             self.clean_ancillae_usage.append(change)
         else:
             self.clean_ancillae_usage.append(self.clean_ancillae_usage[-1] + change)
 
     def ancillae_highwater(self):
+        """Get the maximum number of clean ancillae used at any point in time during the circuit
+
+        Returns:
+            - int: The maximum number of clean ancillae
+        """
         if len(self.clean_ancillae_usage) != 0:
             return max(self.clean_ancillae_usage)
         else:
@@ -47,6 +57,7 @@ class CircuitMetrics:
 
     @property
     def number_of_nonclifford_rotations(self):
+        """The number of arbitrary rotations that are not merely Clifford operations"""
         number_of_nonclifford_rotations = 0
         for angle in self.rotation_angles:
             if not np.any(
@@ -60,10 +71,12 @@ class CircuitMetrics:
         return number_of_nonclifford_rotations
 
     def display_metrics(self):
+        """Print relevant metrics to screen"""
         print("--- Metrics ---")
         print("Number of elbows: ", self.number_of_elbows)
         print("Number of T-gates: ", self.number_of_t_gates)
         print(
             "Number of non-Clifford rotations: ", self.number_of_nonclifford_rotations
         )
+        print("Maximum number of used clean ancillae: ", self.ancillae_highwater())
         print("---------------")

@@ -4,14 +4,3 @@
 sparse_env/
 .DS_Store
 **/__pycache__/
-manuscript/*.aux
-manuscript/*.bbl
-manuscript/*.blg
-manuscript/*.fdb_latexmk
-manuscript/*.fls
-manuscript/*.log
-manuscript/*.out
-manuscript/*.synctex.gz
-manuscript/*Notes.bib
-manuscript/figures/qpic-code/**/*.aux
-

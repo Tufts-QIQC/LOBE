@@ -1,11 +1,11 @@
-from openparticle import ParticleOperator
+import pytest
 import numpy as np
+from functools import partial
+from openparticle import ParticleOperator
 from src.lobe.custom import (
     _custom_term_block_encoding,
     _custom_fermionic_plus_nonhc_block_encoding,
 )
-import pytest
-from functools import partial
 from _utils import (
     _setup,
     _validate_block_encoding,

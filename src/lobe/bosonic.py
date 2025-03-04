@@ -1,9 +1,9 @@
-from src.lobe.metrics import CircuitMetrics
-from src.lobe.addition import add_classical_value
-import numpy as np
 import cirq
+import numpy as np
+from .addition import add_classical_value
 from .decompose import decompose_controls_left, decompose_controls_right
-from src.lobe.multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
+from .metrics import CircuitMetrics
+from .multiplexed_rotations import get_decomposed_multiplexed_rotation_circuit
 from ._utils import _apply_negative_identity
 
 
@@ -22,16 +22,16 @@ def bosonic_product_block_encoding(
         $(a_i^\dagger)^{R_i} (a_i)^{S_i}) (a_j^\dagger)^{R_j} (a_j)^{S_j}) ... (a_l^\dagger)^{R_l} (a_l)^{S_l})$
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): A list of ancillae with length matching the number of
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): A list of ancillae with length matching the number of
             active indices. Each block-encoding ancilla is used to block-encode the operators acting on one mode
-        active_indices (List[int]): An integer representing the bosonic modes on which the operator acts in
+        - active_indices (List[int]): An integer representing the bosonic modes on which the operator acts in
             right to left order: [l, ..., j, i]
-        exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
+        - exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
             annihilation (Si) operators in the operator acting on mode i.
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
@@ -80,15 +80,15 @@ def bosonic_product_plus_hc_block_encoding(
          Hermitian conjugate
 
      Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
+        - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
-        exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
+        - exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
             annihilation (Si) operators in the operator acting on mode i.
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
      Returns:
@@ -174,18 +174,19 @@ def _add_multi_bosonic_rotations(
         to be normal ordered) acting on one bosonic mode within a term.
 
     Args:
-        rotation_qubit (cirq.LineQubit): The qubit that is rotated to pickup the amplitude corresponding
+        - rotation_qubit (cirq.LineQubit): The qubit that is rotated to pickup the amplitude corresponding
             to the coefficients that appear when a bosonic op hits a quantum state
-        bosonic_mode_register (List[cirq.LineQubit]): The qubits that store the occupation of the bosonic
+        - bosonic_mode_register (List[cirq.LineQubit]): The qubits that store the occupation of the bosonic
             mode being acted upon.
-        creation_exponent (int): The number of subsequent creation operators in the term
-        annihilation_exponent (int): The number of subsequent annihilation operators in the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - creation_exponent (int): The number of subsequent creation operators in the term
+        - annihilation_exponent (int): The number of subsequent annihilation operators in the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
-        - The gates to perform the unitary operation
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
     """
     maximum_occupation_number = (1 << len(bosonic_mode_register)) - 1
 
@@ -208,9 +209,9 @@ def _get_bosonic_rotation_angles(
     """Get the associated Ry rotation angles for an operator of the form: $a_i^\dagger^R a_i^S$
 
     Args:
-        maximum_occupation_number (int): The maximum allowed bosonic occupation ($\Omega$)
-        creation_exponent (int): The exponent on the creation operator (R)
-        annihilation_exponent (int): The exponent on the annihilation operator (R)
+        - maximum_occupation_number (int): The maximum allowed bosonic occupation ($\Omega$)
+        - creation_exponent (int): The exponent on the creation operator (R)
+        - annihilation_exponent (int): The exponent on the annihilation operator (R)
 
     Returns:
         - List of floats
@@ -254,13 +255,13 @@ def _single_bosonic_mode_block_encoding(
     NOTE: Assumes operator is written in the form: $(a_i^\dagger)^R (a_i)^S)$
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): The a list of block-encoding ancillae (should be length of one)
-        active_indices (List[int]): A list with one integer representing the bosonic mode on which the operator acts
-        exponents_list (List[Tuple(int, int)]): A list with one tuple of ints corresponds to the exponents of the operators: (R, S).
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): The a list of block-encoding ancillae (should be length of one)
+        - active_indices (List[int]): A list with one integer representing the bosonic mode on which the operator acts
+        - exponents_list (List[Tuple(int, int)]): A list with one tuple of ints corresponds to the exponents of the operators: (R, S).
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:

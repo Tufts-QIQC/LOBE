@@ -1,9 +1,9 @@
 import pytest
 import cirq
 import numpy as np
+from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from src.lobe.system import System
-from src.lobe.index import index_over_terms
 from _utils import _validate_clean_ancillae_are_cleaned
 
 

@@ -1,5 +1,7 @@
-from openparticle import ParticleOperator
+import pytest
 import numpy as np
+from functools import partial
+from openparticle import ParticleOperator
 from src.lobe.fermionic import (
     fermionic_plus_hc_block_encoding,
     fermionic_product_block_encoding,
@@ -10,8 +12,6 @@ from _utils import (
     _validate_clean_ancillae_are_cleaned,
     _validate_block_encoding_does_nothing_when_control_is_off,
 )
-import pytest
-from functools import partial
 
 
 MAX_MODES = 7

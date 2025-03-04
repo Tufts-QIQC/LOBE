@@ -1,9 +1,6 @@
 from openparticle.hamiltonians.yukawa_hamiltonians import yukawa_hamiltonian
-from openparticle import ParticleOperator
 import numpy as np
 import cirq
-import matplotlib.pyplot as plt
-
 import sys, os
 
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../../.."))
@@ -14,21 +11,28 @@ from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.rescale import rescale_coefficients
 from src.lobe.system import System
 from colors import *
-from src.lobe.lcu import LCU
 from src.lobe.yukawa import _determine_block_encoding_function
 from src.lobe._utils import translate_antifermions_to_fermions
 from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from tests._utils import _validate_block_encoding
-from functools import partial
 from openparticle import generate_matrix
-from src.lobe._utils import get_basis_of_full_system
+from src.lobe._utils import (
+    get_basis_of_full_system,
+    predict_number_of_block_encoding_ancillae,
+)
 
 
-def lobotomize(operator, max_bosonic_occupancy):
+def _blank_be_func(ctrls=([], [])):
+    return [], CircuitMetrics()
+
+
+def lobeify(operator, max_bosonic_occupancy):
     terms = operator.group()
 
-    number_of_block_encoding_anillae = 3
+    number_of_block_encoding_anillae = max(
+        [predict_number_of_block_encoding_ancillae(group) for group in terms]
+    )
     index_register = [
         cirq.LineQubit(-i - 2) for i in range(int(np.ceil(np.log2(len(terms)))))
     ]
@@ -54,6 +58,12 @@ def lobotomize(operator, max_bosonic_occupancy):
     block_encoding_functions = []
     rescaling_factors = []
     for term in terms:
+
+        if term.has_identity():
+            block_encoding_functions.append(_blank_be_func)
+            rescaling_factors.append(1)
+            continue
+
         be_func, rescaling_factor = _determine_block_encoding_function(
             term, system, block_encoding_ancillae, clean_ancillae=clean_ancillae
         )
@@ -123,7 +133,7 @@ def _get_hamiltonian_norm(operator, maximum_occupation_number):
     return np.linalg.norm(matrix, ord=2)
 
 
-def get_phi4_data_changing_resolution(omega, resolutions):
+def get_data_varying_resolution(omega, resolutions):
     LCU_DATA = []
     LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
@@ -135,22 +145,23 @@ def get_phi4_data_changing_resolution(omega, resolutions):
 
         LCU_DATA.append(lcuify(operator, omega))
         LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
-        LOBE_DATA.append(lobotomize(operator, omega))
+        LOBE_DATA.append(lobeify(operator, omega))
         # operator_norms.append(_get_hamiltonian_norm(operator, omega))
 
     return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms
 
 
-resolution_range = np.arange(2, 6, 1)
+resolution_range = np.arange(2, 9, 1)
 omega = 7
-LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = (
-    get_phi4_data_changing_resolution(omega, resolution_range)
+LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = get_data_varying_resolution(
+    omega, resolution_range
 )
 
 import pickle
 
 with open(
-    f"full_yukawa_{omega}_{resolution_range[0]}_{resolution_range[-1]}.pickle", "wb"
+    f"full_yukawa_data/full_yukawa_{omega}_{resolution_range[0]}_{resolution_range[-1]}.pickle",
+    "wb",
 ) as handle:
     pickle.dump(
         (

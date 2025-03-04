@@ -1,8 +1,7 @@
-import numpy as np
-from typing import List
-from openparticle import ParticleOperator, Fock
-from .rescale import get_active_bosonic_modes
 import cirq
+import numpy as np
+from openparticle import ParticleOperator, Fock, BosonOperator, FermionOperator
+from typing import List
 
 
 def pretty_print(
@@ -11,7 +10,17 @@ def pretty_print(
     amplitude_cutoff=1e-12,
     decimal_places=3,
 ) -> str:
+    """Get a human-readable description of the quantum state.
 
+    Args:
+        - wavefunction (np.ndarray): The amplitudes of the wavefunction
+        - register_lengths (List[int]): The number of qubits in each separate register
+        - amplitude_cutoff (float): The minimum mangitude for an amplitude to be considered nonzero
+        - decimal_places (int): The number of decimal points to print
+
+    Returns:
+        - str: A string representing the wavefunction that can be printed
+    """
     left_padding = 2 * (4 + decimal_places) + 1
     right_padding = sum(register_lengths) + len(register_lengths) + 1
     pretty_string = ""
@@ -35,23 +44,21 @@ def pretty_print(
     return pretty_string
 
 
-def give_me_state(nn, Lambda, Omega):
-    # Credit to Kamil Serafin
-    n = nn
-    result = list()
-    for i in range(Lambda):
-        r = n % (Omega + 1)
-        n = n // (Omega + 1)
-        result += [r]
-
-    return list(enumerate(result))
-
-
 def get_basis_of_full_system(
     maximum_occupation_number,
     number_of_fermionic_modes=0,
     number_of_bosonic_modes=0,
 ):
+    """Get the Fock basis of the system
+
+    Args:
+        - maximum_occupation_number (int): The maximum number of bosons allowed in each mode
+        - number_of_fermionic_modes (int): The number of fermionic modes
+        - number_of_bosonic_modes (int): The number of bosonic modes
+
+    Returns:
+        - List[Fock]: A list of Fock states
+    """
     number_of_occupation_qubits = max(
         int(np.ceil(np.log2(maximum_occupation_number))), 1
     )
@@ -85,17 +92,67 @@ def get_basis_of_full_system(
     return basis
 
 
-def get_parsed_dictionary(operator, number_of_modes=None):
+def get_active_bosonic_modes(operator):
+    """Get a list of the bosonic modes being acted on.
+
+    Args:
+        operator (Optional[ParticleOperator, List[ParticleOperator]]): The operator/term in question
+
+    Returns:
+        List[int]: A list of active bosonic modes
+    """
+    active_modes = []
+    for term in operator.to_list():
+        for op in term.split():
+            if isinstance(op, BosonOperator):
+                if op.mode not in active_modes:
+                    active_modes.append(op.mode)
+    return active_modes
+
+
+def get_active_fermionic_modes(operator):
+    """Get a list of the fermionic modes being acted on.
+
+    Args:
+        operator (Optional[ParticleOperator, List[ParticleOperator]]): The operator/term in question
+
+    Returns:
+        List[int]: A list of active fermionic modes
+    """
+    active_modes = []
+    for term in operator.to_list():
+        for op in term.split():
+            if isinstance(op, FermionOperator):
+                if op.mode not in active_modes:
+                    active_modes.append(op.mode)
+    return active_modes
+
+
+def get_number_of_active_bosonic_modes(terms):
+    """Get a list of the number of bosonic modes being acted on in each term.
+
+    Args:
+        terms (List[ParticleOperator]): The terms comprising the original Hamiltonian
+            given as a linear combination of ladder operators.
+
+    Returns:
+        List[int]: A list of the number of bosonic operators in each term
+    """
+    numbers_of_active_bosonic_modes = []
+    for term in terms:
+        active_modes = get_active_bosonic_modes(term)
+        numbers_of_active_bosonic_modes.append(len(active_modes))
+
+    return numbers_of_active_bosonic_modes
+
+
+def _get_parsed_dictionary(operator, number_of_modes=None):
+    """Helper function to parse active modes and exponents"""
     if number_of_modes is None:
         number_of_modes = operator.max_mode + 1
     parsed_operator_array = {
         "fermion": {
-            "creation": np.zeros(number_of_modes, dtype=int),
-            "annihilation": np.zeros(number_of_modes, dtype=int),
-        },
-        "antifermion": {
-            "creation": np.zeros(number_of_modes, dtype=int),
-            "annihilation": np.zeros(number_of_modes, dtype=int),
+            "operator_types": [None] * number_of_modes,
         },
         "boson": {
             "creation": np.zeros(number_of_modes, dtype=int),
@@ -103,18 +160,79 @@ def get_parsed_dictionary(operator, number_of_modes=None):
         },
     }
     for ladder in operator.split():
-        if ladder.creation:
-            parsed_operator_array[ladder.particle_type]["creation"][ladder.mode] += 1
+        if isinstance(ladder, FermionOperator):
+            if (
+                parsed_operator_array[ladder.particle_type]["operator_types"][
+                    ladder.mode
+                ]
+                is None
+            ):
+                if ladder.creation:
+                    parsed_operator_array[ladder.particle_type]["operator_types"][
+                        ladder.mode
+                    ] = 1
+                else:
+                    parsed_operator_array[ladder.particle_type]["operator_types"][
+                        ladder.mode
+                    ] = 0
+            else:
+                if (
+                    parsed_operator_array[ladder.particle_type]["operator_types"][
+                        ladder.mode
+                    ]
+                    == 1
+                ) and (not ladder.creation):
+                    parsed_operator_array[ladder.particle_type]["operator_types"][
+                        ladder.mode
+                    ] = 2
+                elif (
+                    parsed_operator_array[ladder.particle_type]["operator_types"][
+                        ladder.mode
+                    ]
+                    == 0
+                ) and (ladder.creation):
+                    parsed_operator_array[ladder.particle_type]["operator_types"][
+                        ladder.mode
+                    ] = 3
+                else:
+                    raise RuntimeError(
+                        f"Operator: {operator} not mode ordered. Problem mode: {ladder.mode}"
+                    )
+        elif isinstance(ladder, BosonOperator):
+            if ladder.creation:
+                parsed_operator_array[ladder.particle_type]["creation"][
+                    ladder.mode
+                ] += 1
+            else:
+                parsed_operator_array[ladder.particle_type]["annihilation"][
+                    ladder.mode
+                ] += 1
         else:
-            parsed_operator_array[ladder.particle_type]["annihilation"][
-                ladder.mode
-            ] += 1
+            raise RuntimeError(
+                "Unknown operator: {} with particle type: {}".format(
+                    type(ladder), ladder.particle_type
+                )
+            )
     return parsed_operator_array
 
 
 def get_bosonic_exponents(operator, number_of_modes=None):
+    """Get exponents of bosonic ladder operators acting on unique modes within one term
+
+    NOTE:
+        Example: a_0^\dagger a_0^\dagger a_0 a_1 -> ([0, 1], [(2, 1), (0, 1)])
+
+    Args:
+        - operator (ParticleOperator): A single term to parse out the bosonic operators
+        - number_of_modes (Optional[int]): The total number of modes in the operator
+
+    Returns:
+        - List[int]: A list of the active bosonic modes
+        - List[Tuple(int, int)]: A list of tuples corresponding to the exponents on each active mode. Each tuple
+            contains the exponent on the creation operator, followed by the exponent on the annihilation operator
+    """
     active_bosonic_modes = get_active_bosonic_modes(operator)
-    parsed_operator_array = get_parsed_dictionary(
+    parsed_operator_array = _get_parsed_dictionary(
         operator, number_of_modes=number_of_modes
     )
     exponents_list = []
@@ -126,6 +244,33 @@ def get_bosonic_exponents(operator, number_of_modes=None):
             )
         )
     return active_bosonic_modes, exponents_list
+
+
+def get_fermionic_operator_types(operator, number_of_modes=None):
+    """Get operator types of fermionic ladder operators acting on unique modes within one term
+
+    NOTE:
+        Example: a_0^\dagger a_0^\dagger a_0 a_1 -> ([0, 1], [(2, 1), (0, 1)])
+
+    Args:
+        - operator (ParticleOperator): A single term to parse out the fermionic operators
+        - number_of_modes (Optional[int]): The total number of modes in the operator
+
+    Returns:
+        - List[int]: A list of the active fermionic modes
+        - List[int]: A list of tuples corresponding to the operator types on each active mode. Each tuple
+            contains the exponent on the creation operator, followed by the exponent on the annihilation operator
+    """
+    active_fermionic_modes = get_active_fermionic_modes(operator)
+    parsed_operator_array = _get_parsed_dictionary(
+        operator, number_of_modes=number_of_modes
+    )
+    operator_types = []
+    for active_mode in active_fermionic_modes:
+        operator_types.append(
+            parsed_operator_array["fermion"]["operator_types"][active_mode]
+        )
+    return active_fermionic_modes, operator_types
 
 
 def _apply_negative_identity(target, ctrls=([], [])):
@@ -152,9 +297,17 @@ def _apply_negative_identity(target, ctrls=([], [])):
 
 
 def translate_antifermions_to_fermions(operator):
-    translated_operator = ParticleOperator()
+    """Translate all antifermionic modes to fermionic modes with higher index
+
+    Args:
+        - operator (ParticleOperator): The operation which potentially contains antifermions
+
+    Returns:
+        - ParticleOperator: The operator where antifermionic modes are replaced with distinct fermionic modes
+    """
+    translated_operator = None
     for term in operator:
-        translated_term = term.coeff
+        translated_term = None
         for op in term.split():
             new_op = op
             if list(op.op_dict.keys())[0][0][0] == 1:
@@ -164,6 +317,27 @@ def translate_antifermions_to_fermions(operator):
                     list(op.op_dict.keys())[0][0][2],
                 )
                 new_op = ParticleOperator({(expected_tuple,): op.coeff})
-            translated_term *= new_op
-        translated_operator += translated_term
+            if translated_term is None:
+                translated_term = new_op
+            else:
+                translated_term *= new_op
+        if translated_operator is None:
+            translated_operator = translated_term
+        else:
+            translated_operator += translated_term
     return translated_operator
+
+
+def predict_number_of_block_encoding_ancillae(operator):
+    assert len(operator.to_list()) <= 2
+    number_of_block_encoding_ancillae = 0
+
+    number_of_block_encoding_ancillae = len(get_active_bosonic_modes(operator))
+    has_fermionic_modes = len(get_active_fermionic_modes(operator)) > 0
+    if (len(operator.to_list()) == 2) and (not has_fermionic_modes):
+        # require additional index qubit between terms
+        number_of_block_encoding_ancillae += 1
+    elif has_fermionic_modes:
+        number_of_block_encoding_ancillae += 1
+
+    return number_of_block_encoding_ancillae
