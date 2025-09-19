@@ -167,6 +167,7 @@ def _add_multi_bosonic_rotations(
     bosonic_mode_register,
     creation_exponent=0,
     annihilation_exponent=0,
+    dagger: bool = False,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -180,6 +181,7 @@ def _add_multi_bosonic_rotations(
             mode being acted upon.
         - creation_exponent (int): The number of subsequent creation operators in the term
         - annihilation_exponent (int): The number of subsequent annihilation operators in the term
+        - dagger (bool): Changes all angles to -\theta
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -193,6 +195,9 @@ def _add_multi_bosonic_rotations(
     angles = _get_bosonic_rotation_angles(
         maximum_occupation_number, creation_exponent, annihilation_exponent
     )
+
+    if dagger:
+        angles = [angle * -1 for angle in angles]
 
     return get_decomposed_multiplexed_rotation_circuit(
         bosonic_mode_register,
