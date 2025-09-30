@@ -41,12 +41,9 @@ def self_inverse_bosonic_number_operator_block_encoding(
     gates.append(cirq.H.on(unitary_index_qubit))
 
 
-    left_elbow, _ = decompose_controls_left(
-        (ctrls[0] + [unitary_index_qubit], ctrls[1] + [1]), clean_ancillae[0]
-    )
-    gates.append(left_elbow)
+
     gates.append(
-        cirq.X.on(rotation_qubit).controlled_by(clean_ancillae[0])
+        cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit)
     )
 
     rotation_gates, _ = _add_multi_bosonic_rotations(
@@ -55,16 +52,13 @@ def self_inverse_bosonic_number_operator_block_encoding(
         creation_exponent=1,
         annihilation_exponent=1,
         clean_ancillae=clean_ancillae,
-        ctrls=([], []),
+        ctrls=ctrls,
     )
     gates.append(rotation_gates)
     gates.append(
-        cirq.X.on(rotation_qubit).controlled_by(clean_ancillae[0])
+        cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit)
     )
-    right_elbow, _ = decompose_controls_right(
-            (ctrls[0] + [unitary_index_qubit], ctrls[1] + [1]), clean_ancillae[0]
-    )
-    gates.append(right_elbow)
+
   
     gates.append(cirq.X.on(unitary_index_qubit))
     gates.append(cirq.H.on(unitary_index_qubit))
@@ -75,6 +69,7 @@ def self_inverse_bosonic_number_operator_block_encoding(
 def self_inverse_bosonic_product_plus_hc_block_encoding(
     system,
     block_encoding_ancillae,
+    active_mode,
     sign=1,
     clean_ancillae=[],
     ctrls=([], []),
@@ -84,6 +79,7 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
     Args:
         - system (lobe.system.System): The system object holding the system registers
         - block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
+        - active_mode: Mode which the creation and annihilation operator act on
         - sign (int): Either 1 or -1 to indicate the sign of the term
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
@@ -111,21 +107,33 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
     gates.append(cirq.H.on(unitary_index_qubit))  
     gates.append(cirq.H.on(operator_index))
 
-    gates.append(cirq.X.on(operator_index).controlled_by(unitary_index_qubit))  
+    gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit))  
+
+    left_elbow, _ = decompose_controls_left(
+        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 0]),
+        clean_ancilla=clean_ancillae[0],
+    )
+    gates.append(left_elbow)
 
     adder_gates, adder_metrics = add_classical_value(
-        list(system.bosonic_modes[0]),
+        list(system.bosonic_modes[active_mode]),
         1,
-        clean_ancillae=clean_ancillae,
-        ctrls=([operator_index], [0]),
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
 
-    gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit))  
+    right_elbow, _ = decompose_controls_right(
+        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 0]),
+        clean_ancilla=clean_ancillae[0]
+    )
+    gates.append(right_elbow)
+
+
     rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
         rotation_qubit,
-        list(system.bosonic_modes[0]),
+        list(system.bosonic_modes[active_mode]),
         1,
         0,
         clean_ancillae=clean_ancillae,
@@ -133,18 +141,30 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
     )
     gates += rotation_gates
     block_encoding_metrics += rotation_metrics
-    gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit))  
+
+
+    left_elbow, _ = decompose_controls_left(
+        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 1]),
+        clean_ancilla=clean_ancillae[0],
+    )
+    gates.append(left_elbow)
 
     adder_gates, adder_metrics = add_classical_value(
-        list(system.bosonic_modes[0]),
+        list(system.bosonic_modes[active_mode]),
         -1,
-        clean_ancillae=clean_ancillae,
-        ctrls=([operator_index], [1]),
+        clean_ancillae=clean_ancillae[1:],
+        ctrls=([clean_ancillae[0]], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
+
+    right_elbow, _ = decompose_controls_right(
+        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 1]),
+        clean_ancilla=clean_ancillae[0]
+    )
+    gates.append(right_elbow)
     
-    gates.append(cirq.X.on(operator_index).controlled_by(unitary_index_qubit))  
+    gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit))  
 
         
     gates.append(cirq.X.on(unitary_index_qubit))  
