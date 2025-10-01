@@ -107,28 +107,18 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
     gates.append(cirq.H.on(unitary_index_qubit))  
     gates.append(cirq.H.on(operator_index))
 
+    gates.append(cirq.X.on(operator_index).controlled_by(unitary_index_qubit))
     gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit))  
 
-    left_elbow, _ = decompose_controls_left(
-        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 0]),
-        clean_ancilla=clean_ancillae[0],
-    )
-    gates.append(left_elbow)
 
     adder_gates, adder_metrics = add_classical_value(
         list(system.bosonic_modes[active_mode]),
         1,
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=([clean_ancillae[0]], [1]),
+        clean_ancillae=clean_ancillae,
+        ctrls=([operator_index], [0]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
-
-    right_elbow, _ = decompose_controls_right(
-        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 0]),
-        clean_ancilla=clean_ancillae[0]
-    )
-    gates.append(right_elbow)
 
 
     rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
@@ -142,30 +132,17 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
     gates += rotation_gates
     block_encoding_metrics += rotation_metrics
 
-
-    left_elbow, _ = decompose_controls_left(
-        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 1]),
-        clean_ancilla=clean_ancillae[0],
-    )
-    gates.append(left_elbow)
-
     adder_gates, adder_metrics = add_classical_value(
         list(system.bosonic_modes[active_mode]),
         -1,
-        clean_ancillae=clean_ancillae[1:],
-        ctrls=([clean_ancillae[0]], [1]),
+        clean_ancillae=clean_ancillae,
+        ctrls=([operator_index], [1]),
     )
     gates += adder_gates
     block_encoding_metrics += adder_metrics
-
-    right_elbow, _ = decompose_controls_right(
-        ctrls = (ctrls[0] + [operator_index], [ctrls[1], 1]),
-        clean_ancilla=clean_ancillae[0]
-    )
-    gates.append(right_elbow)
     
-    gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit))  
-
+    gates.append(cirq.X.on(rotation_qubit).controlled_by(unitary_index_qubit)) 
+    gates.append(cirq.X.on(operator_index).controlled_by(unitary_index_qubit))
         
     gates.append(cirq.X.on(unitary_index_qubit))  
     gates.append(cirq.H.on(unitary_index_qubit))  
