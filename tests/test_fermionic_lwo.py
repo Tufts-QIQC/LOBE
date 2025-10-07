@@ -48,54 +48,7 @@ def _verify_walker_condition_two(basis, PREPARE, SELECT, PREPARE_DAGGER):
              :len(basis)]
     )
 
-def _get_select_oracle(
-        operator,
-        prepare_register,
-        system,
-        block_encoding_ancillae,
-        clean_ancillae,
-        ctrls = ([], [])
-):
-    
-    block_encoding_functions = []
-    for group in operator.group():
-        
-        active_modes, operator_types = get_fermionic_operator_types(group.to_list()[0])
-        group_coeffs = group.mode_order().coeffs
-        if np.all(np.array(group_coeffs) == 1.0):
-            sign = 1
-        else: sign = -1
 
-        if len(group) == 1:
-            block_encoding_functions.append(
-                partial(
-                    fermionic_product_block_encoding,
-                    system=system,
-                    block_encoding_ancillae=block_encoding_ancillae,
-                    active_indices=active_modes,
-                    operator_types=operator_types,
-                    sign = sign,
-                    clean_ancillae=clean_ancillae[1:],
-                    ctrls = ctrls,
-                )
-            )
-        elif len(group) == 2:
-            block_encoding_functions.append(
-                partial(
-                    fermionic_plus_hc_block_encoding,
-                    system=system,
-                    block_encoding_ancillae=block_encoding_ancillae,
-                    active_indices=active_modes,
-                    operator_types=operator_types,
-                    sign = sign,
-                    clean_ancillae=clean_ancillae,
-                    ctrls = ctrls,
-                )
-            )
-
-    select = index_over_terms(index_register=prepare_register, block_encoding_functions=block_encoding_functions,
-                              clean_ancillae=clean_ancillae, ctrls = ctrls)
-    return select
 
 
 

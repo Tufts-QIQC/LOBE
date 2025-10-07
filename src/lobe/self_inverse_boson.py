@@ -147,10 +147,12 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
         gates += rotation_gates
         block_encoding_metrics += rotation_metrics
 
-        gates.append(
-            cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
-        ) # right elbow followed by left elbow is a CNOT
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    ) # right elbow followed by left elbow is a CNOT
 
+    for i, active_index in enumerate(active_indices):
+        Ri, Si = exponents_list[i][0], exponents_list[i][1]
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_modes[active_index],
             -Ri + Si,
@@ -160,13 +162,14 @@ def self_inverse_bosonic_product_plus_hc_block_encoding(
         gates += adder_gates
         block_encoding_metrics += adder_metrics
 
-        _gates, _metrics = decompose_controls_right(
-            (ctrls[0] + [operator_index], ctrls[1] + [1]), clean_ancillae[0]
-        )
-        gates += _gates
-        block_encoding_metrics += _metrics
-
         gates.append(cirq.X.on(rotation_register[i]).controlled_by(unitary_index_qubit))
+
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [operator_index], ctrls[1] + [1]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+
     
     
 
