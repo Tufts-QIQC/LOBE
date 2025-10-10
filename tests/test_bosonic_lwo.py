@@ -126,7 +126,6 @@ def test_self_inverse_bosonic_product_plus_hc_satisfies_walker_conditions(number
 
     operator = ParticleOperator(operator_string[:-1], coeff=1)
     operator += operator.dagger()
-    print(operator)
 
     expected_rescaling_factor = 2
     for exponents in exponents_list:
