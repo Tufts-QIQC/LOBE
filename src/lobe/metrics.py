@@ -1,6 +1,6 @@
 import numpy as np
 
-CLIFFORD_ROTATION_ANGLES = [i * np.pi / 2 for i in range(9)]
+CLIFFORD_ROTATION_ANGLES = np.array([i * np.pi / 2 for i in range(9)])
 
 
 class CircuitMetrics:
@@ -13,25 +13,14 @@ class CircuitMetrics:
         self.rotation_angles = []
 
     def __add__(self, other):
-        joined_metrics = CircuitMetrics()
-        joined_metrics.number_of_elbows += (
-            self.number_of_elbows + other.number_of_elbows
-        )
-        joined_metrics.rotation_angles += self.rotation_angles + other.rotation_angles
-        joined_metrics.number_of_t_gates += (
-            self.number_of_t_gates + other.number_of_t_gates
-        )
-        joined_metrics.clean_ancillae_usage += self.clean_ancillae_usage
-        for i, number_of_used_ancillae in enumerate(other.clean_ancillae_usage):
-            if i == 0:
-                previous = 0
-            else:
-                previous = other.clean_ancillae_usage[i - 1]
-            joined_metrics.add_to_clean_ancillae_usage(
-                number_of_used_ancillae - previous
-            )
-
-        return joined_metrics
+        self.number_of_elbows += other.number_of_elbows
+        self.rotation_angles += other.rotation_angles
+        self.number_of_t_gates += other.number_of_t_gates
+        previous = 0
+        for number_of_used_ancillae in other.clean_ancillae_usage:
+            self.add_to_clean_ancillae_usage(number_of_used_ancillae - previous)
+            previous = number_of_used_ancillae
+        return self
 
     def add_to_clean_ancillae_usage(self, change):
         """Account for clean ancillae being used or freed
@@ -56,19 +45,15 @@ class CircuitMetrics:
             return 0
 
     @property
-    def number_of_nonclifford_rotations(self):
+    def number_of_nonclifford_rotations(self, slow_count=True, decimals=12):
         """The number of arbitrary rotations that are not merely Clifford operations"""
-        number_of_nonclifford_rotations = 0
-        for angle in self.rotation_angles:
-            if not np.any(
-                [
-                    np.isclose((angle) % (4 * np.pi), clifford_angle)
-                    for clifford_angle in CLIFFORD_ROTATION_ANGLES
-                ]
-            ):
-                # Count only nonClifford rotations
-                number_of_nonclifford_rotations += 1
-        return number_of_nonclifford_rotations
+        return (
+            len(self.rotation_angles)
+            - np.isin(
+                (np.array(self.rotation_angles) % (4 * np.pi)).round(decimals),
+                CLIFFORD_ROTATION_ANGLES.round(decimals),
+            ).sum()
+        )
 
     def display_metrics(self):
         """Print relevant metrics to screen"""
