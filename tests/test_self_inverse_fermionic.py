@@ -103,8 +103,7 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         number_of_block_encoding_ancillae,
         maximum_occupation_number,
     )
-
-    _validate_block_encoding_select_is_self_inverse(system_register.number_of_fermionic_modes, [], circuit + circuit, [])
+    _validate_block_encoding_select_is_self_inverse(circuit)
 
 
     
@@ -151,7 +150,7 @@ def test_fermionic_number_operator_block_encoding_satisfies_qubitization_conditi
 
     _validate_block_encoding(circuit, system_register, rescaling_factor, hamiltonian_operator,len(block_encoding_ancilla_register), 1)
     
-    _validate_block_encoding_select_is_self_inverse(len(basis), PREPARE, SELECT, PREPARE_DAGGER)
+    _validate_block_encoding_select_is_self_inverse(circuit)
 
     _validate_block_encoding_does_nothing_when_control_is_off(circuit, system_register, len(block_encoding_ancilla_register))
 
