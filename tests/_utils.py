@@ -306,17 +306,14 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     assert np.allclose(output_state, initial_state, atol=1e-6)
 
 
-def _validate_block_encoding_select_is_self_inverse(n_system_qubits, PREPARE, SELECT, PREPARE_DAGGER):
+def _validate_block_encoding_select_is_self_inverse(circuit):
     """
     Checks if <0|PREP^\DAGGER SEL^2 PREP|0> = 1
     """
+    # Assume PREP^\DAGGER SEL^2 PREP \equiv circuit@circuit
+    unitary = circuit.unitary()
+    unitary = unitary @ unitary
     assert np.allclose(
-        np.eye(n_system_qubits),
-        (cirq.Circuit(
-            PREPARE,
-            SELECT,
-            SELECT,
-            PREPARE_DAGGER
-        ).unitary())[:n_system_qubits,
-             :n_system_qubits]
+        np.eye(1 << len(circuit.all_qubits())),
+        unitary,
     )
