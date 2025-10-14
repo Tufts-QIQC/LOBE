@@ -296,7 +296,7 @@ def _apply_negative_identity(target, ctrls=([], [])):
     return gates
 
 
-def translate_antifermions_to_fermions(operator):
+def translate_antifermions_to_fermions(operator, max_fermionic_mode=None):
     """Translate all antifermionic modes to fermionic modes with higher index
 
     Args:
@@ -305,6 +305,10 @@ def translate_antifermions_to_fermions(operator):
     Returns:
         - ParticleOperator: The operator where antifermionic modes are replaced with distinct fermionic modes
     """
+    if max_fermionic_mode is None:
+        max_fermionic_mode = operator.max_fermionic_mode
+        if max_fermionic_mode is None:
+            max_fermionic_mode = 0
     translated_operator = None
     for term in operator:
         translated_term = None
@@ -313,7 +317,7 @@ def translate_antifermions_to_fermions(operator):
             if list(op.op_dict.keys())[0][0][0] == 1:
                 expected_tuple = (
                     0,
-                    op.mode + operator.max_fermionic_mode + 1,
+                    op.mode + max_fermionic_mode + 1,
                     list(op.op_dict.keys())[0][0][2],
                 )
                 new_op = ParticleOperator({(expected_tuple,): op.coeff})
