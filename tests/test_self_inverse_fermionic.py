@@ -136,7 +136,7 @@ def test_fermionic_number_operator_block_encoding_satisfies_qubitization_conditi
     PREPARE = [cirq.X.on(index_register[0])]
     PREPARE_DAGGER = [cirq.X.on(index_register[0])]
 
-    SELECT = fermionic_product_block_encoding(
+    SELECT, metrics = fermionic_product_block_encoding(
                     system=system_register,
                     block_encoding_ancillae=block_encoding_ancilla_register,
                     active_indices=[0],
@@ -144,7 +144,7 @@ def test_fermionic_number_operator_block_encoding_satisfies_qubitization_conditi
                     sign = 1,
                     clean_ancillae=clean_ancilla_register,
                     ctrls = (index_register, [1]),
-                )[0]
+                )
 
     circuit = cirq.Circuit([PREPARE, SELECT, PREPARE_DAGGER])
 
