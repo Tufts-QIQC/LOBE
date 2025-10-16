@@ -43,8 +43,14 @@ def yukawa_term_block_encoding(
     Args:
         system (lobe.system.System): The system object holding the system registers
         block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        fermionic_indices (List[int]): A list of the fermionic modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
+        bosonic_indices (List[int]): A list of the bosonic modes upon which the ladder operators act. Assumed to be in order
+            of which operators are applied (right to left).
+        fermionic_operator_types (List[int]): A list of the types of fermionic operators. Assumed to be in order
+            of which operators are applied (right to left).
+        bosonic_operator_types (List[tuple(int)]): A list of the tuples of (R, S) for each active bosonic mode. Assumed to be in order
+            of which operators are applied (right to left). 
         sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
@@ -201,8 +207,14 @@ def self_inverse_yukawa_term_block_encoding(
     Args:
         system (lobe.system.System): The system object holding the system registers
         block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        fermionic_indices (List[int]): A list of the fermionic modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
+        bosonic_indices (List[int]): A list of the bosonic modes upon which the ladder operators act. Assumed to be in order
+            of which operators are applied (right to left).
+        fermionic_operator_types (List[int]): A list of the types of fermionic operators. Assumed to be in order
+            of which operators are applied (right to left).
+        bosonic_operator_types (List[tuple(int)]): A list of the tuples of (R, S) for each active bosonic mode. Assumed to be in order
+            of which operators are applied (right to left).   
         sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
