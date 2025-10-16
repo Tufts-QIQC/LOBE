@@ -311,9 +311,13 @@ def _validate_block_encoding_select_is_self_inverse(circuit):
     Checks if <0|PREP^\DAGGER SEL^2 PREP|0> = 1
     """
     # Assume PREP^\DAGGER SEL^2 PREP \equiv circuit@circuit
-    unitary = circuit.unitary()
-    unitary = unitary @ unitary
-    assert np.allclose(
-        np.eye(1 << len(circuit.all_qubits())),
-        unitary,
-    )
+
+    if len(circuit.all_qubits()) >= 32:
+        pytest.skip(f"too many qubits to build circuit: {len(circuit.all_qubits())}")
+    else:
+        unitary = circuit.unitary()
+        unitary = unitary @ unitary
+        assert np.allclose(
+            np.eye(1 << len(circuit.all_qubits())),
+            unitary,
+        )
