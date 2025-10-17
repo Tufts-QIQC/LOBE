@@ -7,6 +7,7 @@ from .bosonic import (
     bosonic_product_block_encoding,
     _get_bosonic_rotation_angles,
     bosonic_product_plus_hc_block_encoding,
+    self_inverse_bosonic_product_plus_hc_block_encoding,
 )
 from .decompose import decompose_controls_left, decompose_controls_right
 from .fermionic import (
