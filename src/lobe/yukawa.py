@@ -7,6 +7,7 @@ from .bosonic import (
     bosonic_product_block_encoding,
     _get_bosonic_rotation_angles,
     bosonic_product_plus_hc_block_encoding,
+    self_inverse_bosonic_product_plus_hc_block_encoding,
 )
 from .decompose import decompose_controls_left, decompose_controls_right
 from .fermionic import (
@@ -43,8 +44,14 @@ def yukawa_term_block_encoding(
     Args:
         system (lobe.system.System): The system object holding the system registers
         block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        fermionic_indices (List[int]): A list of the fermionic modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
+        bosonic_indices (List[int]): A list of the bosonic modes upon which the ladder operators act. Assumed to be in order
+            of which operators are applied (right to left).
+        fermionic_operator_types (List[int]): A list of the types of fermionic operators. Assumed to be in order
+            of which operators are applied (right to left).
+        bosonic_operator_types (List[tuple(int)]): A list of the tuples of (R, S) for each active bosonic mode. Assumed to be in order
+            of which operators are applied (right to left). 
         sign (int): Either 1 or -1 to indicate the sign of the term
         clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
@@ -181,9 +188,179 @@ def yukawa_term_block_encoding(
 
     return gates, block_encoding_metrics
 
+def self_inverse_yukawa_term_block_encoding(
+    system,
+    block_encoding_ancillae,
+    fermionic_indices,
+    fermionic_operator_types,
+    bosonic_indices,
+    bosonic_exponents_list,
+    sign=1,
+    clean_ancillae=[],
+    ctrls=([], []),
+):
+    """Add a self-inverse block-encoding circuit for a term in the full Yukawa model
+
+    NOTE: Term is expected to be in the form: $b_i b_j ... b_m a_k^\dagger a_l^\dagger ... a_t^\dagger + h.c.$.
+        Expected ordering of fermionic indices is [m, ..., j, i].
+        Expected ordering of bosonic indices is [t, ..., k, l].
+
+    Args:
+        system (lobe.system.System): The system object holding the system registers
+        block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
+        fermionic_indices (List[int]): A list of the fermionic modes upon which the ladder operators act. Assumed to be in order
+            of which operators are applied (right to left).
+        bosonic_indices (List[int]): A list of the bosonic modes upon which the ladder operators act. Assumed to be in order
+            of which operators are applied (right to left).
+        fermionic_operator_types (List[int]): A list of the types of fermionic operators. Assumed to be in order
+            of which operators are applied (right to left).
+        bosonic_operator_types (List[tuple(int)]): A list of the tuples of (R, S) for each active bosonic mode. Assumed to be in order
+            of which operators are applied (right to left).   
+        sign (int): Either 1 or -1 to indicate the sign of the term
+        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+            the control qubits and values.
+
+    Returns:
+        - List of cirq operations representing the gates to be applied in the circuit
+        - CircuitMetrics object representing cost of block-encoding circuit
+    """
+    assert len(ctrls[0]) == 1
+    assert ctrls[1] == [1]
+    gates = []
+    block_encoding_metrics = CircuitMetrics()
+    be_counter = 1 #Additional be qubit to index unitary ancilla
+    unitary_anc = block_encoding_ancillae[0]
+
+    for fermionic_index, operator_type in zip(
+        fermionic_indices, fermionic_operator_types
+    ):
+        if operator_type == 1:
+            gates.append(cirq.X.on(system.fermionic_modes[fermionic_index]))
+
+    if sign == -1:
+        gates += _apply_negative_identity(
+            system.fermionic_modes[fermionic_indices[0]], ctrls=ctrls
+        )
+
+    temporary_qbool = system.fermionic_modes[fermionic_indices[0]]
+
+    gates.append(cirq.H.on(unitary_anc))
+    _gates, _metrics = decompose_controls_left(
+        (ctrls[0] + [temporary_qbool], ctrls[1] + [1]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+
+    for be_ancilla, bosonic_index, exponents in zip(
+        block_encoding_ancillae[1:], bosonic_indices, bosonic_exponents_list
+    ):
+        adder_gates, adder_metrics = add_classical_value(
+            system.bosonic_modes[bosonic_index],
+            exponents[0] - exponents[1],
+            clean_ancillae=clean_ancillae[1:],
+            ctrls=([clean_ancillae[0]], [1]),
+        )
+        gates += adder_gates
+        block_encoding_metrics += adder_metrics
+
+        rotation_angles = _get_bosonic_rotation_angles(
+            system.maximum_occupation_number, exponents[0], exponents[1]
+        )
+        gates.append(cirq.X.on(be_ancilla).controlled_by(unitary_anc))
+        rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
+            system.bosonic_modes[bosonic_index],
+            be_ancilla,
+            rotation_angles,
+            clean_ancillae=clean_ancillae[1:],
+            ctrls=ctrls,
+        )
+        gates += rotation_gates
+        block_encoding_metrics += rotation_metrics
+        be_counter += 1
+        gates.append(cirq.X.on(be_ancilla).controlled_by(unitary_anc))
+
+    gates.append(
+        cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
+    )
+    for be_ancilla, bosonic_index, exponents in zip(
+        block_encoding_ancillae, bosonic_indices, bosonic_exponents_list
+    ):
+        adder_gates, adder_metrics = add_classical_value(
+            system.bosonic_modes[bosonic_index],
+            -(exponents[0] - exponents[1]),
+            clean_ancillae=clean_ancillae[1:],
+            ctrls=([clean_ancillae[0]], [1]),
+        )
+        gates += adder_gates
+        block_encoding_metrics += adder_metrics
+
+    _gates, _metrics = decompose_controls_right(
+        (ctrls[0] + [temporary_qbool], ctrls[1] + [0]), clean_ancillae[0]
+    )
+    gates += _gates
+    block_encoding_metrics += _metrics
+
+    gates.append(
+        cirq.X.on(temporary_qbool).controlled_by(
+            system.fermionic_modes[fermionic_indices[1]]
+        )
+    )
+    block_encoding_metrics.number_of_elbows += 1
+    block_encoding_metrics.add_to_clean_ancillae_usage(1)
+    gates.append(
+        cirq.X.on(block_encoding_ancillae[be_counter]).controlled_by(
+            *ctrls[0], temporary_qbool, control_values=ctrls[1] + [1]
+        )
+    )
+    block_encoding_metrics.add_to_clean_ancillae_usage(-1)
+    gates.append(
+        cirq.X.on(temporary_qbool).controlled_by(
+            system.fermionic_modes[fermionic_indices[1]]
+        )
+    )
+    gates.append(cirq.X.on(unitary_anc))
+    gates.append(cirq.H.on(unitary_anc))
+
+    for fermionic_index, operator_type in zip(
+        fermionic_indices, fermionic_operator_types
+    ):
+        if operator_type == 1:
+            gates.append(cirq.X.on(system.fermionic_modes[fermionic_index]))
+
+    # Potential sign flip
+    number_of_swaps = math.comb(len(fermionic_indices), 2)
+    if number_of_swaps % 2:
+        sign_qubit = system.fermionic_modes[fermionic_indices[0]]
+        if not fermionic_operator_types[0]:
+            gates.append(cirq.Moment(cirq.X.on(sign_qubit)))
+        gates.append(
+            cirq.Moment(
+                cirq.Z.on(sign_qubit).controlled_by(
+                    *ctrls[0],
+                    control_values=ctrls[1],
+                )
+            )
+        )
+        if not fermionic_operator_types[0]:
+            gates.append(cirq.Moment(cirq.X.on(sign_qubit)))
+
+    op_gates, op_metrics = _apply_fermionic_ladder_op(
+        system, fermionic_indices[0], ctrls=ctrls
+    )
+    gates += op_gates
+    block_encoding_metrics += op_metrics
+    op_gates, op_metrics = _apply_fermionic_ladder_op(
+        system, fermionic_indices[1], ctrls=ctrls
+    )
+    gates += op_gates
+    block_encoding_metrics += op_metrics
+
+    return gates, block_encoding_metrics
+
 
 def _determine_block_encoding_function(
-    group, system, block_encoding_ancillae, clean_ancillae
+    group, system, block_encoding_ancillae, clean_ancillae, self_inverse: bool = False
 ):
     term = group.to_list()[0].mode_order()
     fermionic_modes, fermionic_operator_types = get_fermionic_operator_types(term)
@@ -211,17 +388,30 @@ def _determine_block_encoding_function(
                 clean_ancillae=clean_ancillae[::-1],
             )
         else:
-            be_function = partial(
-                yukawa_term_block_encoding,
-                system=system,
-                block_encoding_ancillae=block_encoding_ancillae,
-                fermionic_indices=fermionic_modes[::-1],
-                fermionic_operator_types=fermionic_operator_types[::-1],
-                bosonic_indices=bosonic_modes,
-                bosonic_exponents_list=bosonic_exponents_list,
-                sign=np.sign(term.coeff),
-                clean_ancillae=clean_ancillae[::-1],
-            )
+            if self_inverse:
+                be_function = partial(
+                    self_inverse_yukawa_term_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    fermionic_indices=fermionic_modes[::-1],
+                    fermionic_operator_types=fermionic_operator_types[::-1],
+                    bosonic_indices=bosonic_modes,
+                    bosonic_exponents_list=bosonic_exponents_list,
+                    sign=np.sign(term.coeff),
+                    clean_ancillae=clean_ancillae[::-1],
+                )
+            else:
+                be_function = partial(
+                    yukawa_term_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    fermionic_indices=fermionic_modes[::-1],
+                    fermionic_operator_types=fermionic_operator_types[::-1],
+                    bosonic_indices=bosonic_modes,
+                    bosonic_exponents_list=bosonic_exponents_list,
+                    sign=np.sign(term.coeff),
+                    clean_ancillae=clean_ancillae[::-1],
+                )
         power = sum([sum(exponents) for exponents in bosonic_exponents_list])
         return be_function, np.sqrt(system.maximum_occupation_number) ** power
     else:
