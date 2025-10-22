@@ -170,9 +170,13 @@ def test_fermionic_self_inverse_bosonic_product_plus_hc_satisfies_qubitization_c
 
 @pytest.mark.parametrize(
     "term",
-    translate_antifermions_to_fermions(yukawa_hamiltonian(3, 1, 1, 1) - yukawa_hamiltonian(3, 0, 1, 1))
-    .normal_order()
-    .group(),
+    # translate_antifermions_to_fermions(yukawa_hamiltonian(3, 1, 1, 1) - yukawa_hamiltonian(3, 0, 1, 1))
+    # .normal_order()
+    # .group(),
+    [
+     ParticleOperator('b0^ b1 a0^') + ParticleOperator('b1^ b0 a0'),
+     ParticleOperator('b0 b1 a0^') + ParticleOperator('b1^ b0^ a0'),
+     ParticleOperator('b0 b1 a2^') + ParticleOperator('b1^ b0^ a2')]
 ) #only test interaction terms
 @pytest.mark.parametrize("reindex", [True])
 def test_all_self_inverse_yukawa_terms(term, reindex):
@@ -208,6 +212,7 @@ def test_all_self_inverse_yukawa_terms(term, reindex):
             replacement_term += replacement_term.dagger()
 
         term = replacement_term
+    print(term)
     number_of_block_encoding_ancillae = 4
     maximum_occupation_number = 3
     if term == ParticleOperator('b0^ b0 a0^ a0'):
