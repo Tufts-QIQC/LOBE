@@ -27,6 +27,21 @@ def remove_clifford_rotations(angles_list, tol: float = 1e-3):
 
     return np.array(non_clifford_angles)
 
+def get_rotation_angles(exponents, max_occupancy):
+    rotation_angles = []
+    for R_and_S in exponents:
+        Ri, Si = R_and_S[0], R_and_S[1]
+        argument = 1
+        for omega in range(Si, max_occupancy - Ri + 1):
+            for r in range(0, Ri):
+                argument *= np.sqrt(omega - r) / np.sqrt(max_occupancy)
+            for s in range(1, Si + 1):
+                argument *= np.sqrt(omega - Ri + s ) / np.sqrt(max_occupancy)
+            angle = 2 * np.arccos(argument)
+            rotation_angles.append(angle)
+
+    return np.array(rotation_angles)
+
 def get_unique_modes(operator):
     '''
     Given a ParticleOperator, this function returns a list of unique fermionic modes and a list of unique bosonic modes
@@ -61,8 +76,10 @@ def count_metrics(operator, max_occupancy: int = 1):
 
     grouped_operator = operator.group()
     L = len(grouped_operator)
+    unique_fermion_modes, unique_boson_modes = get_unique_modes(operator)
+    B = len(unique_boson_modes)
     
-    metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + 1 * operator.has_fermions + len(get_unique_modes(operator)[1]) 
+    metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + min(1, len(unique_fermion_modes)) + B
     
     for term in grouped_operator:
         if len(term) == 1:
@@ -76,9 +93,39 @@ def count_metrics(operator, max_occupancy: int = 1):
                 rescaling_factor = max_occupancy
                 n_t_gates = 7 * np.ceil(np.log2(max_occupancy + 1))
 
-                rotation_angles = np.array([2 * np.arccos(np.sqrt(omega * (omega - 1))/max_occupancy)] for omega in range(0, max_occupancy))
+                rotation_angles = np.array([2 * np.arccos(np.sqrt(omega * (omega - 1))/max_occupancy) for omega in range(0, max_occupancy)])
                 n_non_clifford_rotations = len(remove_clifford_rotations(rotation_angles))
+        elif len(term) > 1:
+            #assume form of two fermionic ops and 1 or 2 bosonic ops plus h.c.
+            _, term_B = get_unique_modes(term[0]) # B = number of unique bosonic modes
+            n_boson_ops = term[0].n_bosons
 
-    metrics['n_T_gates'] = n_t_gates + metrics.get('n_T_gates')
+            # Determine rotations
+            _, exponents = get_bosonic_exponents(term[0], len(term_B))
+            rotation_angles = get_rotation_angles(exponents)
+            n_non_clifford_rotations = len(remove_clifford_rotations(rotation_angles))
+
+            if term[0].has_fermions:
+                rescaling_factor = max_occupancy ** (n_boson_ops / 2)
+                if n_boson_ops == 1:
+                    n_clean_ancillae = np.ceil(np.log2(max_occupancy + 1)) + 1
+                    n_t_gates = 12 * np.ceil(np.log2(max_occupancy))
+                else:
+                    n_clean_ancillae = np.ceil(np.log2(max_occupancy)) + 1
+                    n_t_gates = 24 * np.ceil(np.log2(max_occupancy)) - 8
+                
+            else:
+                #assume form of n bosonic ops + h.c.
+                term_W = np.ceil(np.log2(max_occupancy + 1))
+                rescaling_factor = 2 * (max_occupancy ** (n_boson_ops / 2))
+                n_clean_ancillae = np.ceil(np.log2(max_occupancy)) + 1
+                n_t_gates = 12 * term_B * term_W - 8 * term_B + 4
+                
+            
+
+        metrics['n_T_gates'] = n_t_gates + metrics.get('n_T_gates')
+        metrics['rescaling_factor'] = rescaling_factor + metrics.get('rescaling_factor')
+        metrics['n_non_clifford_rotations'] = n_non_clifford_rotations + metrics.get('n_non_clifford_rotations')
+        metrics['n_clean_ancillae'] = max(n_clean_ancillae, metrics.get('n_clean_ancillae'))
     
     return metrics
