@@ -10,6 +10,7 @@ from src.lobe.system import System
 from src.lobe._utils import get_fermionic_operator_types, get_bosonic_exponents
 from src.lobe.fermionic import fermionic_product_block_encoding
 from src.lobe.bosonic import bosonic_product_block_encoding
+from src.lobe.metrics import CircuitMetrics
 
 CLIFFORD_ANGLES = [0, np.pi/4, np.pi/2, 3 * np.pi/4, np.pi]
 
@@ -75,11 +76,8 @@ def count_metrics(operator, max_occupancy: int = 1):
     #TODO: map antifermions to fermions
 
     grouped_operator = operator.group()
-    L = len(grouped_operator)
-    unique_fermion_modes, unique_boson_modes = get_unique_modes(operator)
-    B = len(unique_boson_modes)
     
-    metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + min(1, len(unique_fermion_modes)) + B
+    B = 0
     
     for term in grouped_operator:
         if len(term) == 1:
@@ -120,12 +118,22 @@ def count_metrics(operator, max_occupancy: int = 1):
                 rescaling_factor = 2 * (max_occupancy ** (n_boson_ops / 2))
                 n_clean_ancillae = np.ceil(np.log2(max_occupancy)) + 1
                 n_t_gates = 12 * term_B * term_W - 8 * term_B + 4
-                
-            
 
+            B = max(term_B, B)      
         metrics['n_T_gates'] = n_t_gates + metrics.get('n_T_gates')
         metrics['rescaling_factor'] = rescaling_factor + metrics.get('rescaling_factor')
         metrics['n_non_clifford_rotations'] = n_non_clifford_rotations + metrics.get('n_non_clifford_rotations')
         metrics['n_clean_ancillae'] = max(n_clean_ancillae, metrics.get('n_clean_ancillae'))
+
+    #Metrics for indexing over terms
+    L = len(grouped_operator)
+    metrics['n_T_gates'] = 4 * (L - 1) + metrics.get('n_T_gates')
+
+    metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
+
+    # circuit_metrics = CircuitMetrics()
+    # circuit_metrics.number_of_t_gates = metrics['n_T_gates']
+    # circuit_metrics.number_of_nonclifford_rotations = metrics['n_non_clifford_rotations']
+    
     
     return metrics
