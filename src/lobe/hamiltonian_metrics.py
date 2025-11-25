@@ -65,34 +65,31 @@ def get_unique_modes(operator):
 
 
 def count_metrics(operator, max_occupancy: int = 1):
-    metrics = {
+    additional_metrics = {
         'n_be_ancillae': 0,
-        'n_clean_ancillae': 0,
-        'n_T_gates': 0,
-        'n_non_clifford_rotations': 0,
         'rescaling_factor': 0
     }
+    
 
     #TODO: map antifermions to fermions
 
     grouped_operator = operator.group()
+    metrics = CircuitMetrics()
     
     B = 0
     
     for term in grouped_operator:
         if len(term) == 1:
             if term.has_fermions:
-                n_clean_ancillae = 1
                 rescaling_factor = 1
-                n_t_gates = 4
-                n_non_clifford_rotations = 0
+                metrics.number_of_t_gates += 4
+                metrics.clean_ancillae_usage += [1]
+                metrics.rotation_angles += []
             elif term.has_bosons:
-                n_clean_ancillae = np.ceil(np.log2(max_occupancy))
                 rescaling_factor = max_occupancy
-                n_t_gates = 7 * np.ceil(np.log2(max_occupancy + 1))
-
-                rotation_angles = np.array([2 * np.arccos(np.sqrt(omega * (omega - 1))/max_occupancy) for omega in range(0, max_occupancy)])
-                n_non_clifford_rotations = len(remove_clifford_rotations(rotation_angles))
+                metrics.number_of_t_gates += 7 * np.ceil(np.log2(max_occupancy + 1))
+                metrics.clean_ancillae_usage += [i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1)]
+                metrics.rotation_angles += [2 * np.arccos(np.sqrt(omega * (omega - 1))/max_occupancy) for omega in range(0, max_occupancy)]
         elif len(term) > 1:
             #assume form of two fermionic ops and 1 or 2 bosonic ops plus h.c.
             _, term_B = get_unique_modes(term[0]) # B = number of unique bosonic modes
@@ -101,39 +98,33 @@ def count_metrics(operator, max_occupancy: int = 1):
             # Determine rotations
             _, exponents = get_bosonic_exponents(term[0], len(term_B))
             rotation_angles = get_rotation_angles(exponents)
-            n_non_clifford_rotations = len(remove_clifford_rotations(rotation_angles))
 
             if term[0].has_fermions:
                 rescaling_factor = max_occupancy ** (n_boson_ops / 2)
                 if n_boson_ops == 1:
-                    n_clean_ancillae = np.ceil(np.log2(max_occupancy + 1)) + 1
+                    clean_ancillae_usage = [i for i in range(1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1)]
                     n_t_gates = 12 * np.ceil(np.log2(max_occupancy))
                 else:
-                    n_clean_ancillae = np.ceil(np.log2(max_occupancy)) + 1
+                    clean_ancillae_usage = [i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1 + 1)]
                     n_t_gates = 24 * np.ceil(np.log2(max_occupancy)) - 8
                 
             else:
                 #assume form of n bosonic ops + h.c.
                 term_W = np.ceil(np.log2(max_occupancy + 1))
                 rescaling_factor = 2 * (max_occupancy ** (n_boson_ops / 2))
-                n_clean_ancillae = np.ceil(np.log2(max_occupancy)) + 1
+                clean_ancillae_usage = [i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1 + 1)]
                 n_t_gates = 12 * term_B * term_W - 8 * term_B + 4
 
-            B = max(term_B, B)      
-        metrics['n_T_gates'] = n_t_gates + metrics.get('n_T_gates')
-        metrics['rescaling_factor'] = rescaling_factor + metrics.get('rescaling_factor')
-        metrics['n_non_clifford_rotations'] = n_non_clifford_rotations + metrics.get('n_non_clifford_rotations')
-        metrics['n_clean_ancillae'] = max(n_clean_ancillae, metrics.get('n_clean_ancillae'))
+            B = max(term_B, B)  
+            metrics.number_of_t_gates += n_t_gates
+            metrics.clean_ancillae_usage += clean_ancillae_usage
+            metrics.rotation_angles += rotation_angles
+            
+        additional_metrics['rescaling_factor'] = rescaling_factor + additional_metrics.get('rescaling_factor')
 
-    #Metrics for indexing over terms
     L = len(grouped_operator)
-    metrics['n_T_gates'] = 4 * (L - 1) + metrics.get('n_T_gates')
+    metrics.number_of_t_gates += 4 * (L - 1)
 
-    metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
-
-    # circuit_metrics = CircuitMetrics()
-    # circuit_metrics.number_of_t_gates = metrics['n_T_gates']
-    # circuit_metrics.number_of_nonclifford_rotations = metrics['n_non_clifford_rotations']
+    additional_metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
     
-    
-    return metrics
+    return metrics, additional_metrics
