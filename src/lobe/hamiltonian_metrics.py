@@ -7,7 +7,7 @@ import numpy as np
 from copy import deepcopy
 from src.lobe.yukawa import yukawa_term_block_encoding
 from src.lobe.system import System
-from src.lobe._utils import get_fermionic_operator_types, get_bosonic_exponents
+from src.lobe._utils import get_fermionic_operator_types, get_bosonic_exponents, translate_antifermions_to_fermions
 from src.lobe.fermionic import fermionic_product_block_encoding
 from src.lobe.bosonic import bosonic_product_block_encoding
 from src.lobe.metrics import CircuitMetrics
@@ -70,8 +70,7 @@ def count_metrics(operator, max_occupancy: int = 1):
         'rescaling_factor': 0
     }
     
-
-    #TODO: map antifermions to fermions
+    operator = translate_antifermions_to_fermions(operator)
 
     grouped_operator = operator.group()
     metrics = CircuitMetrics()
