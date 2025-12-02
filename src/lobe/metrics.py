@@ -9,6 +9,8 @@ class CircuitMetrics:
     def __init__(self):
         self.number_of_elbows = 0
         self.number_of_t_gates = 0
+        self.number_of_be_ancillae = 0
+        self.rescaling_factor = 0
         self.clean_ancillae_usage = []
         self.rotation_angles = []
 
@@ -16,6 +18,8 @@ class CircuitMetrics:
         self.number_of_elbows += other.number_of_elbows
         self.rotation_angles += other.rotation_angles
         self.number_of_t_gates += other.number_of_t_gates
+        self.number_of_be_ancillae += other.number_of_be_ancillae
+        self.rescaling_factor += other.rescaling_factor
         previous = 0
         for number_of_used_ancillae in other.clean_ancillae_usage:
             self.add_to_clean_ancillae_usage(number_of_used_ancillae - previous)
@@ -64,4 +68,6 @@ class CircuitMetrics:
             "Number of non-Clifford rotations: ", self.number_of_nonclifford_rotations
         )
         print("Maximum number of used clean ancillae: ", self.ancillae_highwater())
+        print("Number of block-encoding ancillae: ", self.number_of_be_ancillae)
+        print("Rescaling factor: ", self.rescaling_factor)
         print("---------------")
