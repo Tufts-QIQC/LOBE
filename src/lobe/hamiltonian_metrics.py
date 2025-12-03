@@ -4,6 +4,7 @@ from src.lobe._utils import (
     predict_number_of_block_encoding_ancillae,
 )
 import numpy as np
+from openparticle import ParticleOperator
 from copy import deepcopy
 from src.lobe.yukawa import yukawa_term_block_encoding
 from src.lobe.system import System
@@ -41,7 +42,7 @@ def get_rotation_angles(exponents, max_occupancy):
             angle = 2 * np.arccos(argument)
             rotation_angles.append(angle)
 
-    return np.array(rotation_angles)
+    return rotation_angles
 
 def get_unique_modes(operator):
     '''
@@ -64,66 +65,88 @@ def get_unique_modes(operator):
     return list(set(fermionic_modes)), list(set(bosonic_modes))
 
 
-def count_metrics(operator, max_occupancy: int = 1):
-    additional_metrics = {
-        'n_be_ancillae': 0,
-        'rescaling_factor': 0
-    }
-    
-    operator = translate_antifermions_to_fermions(operator)
+def separate_bosonic_ops(term):
+    bosonic_ops = 1
+    assert len(term.to_list()) == 1 #Only pass in a term
 
-    grouped_operator = operator.group()
+    for op in term.split():
+        if op.has_bosons:
+            bosonic_ops *= op
+    return bosonic_ops
+
+
+def count_metrics(operator, max_occupancy: int = 1):
+
+    groups = operator.group()
+
+    if operator.has_antifermions:
+        translated_groups = []
+        max_fermionic_mode = operator.max_fermionic_mode
+        for term in groups:
+            translated_groups.append(translate_antifermions_to_fermions(term, max_fermionic_mode))
+        groups = translated_groups
+
+
     metrics = CircuitMetrics()
     
     B = 0
     
-    for term in grouped_operator:
+    for term in groups:
         if len(term) == 1:
             if term.has_fermions:
-                rescaling_factor = 1
+                metrics.rescaling_factor += 1
                 metrics.number_of_t_gates += 4
+                metrics.number_of_elbows += 1
                 metrics.clean_ancillae_usage += [1]
                 metrics.rotation_angles += []
             elif term.has_bosons:
-                rescaling_factor = max_occupancy
+                metrics.rescaling_factor += max_occupancy
+                metrics.number_of_elbows += np.ceil(np.log2(max_occupancy))
                 metrics.number_of_t_gates += 7 * np.ceil(np.log2(max_occupancy + 1))
                 metrics.clean_ancillae_usage += [i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1)]
                 metrics.rotation_angles += [2 * np.arccos(np.sqrt(omega * (omega - 1))/max_occupancy) for omega in range(0, max_occupancy)]
         elif len(term) > 1:
+            first_term = term.to_list()[0]
+
             #assume form of two fermionic ops and 1 or 2 bosonic ops plus h.c.
-            _, term_B = get_unique_modes(term[0]) # B = number of unique bosonic modes
-            n_boson_ops = term[0].n_bosons
+            term_B_fermion, term_B_boson = get_unique_modes(first_term) # B = number of unique bosonic modes
+            n_boson_ops = first_term.n_bosons
 
             # Determine rotations
-            _, exponents = get_bosonic_exponents(term[0], len(term_B))
-            rotation_angles = get_rotation_angles(exponents)
+            exponents = []
+            if first_term.has_bosons:
+                bosonic_first_term = separate_bosonic_ops(first_term)
+                _, exponents = get_bosonic_exponents(bosonic_first_term, bosonic_first_term.max_mode + 1)
+                metrics.rotation_angles += get_rotation_angles(exponents, max_occupancy)
 
-            if term[0].has_fermions:
+            if first_term.has_fermions:
                 rescaling_factor = max_occupancy ** (n_boson_ops / 2)
                 if n_boson_ops == 1:
                     clean_ancillae_usage = [i for i in range(1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1)]
                     n_t_gates = 12 * np.ceil(np.log2(max_occupancy))
-                else:
+                elif n_boson_ops > 1:
                     clean_ancillae_usage = [i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1 + 1)]
                     n_t_gates = 24 * np.ceil(np.log2(max_occupancy)) - 8
+                elif n_boson_ops == 0:
+                    clean_ancillae_usage = [i for i in range(1, term_B_fermion - 1 + 1)]
+                    n_t_gates = 4 * (term_B_fermion - 1)
                 
             else:
                 #assume form of n bosonic ops + h.c.
                 term_W = np.ceil(np.log2(max_occupancy + 1))
                 rescaling_factor = 2 * (max_occupancy ** (n_boson_ops / 2))
                 clean_ancillae_usage = [i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1 + 1)]
-                n_t_gates = 12 * term_B * term_W - 8 * term_B + 4
+                n_t_gates = 12 * term_B_boson * term_W - 8 * term_B_boson + 4
 
-            B = max(term_B, B)  
+            B = max(max(term_B_boson), B)  
             metrics.number_of_t_gates += n_t_gates
             metrics.clean_ancillae_usage += clean_ancillae_usage
-            metrics.rotation_angles += rotation_angles
+            metrics.rescaling_factor += rescaling_factor
             
-        additional_metrics['rescaling_factor'] = rescaling_factor + additional_metrics.get('rescaling_factor')
 
-    L = len(grouped_operator)
+    L = len(groups)
     metrics.number_of_t_gates += 4 * (L - 1)
 
-    additional_metrics['n_be_ancillae'] = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
+    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
     
-    return metrics, additional_metrics
+    return metrics
