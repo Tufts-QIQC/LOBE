@@ -25,6 +25,15 @@ class CircuitMetrics:
             self.add_to_clean_ancillae_usage(number_of_used_ancillae - previous)
             previous = number_of_used_ancillae
         return self
+    
+    def __eq__(self, other) -> bool:
+        return (
+            self.number_of_elbows == other.number_of_elbows and
+            self.number_of_be_ancillae == other.number_of_be_ancillae and
+            self.number_of_nonclifford_rotations == other.number_of_nonclifford_rotations and
+            self.number_of_t_gates == other.number_of_t_gates and
+            self.rescaling_factor == other.rescaling_factor
+        )
 
     def add_to_clean_ancillae_usage(self, change):
         """Account for clean ancillae being used or freed
