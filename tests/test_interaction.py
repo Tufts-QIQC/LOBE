@@ -11,7 +11,7 @@ from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from src.lobe.rescale import rescale_coefficients
 from src.lobe.system import System
-from src.lobe.yukawa import _determine_block_encoding_function
+from src.lobe.interaction import _determine_block_encoding_function
 from src.lobe._utils import (
     translate_antifermions_to_fermions,
     predict_number_of_block_encoding_ancillae,
