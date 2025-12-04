@@ -47,6 +47,7 @@ def pretty_print(
 def get_basis_of_full_system(
     maximum_occupation_number,
     number_of_fermionic_modes=0,
+    number_of_antifermionic_modes=0,
     number_of_bosonic_modes=0,
 ):
     """Get the Fock basis of the system
@@ -63,8 +64,10 @@ def get_basis_of_full_system(
         int(np.ceil(np.log2(maximum_occupation_number))), 1
     )
 
-    total_number_of_qubits = number_of_fermionic_modes + (
-        number_of_bosonic_modes * number_of_occupation_qubits
+    total_number_of_qubits = (
+        number_of_fermionic_modes
+        + number_of_antifermionic_modes
+        + (number_of_bosonic_modes * number_of_occupation_qubits)
     )
 
     basis = []
@@ -74,11 +77,17 @@ def get_basis_of_full_system(
         ]
 
         index = 0
-        fermionic_fock_state = []
         fermionic_fock_state = [
             i for i in range(number_of_fermionic_modes) if qubit_values[i] == 1
         ]
         index += number_of_fermionic_modes
+
+        antifermionic_fock_state = [
+            i
+            for i in range(number_of_antifermionic_modes)
+            if qubit_values[i + index] == 1
+        ]
+        index += number_of_antifermionic_modes
 
         bosonic_fock_state = []
         for mode in range(number_of_bosonic_modes):
@@ -88,7 +97,9 @@ def get_basis_of_full_system(
             bosonic_fock_state.append((mode, int(occupation, 2)))
             index += number_of_occupation_qubits
 
-        basis.append(Fock(fermionic_fock_state, [], bosonic_fock_state))
+        basis.append(
+            Fock(fermionic_fock_state, antifermionic_fock_state, bosonic_fock_state)
+        )
     return basis
 
 
@@ -310,21 +321,30 @@ def translate_antifermions_to_fermions(operator, max_fermionic_mode=None):
         if max_fermionic_mode is None:
             max_fermionic_mode = 0
     translated_operator = None
+    print(operator)
     for term in operator:
+        print(term)
         translated_term = None
         for op in term.split():
             new_op = op
-            if list(op.op_dict.keys())[0][0][0] == 1:
-                expected_tuple = (
-                    0,
-                    op.mode + max_fermionic_mode + 1,
-                    list(op.op_dict.keys())[0][0][2],
-                )
-                new_op = ParticleOperator({(expected_tuple,): op.coeff})
+            if op.op_dict.get((), None) is None:
+                if list(op.op_dict.keys())[0][0][0] == 1:  # if it an antifermionic op
+                    updated_mode = op.mode + max_fermionic_mode
+                    if operator.has_fermions:
+                        updated_mode += 1
+                    expected_tuple = (
+                        0,  # make it a fermion
+                        updated_mode,  # update the mode index
+                        list(op.op_dict.keys())[0][0][
+                            2
+                        ],  # keep the creation/annihilation number
+                    )
+                    new_op = ParticleOperator({(expected_tuple,): 1})
             if translated_term is None:
                 translated_term = new_op
             else:
                 translated_term *= new_op
+        translated_term = term.coeff * translated_term
         if translated_operator is None:
             translated_operator = translated_term
         else:
