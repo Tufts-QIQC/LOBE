@@ -1,15 +1,24 @@
-from src.lobe.hamiltonian_metrics import *
+from src.lobe.hamiltonian_metrics import (
+    count_metrics,
+)
 import numpy as np
 import cirq
 import pytest
 from openparticle import ParticleOperator
 from openparticle.hamiltonians.yukawa_hamiltonians import yukawa_hamiltonian
-from src.lobe._utils import translate_antifermions_to_fermions
+from src.lobe._utils import (
+    translate_antifermions_to_fermions,
+    predict_number_of_block_encoding_ancillae,
+)
 
+from src.lobe.metrics import CircuitMetrics
+from src.lobe.system import System
 from src.lobe.yukawa import _determine_block_encoding_function
 from src.lobe.index import index_over_terms
 
-def count_gates_numeric(operator, max_bosonic_occupancy):
+
+def count_gates_numeric(operator, max_bosonic_occupancy=1):
+    operator = translate_antifermions_to_fermions(operator)
     terms = operator.group()
 
     number_of_block_encoding_anillae = max(
@@ -49,7 +58,6 @@ def count_gates_numeric(operator, max_bosonic_occupancy):
 
     metrics = CircuitMetrics()
 
-
     _, _metrics = index_over_terms(
         index_register,
         block_encoding_functions,
@@ -57,19 +65,22 @@ def count_gates_numeric(operator, max_bosonic_occupancy):
         ctrls=ctrls,
     )
     metrics += _metrics
-    
-    metrics.rescaling_factor = sum(rescaling_factors)
 
+    metrics.rescaling_factor = sum(rescaling_factors)
 
     return metrics
 
-@pytest.mark.parametrize('max_occupation', [1, 3])
+
+@pytest.mark.parametrize("max_occupation", [1, 3])
 def test_numeric_and_analytic_LOBE_counts(max_occupation):
-    
+
     operator = yukawa_hamiltonian(2, 1, 1, 1)
-    assert count_metrics(operator, max_occupation).display_metrics() == count_metrics(operator, max_occupation).display_metrics()
+    assert count_metrics(operator, max_occupation) == count_gates_numeric(
+        operator, max_occupation
+    )
+
 
 def test_numeric_and_analytic_LOBE_counts_fermionic_only():
-    operator = ParticleOperator('b0^ b1^ b0 b1')
+    operator = ParticleOperator("b0^ b1^ b0 b1").normal_order()
     operator += operator.dagger()
-    assert count_metrics(operator).display_metrics() == count_metrics(operator).display_metrics()
+    assert count_metrics(operator) == count_gates_numeric(operator)
