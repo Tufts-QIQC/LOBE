@@ -1,10 +1,15 @@
-from src.lobe.hamiltonian_metrics import *
+from src.lobe.hamiltonian_metrics import (
+    count_metrics,
+)
 import numpy as np
 import cirq
 import pytest
 from openparticle import ParticleOperator
 from openparticle.hamiltonians.yukawa_hamiltonians import yukawa_hamiltonian
-from src.lobe._utils import translate_antifermions_to_fermions
+from src.lobe._utils import (
+    translate_antifermions_to_fermions,
+    predict_number_of_block_encoding_ancillae,
+)
 
 from src.lobe.interaction import _determine_block_encoding_function
 from src.lobe.index import index_over_terms
@@ -55,7 +60,6 @@ def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
 
     metrics = CircuitMetrics()
 
-
     _, _metrics = index_over_terms(
         index_register,
         block_encoding_functions,
@@ -63,13 +67,13 @@ def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
         ctrls=ctrls,
     )
     metrics += _metrics
-    
-    metrics.rescaling_factor = sum(rescaling_factors)
 
+    metrics.rescaling_factor = sum(rescaling_factors)
 
     return metrics
 
-@pytest.mark.parametrize('max_occupation', [1, 3])
+
+@pytest.mark.parametrize("max_occupation", [1, 3])
 def test_numeric_and_analytic_LOBE_counts(max_occupation):
     operator = yukawa_hamiltonian(2, 1, 1, 1)
     
