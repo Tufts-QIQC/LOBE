@@ -6,7 +6,7 @@ from src.lobe._utils import (
 import numpy as np
 from openparticle import ParticleOperator
 from copy import deepcopy
-from src.lobe.yukawa import yukawa_term_block_encoding
+from src.lobe.interaction import interaction_term_block_encoding
 from src.lobe.system import System
 from src.lobe._utils import get_fermionic_operator_types, get_bosonic_exponents, translate_antifermions_to_fermions
 from src.lobe.fermionic import fermionic_product_block_encoding
@@ -65,7 +65,7 @@ def get_unique_modes(operator):
     return list(set(fermionic_modes)), list(set(bosonic_modes))
 
 
-def separate_bosonic_ops(term):
+def _separate_bosonic_ops(term):
     bosonic_ops = 1
     assert len(term.to_list()) == 1 #Only pass in a term
 
@@ -115,7 +115,7 @@ def count_metrics(operator, max_occupancy: int = 1):
             # Determine rotations
             exponents = []
             if first_term.has_bosons:
-                bosonic_first_term = separate_bosonic_ops(first_term)
+                bosonic_first_term = _separate_bosonic_ops(first_term)
                 _, exponents = get_bosonic_exponents(bosonic_first_term, bosonic_first_term.max_mode + 1)
                 metrics.rotation_angles += get_rotation_angles(exponents, max_occupancy)
 
