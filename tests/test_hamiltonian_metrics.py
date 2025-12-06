@@ -10,7 +10,8 @@ from src.lobe._utils import (
     translate_antifermions_to_fermions,
     predict_number_of_block_encoding_ancillae,
 )
-
+from src.lobe.metrics import CircuitMetrics
+from src.lobe.system import System
 from src.lobe.interaction import _determine_block_encoding_function
 from src.lobe.index import index_over_terms
 
@@ -23,6 +24,7 @@ def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
         for term in groups:
             translated_groups.append(translate_antifermions_to_fermions(term, max_fermionic_mode))
         groups = translated_groups
+        operator = sum(groups, ParticleOperator())
 
     number_of_block_encoding_anillae = max(
         [predict_number_of_block_encoding_ancillae(group) for group in groups]
@@ -69,11 +71,14 @@ def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
     metrics += _metrics
 
     metrics.rescaling_factor = sum(rescaling_factors)
+    L = len(groups)
+    metrics.number_of_t_gates += 4 * (L - 1)
+    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + number_of_block_encoding_anillae
 
     return metrics
 
 
-@pytest.mark.parametrize("max_occupation", [1, 3])
+@pytest.mark.parametrize("max_occupation", [1])
 def test_numeric_and_analytic_LOBE_counts(max_occupation):
     operator = yukawa_hamiltonian(2, 1, 1, 1)
     

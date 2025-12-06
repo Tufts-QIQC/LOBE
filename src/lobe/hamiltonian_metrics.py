@@ -170,5 +170,6 @@ def count_metrics(operator, max_occupancy: int = 1):
     metrics.number_of_t_gates += 4 * (L - 1)
 
     metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
+    metrics.number_of_elbows += L - 1 # number of left elbows from indexing 
 
     return metrics
