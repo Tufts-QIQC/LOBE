@@ -76,7 +76,7 @@ def _validate_block_encoding(
     operator,
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -88,7 +88,7 @@ def _validate_block_encoding(
         print(
             f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
-        simulator = cirq.Simulator()
+        simulator = cirq.Simulator(dtype=np.complex64)
 
         number_of_fermionic_modes = 0
         number_of_bosonic_modes = 0
@@ -186,7 +186,7 @@ def _validate_clean_ancillae_are_cleaned(
     circuit,
     system,
     number_of_block_encoding_ancillae,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -195,7 +195,7 @@ def _validate_clean_ancillae_are_cleaned(
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
     )
@@ -256,7 +256,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     circuit,
     system,
     number_of_block_encoding_ancillae,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -265,7 +265,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
     )
@@ -310,7 +310,7 @@ def _validate_block_encoding_select_is_self_inverse(
     operator,
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     """
@@ -331,7 +331,7 @@ def _validate_block_encoding_select_is_self_inverse(
         print(
             f"Testing self-inverse by a singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
-        simulator = cirq.Simulator()
+        simulator = cirq.Simulator(dtype=np.complex64)
 
         number_of_fermionic_modes = 0
         number_of_bosonic_modes = 0
