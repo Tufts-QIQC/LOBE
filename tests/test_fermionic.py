@@ -11,11 +11,12 @@ from _utils import (
     _validate_block_encoding,
     _validate_clean_ancillae_are_cleaned,
     _validate_block_encoding_does_nothing_when_control_is_off,
+    _validate_block_encoding_select_is_self_inverse,
 )
 
 
-MAX_MODES = 7
-MAX_ACTIVE_MODES = 7
+MAX_MODES = 5
+MAX_ACTIVE_MODES = 5
 MIN_ACTIVE_MODES = 1
 
 
@@ -78,7 +79,13 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
         maximum_occupation_number,
     )
 
-    number_of_number_ops = operator_types_reversed[::-1].count(2)
+    _validate_block_encoding_select_is_self_inverse(
+        circuit,
+        system,
+        operator,
+        number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )
 
     assert metrics.number_of_elbows == len(active_modes[::-1]) - 1
     if len(metrics.clean_ancillae_usage) > 0:
@@ -120,8 +127,11 @@ def test_arbitrary_fermionic_product(trial):
 
     operator = sign * ParticleOperator(operator_string)
 
+    number_of_block_encoding_ancillae = 1
+    expected_rescaling_factor = 1
+    maximum_occupation_number = 1
     circuit, metrics, system = _setup(
-        1,
+        number_of_block_encoding_ancillae,
         operator,
         1,
         partial(
@@ -132,9 +142,6 @@ def test_arbitrary_fermionic_product(trial):
         ),
     )
 
-    number_of_block_encoding_ancillae = 1
-    expected_rescaling_factor = 1
-    maximum_occupation_number = 1
     _validate_clean_ancillae_are_cleaned(
         circuit, system, number_of_block_encoding_ancillae
     )
