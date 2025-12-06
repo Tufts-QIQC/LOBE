@@ -33,7 +33,7 @@ def test_incrementer_on_basis_state(number_of_qubits, integer, decrement):
     initial_ancilla_state[0] = 1
     initial_state = np.kron(initial_ancilla_state, initial_state)
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
 
     final_state = simulator.simulate(
         circuit, initial_state=initial_state
@@ -83,7 +83,7 @@ def test_incrementer_on_superposition_state(
     initial_ancilla_state[0] = 1
     initial_state = np.kron(initial_ancilla_state, initial_state)
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
 
     final_state = simulator.simulate(
         circuit, initial_state=initial_state
@@ -138,7 +138,7 @@ def test_incrementer_is_properly_controlled(
         initial_state_system_state,
     )
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
 
     final_state = simulator.simulate(
         circuit, initial_state=initial_state
@@ -220,7 +220,7 @@ def test_add_classical_value_on_basis_state(
 
     if len(circuit.all_qubits()) > 20:
         pytest.skip("Too many qubits to simulate")
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
 
     final_state = simulator.simulate(
         circuit, initial_state=initial_state

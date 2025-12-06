@@ -12,8 +12,6 @@ def _setup(
     maximum_occupation_number,
     block_encoding_function,
 ):
-    number_of_modes = max([term.max_mode for term in operator.to_list()]) + 1
-
     number_of_clean_ancillae = 100
 
     # Declare Qubits
@@ -78,7 +76,7 @@ def _validate_block_encoding(
     operator,
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -90,7 +88,7 @@ def _validate_block_encoding(
         print(
             f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
-        simulator = cirq.Simulator()
+        simulator = cirq.Simulator(dtype=np.complex64)
 
         number_of_fermionic_modes = 0
         number_of_bosonic_modes = 0
@@ -188,7 +186,7 @@ def _validate_clean_ancillae_are_cleaned(
     circuit,
     system,
     number_of_block_encoding_ancillae,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -197,7 +195,7 @@ def _validate_clean_ancillae_are_cleaned(
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
     )
@@ -258,7 +256,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     circuit,
     system,
     number_of_block_encoding_ancillae,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -267,7 +265,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
     )
@@ -304,3 +302,99 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     ).final_state_vector
 
     assert np.allclose(output_state, initial_state, atol=1e-6)
+
+
+def _validate_block_encoding_select_is_self_inverse(
+    circuit,
+    system,
+    operator,
+    number_of_block_encoding_ancillae,
+    maximum_occupation_number,
+    max_qubits=17,
+    using_pytest=True,
+):
+    """
+    Checks if <0|PREP^\DAGGER SEL^2 PREP|0> = 1
+    """
+    # Assume PREP^\DAGGER SEL^2 PREP \equiv circuit@circuit
+
+    if len(circuit.all_qubits()) >= max_qubits:
+        if using_pytest:
+            pytest.skip(
+                f"Too many qubits to validate self-inverse: {len(circuit.all_qubits())}"
+            )
+        else:
+            print(
+                f"Too many qubits to validate self-inverse: {len(circuit.all_qubits())}"
+            )
+    elif len(circuit.all_qubits()) >= 12:
+        print(
+            f"Testing self-inverse by a singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
+        )
+        simulator = cirq.Simulator(dtype=np.complex64)
+
+        number_of_fermionic_modes = 0
+        number_of_bosonic_modes = 0
+        if operator.max_fermionic_mode is not None:
+            number_of_fermionic_modes = operator.max_fermionic_mode + 1
+        if operator.max_bosonic_mode is not None:
+            number_of_bosonic_modes = operator.max_bosonic_mode + 1
+        full_fock_basis = get_basis_of_full_system(
+            maximum_occupation_number,
+            number_of_fermionic_modes=number_of_fermionic_modes,
+            number_of_bosonic_modes=number_of_bosonic_modes,
+        )
+        matrix = generate_matrix(operator, full_fock_basis)
+
+        random_system_state = np.zeros(1 << system.number_of_system_qubits)
+        attempts = 0
+        while np.isclose(np.linalg.norm(matrix @ random_system_state), 0):
+            random_system_state = 1j * np.random.uniform(
+                -1, 1, 1 << system.number_of_system_qubits
+            )
+            random_system_state += np.random.uniform(
+                -1, 1, 1 << system.number_of_system_qubits
+            )
+            random_system_state = random_system_state / np.linalg.norm(
+                random_system_state
+            )
+            if attempts > 100:
+                break
+        zero_state = np.zeros(
+            1
+            << (
+                len(circuit.all_qubits())
+                - system.number_of_system_qubits
+                - 1
+                - number_of_block_encoding_ancillae
+            ),
+            dtype=complex,
+        )
+        zero_state[0] = 1
+        initial_control_state = [1, 0]
+        initial_block_encoding_ancilla_state = np.zeros(
+            1 << number_of_block_encoding_ancillae
+        )
+        initial_block_encoding_ancilla_state[0] = 1
+        initial_state = np.kron(
+            np.kron(
+                np.kron(initial_control_state, initial_block_encoding_ancilla_state),
+                zero_state,
+            ),
+            random_system_state,
+        )
+        output_state = simulator.simulate(
+            circuit + circuit, initial_state=initial_state
+        ).final_state_vector
+        final_state = output_state[: 1 << system.number_of_system_qubits]
+        assert np.allclose(
+            final_state, initial_state[: 1 << system.number_of_system_qubits]
+        )
+    else:
+        number_of_system_qubits = system.number_of_system_qubits
+        unitary = circuit.unitary()
+        unitary = unitary @ unitary
+        assert np.allclose(
+            np.eye(1 << number_of_system_qubits),
+            unitary[: 1 << number_of_system_qubits, : 1 << number_of_system_qubits],
+        )
