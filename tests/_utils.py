@@ -115,7 +115,7 @@ def _validate_block_encoding(
             random_system_state = random_system_state / np.linalg.norm(
                 random_system_state
             )
-            if attempts > 100:
+            if attempts > 3:
                 break
         zero_state = np.zeros(
             1
@@ -358,7 +358,8 @@ def _validate_block_encoding_select_is_self_inverse(
             random_system_state = random_system_state / np.linalg.norm(
                 random_system_state
             )
-            if attempts > 100:
+            if attempts > 3:
+                print("Expecting state to be annihilated")
                 break
         zero_state = np.zeros(
             1
@@ -391,10 +392,12 @@ def _validate_block_encoding_select_is_self_inverse(
             final_state, initial_state[: 1 << system.number_of_system_qubits]
         )
     else:
-        number_of_system_qubits = system.number_of_system_qubits
         unitary = circuit.unitary()
         unitary = unitary @ unitary
         assert np.allclose(
-            np.eye(1 << number_of_system_qubits),
-            unitary[: 1 << number_of_system_qubits, : 1 << number_of_system_qubits],
+            np.eye(1 << system.number_of_system_qubits),
+            unitary[
+                : 1 << system.number_of_system_qubits,
+                : 1 << system.number_of_system_qubits,
+            ],
         )
