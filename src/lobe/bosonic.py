@@ -81,7 +81,11 @@ def bosonic_product_block_encoding(
             )
 
     if self_inverse:
-        gates.append(cirq.X.on(unitary_index_qubit))
+        gates.append(
+            cirq.X.on(unitary_index_qubit).controlled_by(
+                *ctrls[0], control_values=ctrls[1]
+            )
+        )
         gates.append(cirq.H.on(unitary_index_qubit))
 
     return gates, block_encoding_metrics
@@ -205,7 +209,11 @@ def bosonic_product_plus_hc_block_encoding(
 
     if self_inverse:
         gates.append(cirq.X.on(index).controlled_by(unitary_index_qubit))
-        gates.append(cirq.X.on(unitary_index_qubit))
+        gates.append(
+            cirq.X.on(unitary_index_qubit).controlled_by(
+                *ctrls[0], control_values=ctrls[1]
+            )
+        )
         gates.append(cirq.H.on(unitary_index_qubit))
     gates.append(cirq.H.on(index))
 

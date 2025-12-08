@@ -2,8 +2,8 @@ import cirq
 import pytest
 import numpy as np
 from openparticle import generate_matrix
-from src.lobe.system import System
 from src.lobe._utils import get_basis_of_full_system
+from src.lobe.system import System
 
 
 def _setup(

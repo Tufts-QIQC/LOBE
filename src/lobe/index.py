@@ -4,7 +4,11 @@ from .metrics import CircuitMetrics
 
 
 def index_over_terms(
-    index_register, block_encoding_functions, clean_ancillae, ctrls=([], [])
+    index_register,
+    block_encoding_functions,
+    clean_ancillae,
+    self_inverse=False,
+    ctrls=([], []),
 ):
     """Create a block-encoding of a linear combination of block-encodings
 
