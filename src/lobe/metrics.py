@@ -32,7 +32,8 @@ class CircuitMetrics:
             self.number_of_be_ancillae == other.number_of_be_ancillae and
             self.number_of_nonclifford_rotations == other.number_of_nonclifford_rotations and
             self.number_of_t_gates == other.number_of_t_gates and
-            self.rescaling_factor == other.rescaling_factor
+            self.ancillae_highwater() == other.ancillae_highwater() and
+            np.isclose(self.rescaling_factor, other.rescaling_factor)
         )
 
     def add_to_clean_ancillae_usage(self, change):
