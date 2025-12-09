@@ -22,7 +22,7 @@ def add_classical_value(register, classical_value, clean_ancillae, ctrls=([], []
     incrementers_circuit, incrementers_metrics = add_classical_value_incrementers(
         register, classical_value, clean_ancillae, ctrls=ctrls
     )
-    gate_efficient_circuit, gate_efficient_metrics = add_classical_value_incrementers(
+    gate_efficient_circuit, gate_efficient_metrics = add_classical_value_gate_efficient(
         register, classical_value, clean_ancillae, ctrls=ctrls
     )
 
