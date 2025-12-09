@@ -17,6 +17,7 @@ from src.lobe.index import index_over_terms
 
 def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
     groups = operator.group()
+    assert len(groups) > 1
 
     if operator.has_antifermions:
         translated_groups = []
@@ -62,46 +63,141 @@ def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
 
     metrics = CircuitMetrics()
 
-    _, _metrics = index_over_terms(
+    _gates, _metrics = index_over_terms(
         index_register,
         block_encoding_functions,
         clean_ancillae=clean_ancillae,
         ctrls=ctrls,
     )
+
     metrics += _metrics
 
     metrics.rescaling_factor = sum(rescaling_factors)
     L = len(groups)
-    metrics.number_of_t_gates += 4 * (L - 1)
+
     metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + number_of_block_encoding_anillae
 
     return metrics
 
 
-@pytest.mark.parametrize("max_occupation", [1])
-def test_numeric_and_analytic_LOBE_counts(max_occupation):
-    operator = yukawa_hamiltonian(2, 1, 1, 1)
+def test_numeric_and_analytic_LOBE_counts_fermionic_product_of_number_ops():
+    operator = ParticleOperator('b0^ b0 b1^ b1 b2^ b2 b3^ b3') + ParticleOperator('b0^ b0')
     
     analytic_metrics = count_metrics(operator)
-    numeric_metrics = count_metrics_numeric(operator)
     print("\n")
     print("---analytic---")
     analytic_metrics.display_metrics()
+
     print("\n")
     print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator)
     numeric_metrics.display_metrics()
-    assert count_metrics(operator) == count_metrics_numeric(operator)
 
-# def test_numeric_and_analytic_LOBE_counts_fermionic_only():
-#     operator = ParticleOperator('b0^ b1^ b0 b1')
-#     operator += operator.dagger()
+    assert analytic_metrics == numeric_metrics
 
-#     analytic_metrics = count_metrics(operator)
-#     numeric_metrics = count_metrics_numeric(operator)
-#     print("\n")
-#     print("---analytic---")
-#     analytic_metrics.display_metrics()
-#     print("\n")
-#     print("---numeric---")
-#     numeric_metrics.display_metrics()
-#     assert count_metrics(operator) == count_metrics_numeric(operator)
+@pytest.mark.parametrize('maximum_occupation', [1, 3, 7])
+def test_numeric_and_analytic_LOBE_counts_bosonic_product_of_number_ops(maximum_occupation):
+    operator = ParticleOperator('a0^ a0 a1^ a1^ a1^ a1 a1 a1 a2^ a2 a3^ a3') + ParticleOperator('a0^ a0^ a0 a0')
+    
+    analytic_metrics = count_metrics(operator, maximum_occupation)
+    print("\n")
+    print("---analytic---")
+    analytic_metrics.display_metrics()
+
+    print("\n")
+    print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator, maximum_occupation)
+    numeric_metrics.display_metrics()
+
+    assert analytic_metrics == numeric_metrics
+
+
+@pytest.mark.parametrize('maximum_occupation', [1, 3, 7])
+def test_numeric_and_analytic_LOBE_counts_product_of_number_ops(maximum_occupation):
+    operator = ParticleOperator('b0^ b0 a0^ a0') + ParticleOperator('a0^ a0 a1^ a1')
+    
+    analytic_metrics = count_metrics(operator, maximum_occupation)
+    print("\n")
+    print("---analytic---")
+    analytic_metrics.display_metrics()
+
+    print("\n")
+    print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator, maximum_occupation)
+    numeric_metrics.display_metrics()
+
+    assert analytic_metrics == numeric_metrics
+
+def test_numeric_and_analytic_LOBE_counts_nondiagonal_fermion():
+    operator = ParticleOperator('b0^ b1') + ParticleOperator('b0^ b1').dagger()
+    operator += ParticleOperator('b2^ b3') + ParticleOperator('b2^ b3').dagger()
+    operator += ParticleOperator('b0^ b1 b0 b1^') + ParticleOperator('b0^ b1 b0 b1^').dagger()
+
+    analytic_metrics = count_metrics(operator)
+    print("\n")
+    print("---analytic---")
+    analytic_metrics.display_metrics()
+
+    print("\n")
+    print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator)
+    numeric_metrics.display_metrics()
+
+    assert analytic_metrics == numeric_metrics
+
+    
+
+@pytest.mark.parametrize('maximum_occupation', [1, 3, 7])
+def test_numeric_and_analytic_LOBE_counts_nondiagonal_boson(maximum_occupation):
+    operator = ParticleOperator('a0^ a1') + ParticleOperator('a0^ a1').dagger()
+    operator += ParticleOperator('a2^ a3') + ParticleOperator('a2^ a3').dagger()
+    operator += ParticleOperator('a0^ a0^ a1 a1') + ParticleOperator('a0^ a0^ a1 a1').dagger()
+
+    analytic_metrics = count_metrics(operator, maximum_occupation)
+    print("\n")
+    print("---analytic---")
+    analytic_metrics.display_metrics()
+
+    print("\n")
+    print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator, maximum_occupation)
+    numeric_metrics.display_metrics()
+
+    assert analytic_metrics == numeric_metrics
+
+@pytest.mark.parametrize('maximum_occupation', [1, 3, 7])
+def test_numeric_and_analytic_LOBE_counts_interaction(maximum_occupation):
+    operator = ParticleOperator('b1^ b0 a1') + ParticleOperator('b1^ b0 a1').dagger()
+    operator += ParticleOperator('b0^ b1 a0') + ParticleOperator('b0^ b1 a0').dagger()
+    
+    analytic_metrics = count_metrics(operator, maximum_occupation)
+    print("\n")
+    print("---analytic---")
+    analytic_metrics.display_metrics()
+
+    print("\n")
+    print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator, maximum_occupation)
+    numeric_metrics.display_metrics()
+
+    assert analytic_metrics == numeric_metrics
+
+
+
+@pytest.mark.parametrize("max_occupation", [1, 3, 7])
+def test_numeric_and_analytic_LOBE_counts_arbitrary_operator(max_occupation):
+    operator = yukawa_hamiltonian(2, 1, 1, 1)
+    operator += ParticleOperator('b0^ b1^ b0 b1') + ParticleOperator('b0^ b1^ b0 b1').dagger()
+    operator += ParticleOperator('a0^ a1^ a0 a1') + ParticleOperator('a0^ a1^ a0 a1').dagger()
+    
+    analytic_metrics = count_metrics(operator, max_occupation)
+    print("\n")
+    print("---analytic---")
+    analytic_metrics.display_metrics()
+
+    print("\n")
+    print("---numeric---")
+    numeric_metrics = count_metrics_numeric(operator, max_occupation)
+    numeric_metrics.display_metrics()
+
+    assert analytic_metrics == numeric_metrics

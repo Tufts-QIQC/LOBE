@@ -7,78 +7,36 @@ from openparticle import ParticleOperator
 from copy import deepcopy
 from src.lobe.interaction import interaction_term_block_encoding
 from src.lobe.system import System
-from src.lobe._utils import get_fermionic_operator_types, get_bosonic_exponents, translate_antifermions_to_fermions
+from src.lobe._utils import (get_fermionic_operator_types, 
+                             get_bosonic_exponents, 
+                             translate_antifermions_to_fermions, 
+                             get_active_bosonic_modes, 
+                             get_active_fermionic_modes,
+                             predict_number_of_block_encoding_ancillae)
+from src.lobe.multiplexed_rotations import _process_rotation_angles
 from src.lobe.fermionic import fermionic_product_block_encoding
-from src.lobe.bosonic import bosonic_product_block_encoding
+from src.lobe.bosonic import bosonic_product_block_encoding, _get_bosonic_rotation_angles
+from src.lobe.addition import _get_p_val, add_classical_value
 from src.lobe.metrics import CircuitMetrics
+import cirq
 
-CLIFFORD_ANGLES = [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4, np.pi]
-
-
-def remove_clifford_rotations(angles_list, tol: float = 1e-3):
-    non_clifford_angles = []
-
-    for angle in angles_list:
-        angle_is_not_clifford = True  # assume at first the angle is clifford
-        for clifford_angle in CLIFFORD_ANGLES:
-            if np.allclose(
-                angle, clifford_angle, rtol=tol
-            ):  # For each clifford angle, check if the rotation angle is close to clifford within tolerance
-                angle_is_not_clifford = False
-        if angle_is_not_clifford:
-            non_clifford_angles.append(angle)
-
-    return np.array(non_clifford_angles)
-
-
-def get_rotation_angles(exponents, max_occupancy):
-    rotation_angles = []
-    for R_and_S in exponents:
-        Ri, Si = R_and_S[0], R_and_S[1]
-        argument = 1
-        for omega in range(Si, max_occupancy - Ri + 1):
-            for r in range(0, Ri):
-                argument *= np.sqrt(omega - r) / np.sqrt(max_occupancy)
-            for s in range(1, Si + 1):
-                argument *= np.sqrt(omega - Ri + s) / np.sqrt(max_occupancy)
-            angle = 2 * np.arccos(argument)
-            rotation_angles.append(angle)
-
-    return rotation_angles
-
-
-def get_unique_modes(operator):
+def _compute_n_elbows_and_anc_hw_per_incrementer(N, m):
+    control = [cirq.LineQubit(0)]
+    clean_ancillae = [cirq.LineQubit(i) for i in range(-1, -100, -1)]   
     """
-    Given a ParticleOperator, this function returns a list of unique fermionic modes and a list of unique bosonic modes
+    |N⟩ -> |N + m⟩
+    Returns:
+        number of elbows and max clean ancillae to implement this operation
     """
 
-    fermionic_modes = []
-    bosonic_modes = []
-
-    for term in operator.op_dict.keys():
-        for op in term:
-            mode = op[1]
-            if op[0] == 0:
-                fermionic_modes.append(mode)
-            elif op[0] == 2:
-                bosonic_modes.append(mode)
-            else:
-                raise Exception(
-                    "This function assumes all antifermionic operators are mapped to fermionic ones"
-                )
-
-    return list(set(fermionic_modes)), list(set(bosonic_modes))
-
-
-def _separate_bosonic_ops(term):
-    bosonic_ops = 1
-    assert len(term.to_list()) == 1  # Only pass in a term
-
-    for op in term.split():
-        if op.has_bosons:
-            bosonic_ops *= op
-    return bosonic_ops
-
+    main_register = [cirq.LineQubit(i) for i in range(1, N + 1)]
+    _, metrics = add_classical_value(
+        main_register,
+        m,
+        clean_ancillae=clean_ancillae,
+        ctrls = (control, [1])
+    )
+    return metrics.number_of_elbows, metrics.ancillae_highwater()
 
 def count_metrics(operator, max_occupancy: int = 1):
 
@@ -93,83 +51,146 @@ def count_metrics(operator, max_occupancy: int = 1):
             )
         groups = translated_groups
 
+    L = len(groups)
+    number_of_indexing_clean_ancillae = np.ceil(np.log2(L))
+
     metrics = CircuitMetrics()
 
     B = 0
+    bosonic_index_qubit = False
 
     for term in groups:
-        if len(term) == 1:
-            if term.has_fermions:
-                metrics.rescaling_factor += 1
-                metrics.number_of_t_gates += 4
-                metrics.number_of_elbows += 1
-                metrics.clean_ancillae_usage += [1]
-                metrics.rotation_angles += []
-            elif term.has_bosons:
-                metrics.rescaling_factor += max_occupancy
-                metrics.number_of_elbows += np.ceil(np.log2(max_occupancy))
-                metrics.number_of_t_gates += 7 * np.ceil(np.log2(max_occupancy + 1))
-                metrics.clean_ancillae_usage += [
-                    i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1)
-                ]
-                metrics.rotation_angles += [
-                    2 * np.arccos(np.sqrt(omega * (omega - 1)) / max_occupancy)
-                    for omega in range(0, max_occupancy)
-                ]
-        elif len(term) > 1:
-            first_term = term.to_list()[0]
+        B = max(predict_number_of_block_encoding_ancillae(term), B)
 
-            # assume form of two fermionic ops and 1 or 2 bosonic ops plus h.c.
-            term_B_fermion, term_B_boson = get_unique_modes(
-                first_term
-            )  # B = number of unique bosonic modes
-            n_boson_ops = first_term.n_bosons
+        if len(term) == 1:
+            active_fermionic_modes = get_active_fermionic_modes(term)
+            active_bosonic_modes, exponents_list = get_bosonic_exponents(term)
+            P = sum([exponents[0] + exponents[1] for exponents in exponents_list])
+
+            if term.has_fermions and not term.has_bosons: #bi^ bi, bi^ bi bj^ bj, ...
+                rescaling_factor = 1
+                number_of_elbows = len(active_fermionic_modes)
+                clean_ancillae_usage = [len(active_fermionic_modes) + number_of_indexing_clean_ancillae]
+                rotation_angles = []
+            elif term.has_bosons and not term.has_fermions: #ai^ ai, ai^ ai aj^ aj, ...
+                rescaling_factor = max_occupancy  ** (P/2)
+                number_of_elbows = int(np.ceil(np.log2(max_occupancy + 1))) * len((active_bosonic_modes))
+                clean_ancillae_usage = [
+                    i + number_of_indexing_clean_ancillae for i in range(1, 
+                                            int(np.ceil(np.log2(max_occupancy + 1))) + 1)
+                ]
+                rotation_angles = []
+                for exponents in exponents_list:
+                    angles = _get_bosonic_rotation_angles(maximum_occupation_number=max_occupancy,
+                                                                creation_exponent=exponents[0],
+                                                                annihilation_exponent=exponents[1])
+                    angles = np.concatenate(
+                        [angles, np.zeros((1 << int(np.ceil(np.log2(len(angles))))) - len(angles))]
+                    )
+                    processed_angles = list(_process_rotation_angles(angles))
+                    rotation_angles += processed_angles + [-sum(processed_angles)/2, sum(processed_angles)/2]
+
+            else: #bi^ bi ai^ ai
+                rescaling_factor = max_occupancy  ** (P/2) 
+                clean_ancillae_usage = [len(active_fermionic_modes) + number_of_indexing_clean_ancillae] +\
+                        [
+                    i + number_of_indexing_clean_ancillae for i in range(1, 
+                                            int(np.ceil(np.log2(max_occupancy + 1))) + 1)
+                ]
+                rotation_angles = []
+                for exponents in exponents_list:
+                    angles = _get_bosonic_rotation_angles(maximum_occupation_number=max_occupancy,
+                                                                creation_exponent=exponents[0],
+                                                                annihilation_exponent=exponents[1])
+                    angles = np.concatenate(
+                        [angles, np.zeros((1 << int(np.ceil(np.log2(len(angles))))) - len(angles))]
+                    )
+                    processed_angles = list(_process_rotation_angles(angles))
+                    rotation_angles += processed_angles + [-sum(processed_angles)/2, sum(processed_angles)/2]
+
+                number_of_elbows = (len(active_fermionic_modes)) +\
+                      int(np.ceil(np.log2(max_occupancy + 1))) * len(active_bosonic_modes)
+        elif len(term) > 1:
+            #term + h.c.
+            term = term.to_list()[0]
+
+            active_fermionic_modes = get_active_fermionic_modes(term)
+            active_bosonic_modes = get_active_bosonic_modes(term)
 
             # Determine rotations
-            exponents = []
-            if first_term.has_bosons:
-                bosonic_first_term = _separate_bosonic_ops(first_term)
-                _, exponents = get_bosonic_exponents(bosonic_first_term, bosonic_first_term.max_mode + 1)
-                metrics.rotation_angles += get_rotation_angles(exponents, max_occupancy)
+            _, exponents_list = get_bosonic_exponents(term, term.max_mode + 1)
+            P = sum([exponents_list[i][0] + exponents_list[i][1] for i in range(len(exponents_list))])
+            RS_list = [exponents_list[i][0] - exponents_list[i][1] for i in range(len(exponents_list))]
+            
+            rotation_angles = []
+            for exponents in exponents_list:
+                angles = _get_bosonic_rotation_angles(maximum_occupation_number=max_occupancy,
+                                                            creation_exponent=exponents[0],
+                                                            annihilation_exponent=exponents[1])
+                angles = np.concatenate(
+                    [angles, np.zeros((1 << int(np.ceil(np.log2(len(angles))))) - len(angles))]
+                )
+                processed_angles = list(_process_rotation_angles(angles))
+                rotation_angles += processed_angles + [-sum(processed_angles)/2, sum(processed_angles)/2]
 
-            if first_term.has_fermions:
-                rescaling_factor = max_occupancy ** (n_boson_ops / 2)
-                if n_boson_ops == 1:
-                    clean_ancillae_usage = [
-                        i
-                        for i in range(
-                            1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1
-                        )
-                    ]
-                    n_t_gates = 12 * np.ceil(np.log2(max_occupancy))
-                elif n_boson_ops > 1:
-                    clean_ancillae_usage = [
-                        i
-                        for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1 + 1)
-                    ]
-                    n_t_gates = 24 * np.ceil(np.log2(max_occupancy)) - 8
-                elif n_boson_ops == 0:
-                    clean_ancillae_usage = [i for i in range(1, term_B_fermion - 1 + 1)]
-                    n_t_gates = 4 * (term_B_fermion - 1)
-
-            else:
-                # assume form of n bosonic ops + h.c.
-                term_W = np.ceil(np.log2(max_occupancy + 1))
-                rescaling_factor = 2 * (max_occupancy ** (n_boson_ops / 2))
+            if term.has_fermions and not term.has_bosons: #e.g. bi^ bj + bj^ bi
+                rescaling_factor = 1
+                clean_ancillae_usage = [len(active_fermionic_modes) - 1 + number_of_indexing_clean_ancillae]
+                number_of_elbows = len(active_fermionic_modes) - 1
+            
+            elif term.has_bosons and not term.has_fermions: #e.g. ai^ aj + aj^ ai
+                rescaling_factor =  (max_occupancy ** (P / 2))
                 clean_ancillae_usage = [
-                    i for i in range(1, int(np.ceil(np.log2(max_occupancy))) + 1 + 1)
+                    i + number_of_indexing_clean_ancillae for i in range(1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1)
                 ]
-                n_t_gates = 12 * term_B_boson * term_W - 8 * term_B_boson + 4
+                
+                number_of_elbows = 1 + len(active_bosonic_modes) * int(np.ceil(np.log2(max_occupancy + 1)))
 
-            B = max(max(term_B_boson), B)
-            metrics.number_of_t_gates += n_t_gates
-            metrics.clean_ancillae_usage += clean_ancillae_usage
-            metrics.rescaling_factor += rescaling_factor
+                for RminusS in RS_list: #+R - S
+                    elbows, clean_anc = _compute_n_elbows_and_anc_hw_per_incrementer(
+                        int(np.ceil(np.log2(max_occupancy + 1))), RminusS
+                    )
+                    number_of_elbows += elbows
+                    clean_ancillae_usage.append(clean_anc)
+                    elbows, clean_anc = _compute_n_elbows_and_anc_hw_per_incrementer(
+                        int(np.ceil(np.log2(max_occupancy + 1))), -RminusS
+                    )
+                    number_of_elbows += elbows
+                    clean_ancillae_usage.append(clean_anc)
+                    
+                    
+                # bosonic_index_qubit = True
 
-    L = len(groups)
-    metrics.number_of_t_gates += 4 * (L - 1)
+            else: # e.g. bi^ bj ak + h.c.
+                rescaling_factor = max_occupancy ** (P/2)
+                clean_ancillae_usage = [
+                            i + number_of_indexing_clean_ancillae
+                            for i in range(
+                                1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1
+                            )
+                        ]
+                number_of_elbows = (len(active_fermionic_modes))  +\
+                             len(active_bosonic_modes) * int(np.ceil(np.log2(max_occupancy + 1)))
+                for RminusS in RS_list: #+R - S
+                    elbows, clean_anc = _compute_n_elbows_and_anc_hw_per_incrementer(
+                        int(np.ceil(np.log2(max_occupancy + 1))), RminusS
+                    )
+                    number_of_elbows += elbows
+                    clean_ancillae_usage.append(clean_anc)
+                    elbows, clean_anc = _compute_n_elbows_and_anc_hw_per_incrementer(
+                        int(np.ceil(np.log2(max_occupancy + 1))), -RminusS
+                    )
+                    number_of_elbows += elbows
+                    clean_ancillae_usage.append(clean_anc)
+        
 
-    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + 1 * operator.has_fermions + B
+        metrics.number_of_elbows += number_of_elbows
+        metrics.clean_ancillae_usage += clean_ancillae_usage
+        metrics.rescaling_factor += rescaling_factor
+        metrics.rotation_angles += rotation_angles
+
+
+    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + B + int(bosonic_index_qubit)
     metrics.number_of_elbows += L - 1 # number of left elbows from indexing 
 
     return metrics
