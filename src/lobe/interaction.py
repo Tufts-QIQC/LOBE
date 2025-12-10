@@ -30,6 +30,7 @@ def interaction_term_block_encoding(
     bosonic_indices,
     bosonic_exponents_list,
     sign=1,
+    self_inverse_ancilla=None,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -55,6 +56,7 @@ def interaction_term_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
+    assert self_inverse_ancilla is None
     gates = []
     block_encoding_metrics = CircuitMetrics()
     be_counter = 0
@@ -146,7 +148,11 @@ def interaction_term_block_encoding(
 
 
 def _determine_block_encoding_function(
-    group, system, block_encoding_ancillae, clean_ancillae, self_inverse: bool = False
+    group,
+    system,
+    block_encoding_ancillae,
+    clean_ancillae,
+    self_inverse_ancilla: cirq.LineQubit = None,
 ):
     term = group.to_list()[0].mode_order()
     fermionic_modes, fermionic_operator_types = get_fermionic_operator_types(term)
@@ -171,33 +177,22 @@ def _determine_block_encoding_function(
                 active_indices=bosonic_modes,
                 exponents_list=bosonic_exponents_list,
                 sign=np.sign(term.coeff),
+                self_inverse_ancilla=self_inverse_ancilla,
                 clean_ancillae=clean_ancillae[::-1],
             )
         else:
-            if self_inverse:
-                be_function = partial(
-                    self_inverse_interaction_term_block_encoding,
-                    system=system,
-                    block_encoding_ancillae=block_encoding_ancillae,
-                    fermionic_indices=fermionic_modes[::-1],
-                    fermionic_operator_types=fermionic_operator_types[::-1],
-                    bosonic_indices=bosonic_modes,
-                    bosonic_exponents_list=bosonic_exponents_list,
-                    sign=np.sign(term.coeff),
-                    clean_ancillae=clean_ancillae[::-1],
-                )
-            else:
-                be_function = partial(
-                    interaction_term_block_encoding,
-                    system=system,
-                    block_encoding_ancillae=block_encoding_ancillae,
-                    fermionic_indices=fermionic_modes[::-1],
-                    fermionic_operator_types=fermionic_operator_types[::-1],
-                    bosonic_indices=bosonic_modes,
-                    bosonic_exponents_list=bosonic_exponents_list,
-                    sign=np.sign(term.coeff),
-                    clean_ancillae=clean_ancillae[::-1],
-                )
+            be_function = partial(
+                interaction_term_block_encoding,
+                system=system,
+                block_encoding_ancillae=block_encoding_ancillae,
+                fermionic_indices=fermionic_modes[::-1],
+                fermionic_operator_types=fermionic_operator_types[::-1],
+                bosonic_indices=bosonic_modes,
+                bosonic_exponents_list=bosonic_exponents_list,
+                sign=np.sign(term.coeff),
+                self_inverse_ancilla=self_inverse_ancilla,
+                clean_ancillae=clean_ancillae[::-1],
+            )
         power = sum([sum(exponents) for exponents in bosonic_exponents_list])
         return be_function, np.sqrt(system.maximum_occupation_number) ** power
     else:
@@ -233,6 +228,7 @@ def _determine_block_encoding_function(
                     ],
                     active_indices=bosonic_modes,
                     exponents_list=bosonic_exponents_list,
+                    self_inverse_ancilla=self_inverse_ancilla,
                     clean_ancillae=clean_ancillae[::-1],
                     ctrls=ctrls,
                 )

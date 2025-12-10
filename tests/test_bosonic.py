@@ -11,7 +11,11 @@ from src.lobe.bosonic import (
 )
 from src.lobe.index import index_over_terms
 from src.lobe.system import System
-from src.lobe._utils import get_bosonic_exponents, get_number_of_active_bosonic_modes
+from src.lobe._utils import (
+    get_bosonic_exponents,
+    get_number_of_active_bosonic_modes,
+    get_basis_of_full_system,
+)
 
 from _utils import (
     _setup,
@@ -19,7 +23,7 @@ from _utils import (
     _validate_clean_ancillae_are_cleaned,
     _validate_block_encoding_does_nothing_when_control_is_off,
     _validate_block_encoding_select_is_self_inverse,
-    get_basis_of_full_system,
+    _make_be_func_self_inverse,
 )
 
 
@@ -71,7 +75,11 @@ def test_bosonic_product_block_encoding(
         )
 
     number_of_block_encoding_ancillae = number_of_active_modes
-    circuit, metrics, system = _setup(
+    (
+        circuit,
+        metrics,
+        system,
+    ) = _setup(
         number_of_block_encoding_ancillae,
         operator,
         maximum_occupation_number,
@@ -123,7 +131,6 @@ def test_bosonic_product_hermitian_operator(trial):
         (np.random.randint(0, 4),) * 2 for _ in range(number_of_active_modes)
     ]
     sign = np.random.choice([-1, 1])
-    self_inverse = True
 
     active_modes = np.random.choice(
         range(MAX_ACTIVE_MODES), size=number_of_active_modes, replace=False
@@ -156,20 +163,21 @@ def test_bosonic_product_hermitian_operator(trial):
             sum(exponents)
         )
 
-    number_of_block_encoding_ancillae = number_of_active_modes
-    if self_inverse:
-        number_of_block_encoding_ancillae += 1
+    number_of_block_encoding_ancillae = number_of_active_modes + 1
     circuit, metrics, system = _setup(
         number_of_block_encoding_ancillae,
         operator,
         maximum_occupation_number,
         partial(
-            bosonic_product_block_encoding,
-            active_indices=active_modes,
-            exponents_list=exponents_list,
-            sign=sign,
-            self_inverse=self_inverse,
+            _make_be_func_self_inverse,
+            be_function=partial(
+                bosonic_product_block_encoding,
+                active_indices=active_modes,
+                exponents_list=exponents_list,
+                sign=sign,
+            ),
         ),
+        self_inverse=True,
     )
     _validate_block_encoding(
         circuit,
@@ -187,14 +195,13 @@ def test_bosonic_product_hermitian_operator(trial):
     _validate_block_encoding_does_nothing_when_control_is_off(
         circuit, system, number_of_block_encoding_ancillae
     )
-    if self_inverse:
-        _validate_block_encoding_select_is_self_inverse(
-            circuit,
-            system,
-            operator,
-            number_of_block_encoding_ancillae,
-            maximum_occupation_number,
-        )
+    _validate_block_encoding_select_is_self_inverse(
+        circuit,
+        system,
+        operator,
+        number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )
     assert metrics.number_of_elbows <= (number_of_active_modes) * (
         np.ceil(np.log2(maximum_occupation_number + 1))
         + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
@@ -212,24 +219,20 @@ def test_bosonic_product_hermitian_operator(trial):
 
 
 def test_ensure_bosonic_product_errors_when_self_inverse_true_for_non_hermitian_operator():
-    _, _, system = _setup(
-        2,
-        ParticleOperator("a0^ a0^"),
-        3,
-        partial(
-            bosonic_product_block_encoding,
-            active_indices=[0],
-            exponents_list=[(2, 0)],
-            sign=1,
-        ),
-    )
-    block_encoding_ancillae = [cirq.LineQubit(1000 + i) for i in range(2)]
     with pytest.raises(AssertionError):
-        bosonic_product_block_encoding(
-            system,
-            block_encoding_ancillae,
-            active_indices=[0],
-            exponents_list=[(2, 0)],
+        _setup(
+            2,
+            ParticleOperator("a0^ a0^"),
+            3,
+            partial(
+                _make_be_func_self_inverse,
+                be_function=partial(
+                    bosonic_product_block_encoding,
+                    active_indices=[0],
+                    exponents_list=[(2, 0)],
+                    sign=1,
+                ),
+            ),
             self_inverse=True,
         )
 
@@ -281,17 +284,30 @@ def test_bosonic_product_plus_hc_block_encoding(trial):
     number_of_block_encoding_ancillae = number_of_active_modes + 1
     if self_inverse:
         number_of_block_encoding_ancillae += 1
+
+    be_function = partial(
+        bosonic_product_plus_hc_block_encoding,
+        active_indices=active_modes,
+        exponents_list=exponents_list,
+        sign=sign,
+    )
+    if self_inverse:
+        be_function = partial(
+            _make_be_func_self_inverse,
+            be_function=partial(
+                bosonic_product_plus_hc_block_encoding,
+                active_indices=active_modes,
+                exponents_list=exponents_list,
+                sign=sign,
+            ),
+        )
+
     circuit, metrics, system = _setup(
         number_of_block_encoding_ancillae,
         operator,
         maximum_occupation_number,
-        partial(
-            bosonic_product_plus_hc_block_encoding,
-            active_indices=active_modes,
-            exponents_list=exponents_list,
-            sign=sign,
-            self_inverse=self_inverse,
-        ),
+        be_function,
+        self_inverse=self_inverse,
     )
     _validate_block_encoding(
         circuit,
