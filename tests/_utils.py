@@ -2,6 +2,7 @@ import cirq
 import pytest
 import numpy as np
 from openparticle import generate_matrix
+from src.lobe.metrics import CircuitMetrics
 from src.lobe.system import System
 from src.lobe._utils import get_basis_of_full_system
 
@@ -11,6 +12,7 @@ def _setup(
     operator,
     maximum_occupation_number,
     block_encoding_function,
+    self_inverse=False,
 ):
     number_of_clean_ancillae = 100
 
@@ -20,6 +22,10 @@ def _setup(
     block_encoding_ancillae = [
         cirq.LineQubit(i + 1) for i in range(number_of_block_encoding_ancillae)
     ]
+    self_inverse_ancilla = None
+    if self_inverse:
+        self_inverse_ancilla = block_encoding_ancillae[0]
+        block_encoding_ancillae = block_encoding_ancillae[1:]
 
     clean_ancillae = [
         cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
@@ -54,8 +60,9 @@ def _setup(
     circuit.append(cirq.X.on(control))
     # Generate full Block-Encoding circuit
     gates, metrics = block_encoding_function(
-        system,
-        block_encoding_ancillae,
+        system=system,
+        block_encoding_ancillae=block_encoding_ancillae,
+        self_inverse_ancilla=self_inverse_ancilla,
         clean_ancillae=clean_ancillae,
         ctrls=([control], [1]),
     )
@@ -401,3 +408,30 @@ def _validate_block_encoding_select_is_self_inverse(
                 : 1 << system.number_of_system_qubits,
             ],
         )
+
+
+def _make_be_func_self_inverse(
+    be_function,
+    system,
+    block_encoding_ancillae,
+    self_inverse_ancilla=None,
+    clean_ancillae=[],
+    ctrls=([], []),
+):
+    gates, metrics = [], CircuitMetrics()
+
+    gates.append(cirq.H.on(self_inverse_ancilla))
+
+    _gates, _metrics = be_function(
+        system=system,
+        block_encoding_ancillae=block_encoding_ancillae,
+        self_inverse_ancilla=self_inverse_ancilla,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    gates += _gates
+    metrics += _metrics
+
+    gates.append(cirq.X.on(self_inverse_ancilla))
+    gates.append(cirq.H.on(self_inverse_ancilla))
+    return gates, metrics
