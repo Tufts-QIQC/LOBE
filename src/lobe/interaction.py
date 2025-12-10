@@ -58,7 +58,6 @@ def interaction_term_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
-    assert self_inverse_ancilla is None
     gates = []
     block_encoding_metrics = CircuitMetrics()
     be_counter = 0
@@ -158,8 +157,8 @@ def _determine_block_encoding_function(
     group,
     system,
     block_encoding_ancillae,
-    clean_ancillae,
     self_inverse_ancilla: cirq.LineQubit = None,
+    clean_ancillae=[],
 ):
     term = group.to_list()[0].mode_order()
     fermionic_modes, fermionic_operator_types = get_fermionic_operator_types(term)

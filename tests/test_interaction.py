@@ -2,6 +2,7 @@ import cirq
 import pytest
 import random
 import numpy as np
+from functools import partial
 from openparticle import ParticleOperator
 from openparticle.hamiltonians.yukawa_hamiltonians import yukawa_hamiltonian
 from src.lobe.asp import get_target_state, add_prepare_circuit
@@ -19,6 +20,7 @@ from _utils import (
     _validate_block_encoding_does_nothing_when_control_is_off,
     _validate_clean_ancillae_are_cleaned,
     _validate_block_encoding_select_is_self_inverse,
+    _make_be_func_self_inverse,
 )
 
 
@@ -114,6 +116,11 @@ def test_interaction_terms(
         number_of_fermionic_modes=number_of_fermionic_modes,
         number_of_bosonic_modes=number_of_bosonic_modes,
     )
+    self_inverse_ancilla = None
+    if self_inverse:
+        self_inverse_ancilla = block_encoding_ancillae[0]
+        block_encoding_ancillae = block_encoding_ancillae[1:]
+
     circuit.append(
         cirq.I.on_each(
             control,
@@ -125,13 +132,23 @@ def test_interaction_terms(
         circuit.append(cirq.I.on_each(*bosonic_reg))
     # Flip control qubit so that we can focus on the 0-subspace of the control
     circuit.append(cirq.X.on(control))
+
     be_function, expected_rescaling_factor = _determine_block_encoding_function(
         term,
         system,
         block_encoding_ancillae,
+        self_inverse_ancilla=self_inverse_ancilla,
         clean_ancillae=clean_ancillae,
-        self_inverse=self_inverse,
     )
+    if self_inverse:
+        be_function = partial(
+            _make_be_func_self_inverse,
+            be_function=be_function,
+            system=system,
+            block_encoding_ancillae=block_encoding_ancillae,
+            self_inverse_ancilla=self_inverse_ancilla,
+            clean_ancillae=clean_ancillae,
+        )
     gates, metrics = be_function(ctrls=([control], [1]))
     circuit += gates
     # Flip control qubit so that we can focus on the 0-subspace of the control
