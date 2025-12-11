@@ -33,10 +33,9 @@ def fermionic_product_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
-    assert len(block_encoding_ancillae) == 1
+    gates = []
     block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
-    gates = []
 
     if sign == -1:
         gates.append(cirq.Z.on(ctrls[0][0]))
