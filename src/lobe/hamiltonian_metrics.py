@@ -39,6 +39,11 @@ def _compute_n_elbows_and_anc_hw_per_incrementer(N, m):
     return metrics.number_of_elbows, metrics.ancillae_highwater()
 
 def count_metrics(operator, max_occupancy: int = 1):
+    """
+    For a given operator, with some max_occupancy for bosonic modes,
+    returns analytic gate counts for the cost to implement the block encoding
+    circuit, without compiling the cirq circuit.
+    """
 
     groups = operator.group()
 
