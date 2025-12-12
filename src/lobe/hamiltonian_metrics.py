@@ -62,7 +62,6 @@ def count_metrics(operator, max_occupancy: int = 1):
     metrics = CircuitMetrics()
 
     B = 0
-    bosonic_index_qubit = False
 
     for term in groups:
         B = max(predict_number_of_block_encoding_ancillae(term), B)
@@ -164,7 +163,6 @@ def count_metrics(operator, max_occupancy: int = 1):
                     clean_ancillae_usage.append(clean_anc)
                     
                     
-                # bosonic_index_qubit = True
 
             else: # e.g. bi^ bj ak + h.c.
                 rescaling_factor = max_occupancy ** (P/2)
@@ -195,7 +193,7 @@ def count_metrics(operator, max_occupancy: int = 1):
         metrics.rotation_angles += rotation_angles
 
 
-    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + B + int(bosonic_index_qubit)
+    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + B 
     metrics.number_of_elbows += L - 1 # number of left elbows from indexing 
 
     return metrics
