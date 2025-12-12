@@ -1,24 +1,24 @@
-from src.lobe._utils import (
-    get_bosonic_exponents,
-    translate_antifermions_to_fermions,
-)
+import cirq
 import numpy as np
 from openparticle import ParticleOperator
 from copy import deepcopy
-from src.lobe.interaction import interaction_term_block_encoding
-from src.lobe.system import System
-from src.lobe._utils import (get_fermionic_operator_types, 
-                             get_bosonic_exponents, 
-                             translate_antifermions_to_fermions, 
-                             get_active_bosonic_modes, 
-                             get_active_fermionic_modes,
-                             predict_number_of_block_encoding_ancillae)
-from src.lobe.multiplexed_rotations import _process_rotation_angles
-from src.lobe.fermionic import fermionic_product_block_encoding
-from src.lobe.bosonic import bosonic_product_block_encoding, _get_bosonic_rotation_angles
-from src.lobe.addition import _get_p_val, add_classical_value
-from src.lobe.metrics import CircuitMetrics
-import cirq
+
+from .addition import _get_p_val, add_classical_value
+from .bosonic import bosonic_product_block_encoding, _get_bosonic_rotation_angles
+from .fermionic import fermionic_product_block_encoding
+from .interaction import interaction_term_block_encoding
+from .metrics import CircuitMetrics
+from .multiplexed_rotations import _process_rotation_angles
+from .system import System
+
+from ._utils import (
+    get_fermionic_operator_types, 
+    get_bosonic_exponents, 
+    translate_antifermions_to_fermions, 
+    get_active_bosonic_modes, 
+    get_active_fermionic_modes,
+    predict_number_of_block_encoding_ancillae
+)
 
 def _compute_n_elbows_and_anc_hw_per_incrementer(N, m):
     control = [cirq.LineQubit(0)]
