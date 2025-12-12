@@ -21,13 +21,13 @@ from ._utils import (
 )
 
 def _compute_n_elbows_and_anc_hw_per_incrementer(N, m):
-    control = [cirq.LineQubit(0)]
-    clean_ancillae = [cirq.LineQubit(i) for i in range(-1, -100, -1)]   
     """
     |N⟩ -> |N + m⟩
     Returns:
         number of elbows and max clean ancillae to implement this operation
     """
+    control = [cirq.LineQubit(0)]
+    clean_ancillae = [cirq.LineQubit(i) for i in range(-1, -100, -1)]  
 
     main_register = [cirq.LineQubit(i) for i in range(1, N + 1)]
     _, metrics = add_classical_value(
