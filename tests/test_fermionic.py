@@ -81,6 +81,8 @@ def test_arbitrary_fermionic_operator_with_hc(trial):
     number_of_number_ops = operator_types_reversed[::-1].count(2)
 
     assert metrics.number_of_elbows == len(active_modes[::-1]) - 1
+    assert metrics.number_of_be_ancillae == 1
+    assert metrics.rescaling_factor == 1
     if len(metrics.clean_ancillae_usage) > 0:
         assert metrics.clean_ancillae_usage[-1] == 0
         assert (
@@ -152,6 +154,8 @@ def test_arbitrary_fermionic_product(trial):
 
     assert metrics.number_of_elbows == len(active_modes[::-1])
     assert metrics.clean_ancillae_usage[-1] == 0
+    assert metrics.number_of_be_ancillae == 1
+    assert metrics.rescaling_factor == 1
     assert (
         max(metrics.clean_ancillae_usage)
         == (len(active_modes[::-1]) - 1)  # elbows for qbool
