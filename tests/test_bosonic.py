@@ -104,6 +104,8 @@ def test_bosonic_product_block_encoding(
         np.ceil(np.log2(maximum_occupation_number + 1))
         + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
     )
+    assert np.isclose(metrics.rescaling_factor, expected_rescaling_factor)
+    assert np.isclose(metrics.number_of_be_ancillae, number_of_block_encoding_ancillae)
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
         maximum_occupation_number + 3
     )

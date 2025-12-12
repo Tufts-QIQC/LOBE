@@ -61,6 +61,13 @@ def bosonic_product_block_encoding(
         )
         gates += _gates
         block_encoding_metrics += _metrics
+
+    rescaling_factor = 1
+    for exponents in exponents_list:
+        rescaling_factor *= np.sqrt(system.maximum_occupation_number) ** (
+            sum(exponents)
+        )
+    block_encoding_metrics.rescaling_factor = rescaling_factor
     return gates, block_encoding_metrics
 
 
@@ -113,9 +120,12 @@ def bosonic_product_plus_hc_block_encoding(
     )
     gates += _gates
     block_encoding_metrics += _metrics
+    
+    P = 0
 
     for i, active_index in enumerate(active_indices):
         Ri, Si = exponents_list[i][0], exponents_list[i][1]
+        P += Ri + Si
         adder_gates, adder_metrics = add_classical_value(
             system.bosonic_modes[active_index],
             Ri - Si,
@@ -158,6 +168,9 @@ def bosonic_product_plus_hc_block_encoding(
     block_encoding_metrics += _metrics
 
     gates.append(cirq.H.on(index))
+
+    block_encoding_metrics.number_of_be_ancillae = len(block_encoding_ancillae)
+    block_encoding_metrics.rescaling_factor = 2 * system.maximum_occupation_number ** (P/2)
 
     return gates, block_encoding_metrics
 
@@ -298,6 +311,7 @@ def _single_bosonic_mode_block_encoding(
         ctrls=ctrls,
     )
     gates += rotation_gates
+    rotation_metrics.number_of_be_ancillae = 1
     block_encoding_metrics += rotation_metrics
 
     return gates, block_encoding_metrics
