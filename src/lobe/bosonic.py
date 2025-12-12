@@ -67,7 +67,7 @@ def bosonic_product_block_encoding(
         rescaling_factor *= np.sqrt(system.maximum_occupation_number) ** (
             sum(exponents)
         )
-    block_encoding_metrics.rescaling_factor = rescaling_factor
+    
     return gates, block_encoding_metrics
 
 
@@ -169,8 +169,6 @@ def bosonic_product_plus_hc_block_encoding(
 
     gates.append(cirq.H.on(index))
 
-    block_encoding_metrics.number_of_be_ancillae = len(block_encoding_ancillae)
-    block_encoding_metrics.rescaling_factor = 2 * system.maximum_occupation_number ** (P/2)
 
     return gates, block_encoding_metrics
 

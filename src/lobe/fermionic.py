@@ -126,9 +126,6 @@ def fermionic_product_block_encoding(
         gates += op_gates
         block_encoding_metrics += op_metrics
 
-    block_encoding_metrics.number_of_be_ancillae = 1
-    block_encoding_metrics.rescaling_factor = 1
-
     return gates, block_encoding_metrics
 
 
@@ -276,8 +273,6 @@ def fermionic_plus_hc_block_encoding(
         gates += op_gates
         block_encoding_metrics += op_metrics
 
-    block_encoding_metrics.number_of_be_ancillae = 1
-    block_encoding_metrics.rescaling_factor = 1
 
     return gates, block_encoding_metrics
 
@@ -313,7 +308,5 @@ def _apply_fermionic_ladder_op(system, index, ctrls=([], [])):
             )
         )
     )
-    operator_metrics.number_of_be_ancillae = 1
-    operator_metrics.rescaling_factor = 1
 
     return gates, operator_metrics

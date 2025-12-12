@@ -9,8 +9,6 @@ class CircuitMetrics:
     def __init__(self):
         self.number_of_elbows = 0
         self.number_of_t_gates = 0
-        self.number_of_be_ancillae = 0
-        self.rescaling_factor = 0
         self.clean_ancillae_usage = []
         self.rotation_angles = []
 
@@ -18,8 +16,6 @@ class CircuitMetrics:
         self.number_of_elbows += other.number_of_elbows
         self.rotation_angles += other.rotation_angles
         self.number_of_t_gates += other.number_of_t_gates
-        self.number_of_be_ancillae += other.number_of_be_ancillae
-        self.rescaling_factor += other.rescaling_factor
         previous = 0
         for number_of_used_ancillae in other.clean_ancillae_usage:
             self.add_to_clean_ancillae_usage(number_of_used_ancillae - previous)
@@ -29,11 +25,9 @@ class CircuitMetrics:
     def __eq__(self, other) -> bool:
         return (
             self.number_of_elbows == other.number_of_elbows and
-            self.number_of_be_ancillae == other.number_of_be_ancillae and
             self.number_of_nonclifford_rotations == other.number_of_nonclifford_rotations and
             self.number_of_t_gates == other.number_of_t_gates and
-            self.ancillae_highwater() == other.ancillae_highwater() and
-            np.isclose(self.rescaling_factor, other.rescaling_factor)
+            self.ancillae_highwater() == other.ancillae_highwater()
         )
 
     def add_to_clean_ancillae_usage(self, change):

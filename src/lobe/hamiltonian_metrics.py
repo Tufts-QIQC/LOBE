@@ -38,7 +38,7 @@ def _compute_n_elbows_and_anc_hw_per_incrementer(N, m):
     )
     return metrics.number_of_elbows, metrics.ancillae_highwater()
 
-def count_metrics(operator, max_occupancy: int = 1):
+def count_metrics_analytic(operator, max_occupancy: int = 1):
     """
     For a given operator, with some max_occupancy for bosonic modes,
     returns analytic gate counts for the cost to implement the block encoding
@@ -62,6 +62,7 @@ def count_metrics(operator, max_occupancy: int = 1):
     metrics = CircuitMetrics()
 
     B = 0
+    rescaling_factor = 0
 
     for term in groups:
         B = max(predict_number_of_block_encoding_ancillae(term), B)
@@ -72,12 +73,12 @@ def count_metrics(operator, max_occupancy: int = 1):
             P = sum([exponents[0] + exponents[1] for exponents in exponents_list])
 
             if term.has_fermions and not term.has_bosons: #bi^ bi, bi^ bi bj^ bj, ...
-                rescaling_factor = 1
+                rescaling_factor += 1
                 number_of_elbows = len(active_fermionic_modes)
                 clean_ancillae_usage = [len(active_fermionic_modes) + number_of_indexing_clean_ancillae]
                 rotation_angles = []
             elif term.has_bosons and not term.has_fermions: #ai^ ai, ai^ ai aj^ aj, ...
-                rescaling_factor = max_occupancy  ** (P/2)
+                rescaling_factor += max_occupancy  ** (P/2)
                 number_of_elbows = int(np.ceil(np.log2(max_occupancy + 1))) * len((active_bosonic_modes))
                 clean_ancillae_usage = [
                     i + number_of_indexing_clean_ancillae for i in range(1, 
@@ -95,7 +96,7 @@ def count_metrics(operator, max_occupancy: int = 1):
                     rotation_angles += processed_angles + [-sum(processed_angles)/2, sum(processed_angles)/2]
 
             else: #bi^ bi ai^ ai
-                rescaling_factor = max_occupancy  ** (P/2) 
+                rescaling_factor += max_occupancy  ** (P/2) 
                 clean_ancillae_usage = [len(active_fermionic_modes) + number_of_indexing_clean_ancillae] +\
                         [
                     i + number_of_indexing_clean_ancillae for i in range(1, 
@@ -138,12 +139,12 @@ def count_metrics(operator, max_occupancy: int = 1):
                 rotation_angles += processed_angles + [-sum(processed_angles)/2, sum(processed_angles)/2]
 
             if term.has_fermions and not term.has_bosons: #e.g. bi^ bj + bj^ bi
-                rescaling_factor = 1
+                rescaling_factor += 1
                 clean_ancillae_usage = [len(active_fermionic_modes) - 1 + number_of_indexing_clean_ancillae]
                 number_of_elbows = len(active_fermionic_modes) - 1
             
             elif term.has_bosons and not term.has_fermions: #e.g. ai^ aj + aj^ ai
-                rescaling_factor =  (max_occupancy ** (P / 2))
+                rescaling_factor +=  (max_occupancy ** (P / 2))
                 clean_ancillae_usage = [
                     i + number_of_indexing_clean_ancillae for i in range(1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1)
                 ]
@@ -165,7 +166,7 @@ def count_metrics(operator, max_occupancy: int = 1):
                     
 
             else: # e.g. bi^ bj ak + h.c.
-                rescaling_factor = max_occupancy ** (P/2)
+                rescaling_factor += max_occupancy ** (P/2)
                 clean_ancillae_usage = [
                             i + number_of_indexing_clean_ancillae
                             for i in range(
@@ -189,11 +190,10 @@ def count_metrics(operator, max_occupancy: int = 1):
 
         metrics.number_of_elbows += number_of_elbows
         metrics.clean_ancillae_usage += clean_ancillae_usage
-        metrics.rescaling_factor += rescaling_factor
         metrics.rotation_angles += rotation_angles
 
 
-    metrics.number_of_be_ancillae = np.ceil(np.log2(L)) + B 
+    number_of_be_ancillae = np.ceil(np.log2(L)) + B 
     metrics.number_of_elbows += L - 1 # number of left elbows from indexing 
 
-    return metrics
+    return metrics, rescaling_factor, number_of_be_ancillae
