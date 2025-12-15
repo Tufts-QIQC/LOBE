@@ -30,7 +30,7 @@ def test_asp(number_of_qubits, number_of_terms, asp_func):
     gates, metrics = asp_func(qubits, target_state)
     circuit.append(gates)
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     wavefunction = simulator.simulate(circuit).final_state_vector
     for index, coeff in enumerate(target_state):
         assert np.isclose(wavefunction[index], coeff, atol=100 * _ZERO)

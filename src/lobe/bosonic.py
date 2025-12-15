@@ -13,6 +13,7 @@ def bosonic_product_block_encoding(
     active_indices,
     exponents_list,
     sign=1,
+    self_inverse_ancilla=None,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -30,6 +31,8 @@ def bosonic_product_block_encoding(
         - exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
             annihilation (Si) operators in the operator acting on mode i.
         - sign (int): Either 1 or -1 to indicate the sign of the term
+        - self_inverse_ancilla (cirq.LineQubit): An optional block-encoding ancilla which is used to make the block
+            encoding circuit self-inverse
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -41,6 +44,10 @@ def bosonic_product_block_encoding(
 
     gates = []
     block_encoding_metrics = CircuitMetrics()
+    # qubit that indexes S vs. S^\dagger
+    if self_inverse_ancilla is not None:
+        for exponents in exponents_list:
+            assert exponents[0] == exponents[1]
 
     if not isinstance(block_encoding_ancillae, list):
         block_encoding_ancillae = [block_encoding_ancillae]
@@ -51,6 +58,10 @@ def bosonic_product_block_encoding(
     for block_encoding_ancilla, active_index, exponents in zip(
         block_encoding_ancillae, active_indices, exponents_list
     ):
+        if self_inverse_ancilla is not None:
+            gates.append(
+                cirq.X.on(block_encoding_ancilla).controlled_by(self_inverse_ancilla)
+            )
         _gates, _metrics = _single_bosonic_mode_block_encoding(
             system,
             [block_encoding_ancilla],
@@ -62,6 +73,11 @@ def bosonic_product_block_encoding(
         gates += _gates
         block_encoding_metrics += _metrics
 
+        if self_inverse_ancilla is not None:
+            gates.append(
+                cirq.X.on(block_encoding_ancilla).controlled_by(self_inverse_ancilla)
+            )
+
     return gates, block_encoding_metrics
 
 
@@ -71,6 +87,7 @@ def bosonic_product_plus_hc_block_encoding(
     active_indices,
     exponents_list,
     sign=1,
+    self_inverse_ancilla=None,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -88,6 +105,8 @@ def bosonic_product_plus_hc_block_encoding(
         - exponents_list (List[tuple]): A list of tuples (Ri, Si) containing the number of creation (Ri) and
             annihilation (Si) operators in the operator acting on mode i.
         - sign (int): Either 1 or -1 to indicate the sign of the term
+        - self_inverse_ancilla (cirq.LineQubit): An optional block-encoding ancilla which is used to make the block
+            encoding circuit self-inverse
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -103,11 +122,14 @@ def bosonic_product_plus_hc_block_encoding(
 
     gates = []
     block_encoding_metrics = CircuitMetrics()
+
     index = block_encoding_ancillae[0]
     if sign == -1:
         gates += _apply_negative_identity(index, ctrls=ctrls)
 
     gates.append(cirq.H.on(index))
+    if self_inverse_ancilla is not None:
+        gates.append(cirq.X.on(index).controlled_by(self_inverse_ancilla))
 
     _gates, _metrics = decompose_controls_left(
         (ctrls[0] + [index], ctrls[1] + [0]), clean_ancillae[0]
@@ -126,6 +148,12 @@ def bosonic_product_plus_hc_block_encoding(
         gates += adder_gates
         block_encoding_metrics += adder_metrics
 
+        if self_inverse_ancilla is not None:
+            gates.append(
+                cirq.X.on(block_encoding_ancillae[i + 1]).controlled_by(
+                    self_inverse_ancilla
+                )
+            )
         rotation_gates, rotation_metrics = _add_multi_bosonic_rotations(
             block_encoding_ancillae[i + 1],
             system.bosonic_modes[active_index],
@@ -136,6 +164,12 @@ def bosonic_product_plus_hc_block_encoding(
         )
         gates += rotation_gates
         block_encoding_metrics += rotation_metrics
+        if self_inverse_ancilla is not None:
+            gates.append(
+                cirq.X.on(block_encoding_ancillae[i + 1]).controlled_by(
+                    self_inverse_ancilla
+                )
+            )
 
     gates.append(
         cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
@@ -157,6 +191,9 @@ def bosonic_product_plus_hc_block_encoding(
     )
     gates += _gates
     block_encoding_metrics += _metrics
+
+    if self_inverse_ancilla is not None:
+        gates.append(cirq.X.on(index).controlled_by(self_inverse_ancilla))
 
     gates.append(cirq.H.on(index))
 

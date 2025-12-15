@@ -39,6 +39,7 @@ def pauli_lcu_block_encoding(
     system_register,
     paulis,
     zero_threshold=1e-6,
+    self_inverse_ancilla=None,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -57,6 +58,7 @@ def pauli_lcu_block_encoding(
         - List of cirq operations representing the gates to be applied in the circuit
         - CircuitMetrics object representing cost of block-encoding circuit
     """
+    assert self_inverse_ancilla is None
     paulis = seperate_real_imag(paulis, zero_threshold=zero_threshold)
 
     # Check number of block-encoding ancillae is correct
