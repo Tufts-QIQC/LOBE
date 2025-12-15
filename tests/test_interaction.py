@@ -195,6 +195,100 @@ def test_interaction_terms(
     )
 
 
+@pytest.mark.parametrize("maximum_occupation_number", [1, 3])
+@pytest.mark.parametrize("self_inverse", [True, False])
+def test_interaction_term_fermionic_number_op(
+    maximum_occupation_number,
+    self_inverse,
+):
+    term = ParticleOperator("b0^ b0 a0") + ParticleOperator("b0^ b0 a0^")
+
+    number_of_block_encoding_ancillae = 1
+    if self_inverse:
+        number_of_block_encoding_ancillae += 1
+
+    ###############################################
+    number_of_clean_ancillae = 100
+    circuit = cirq.Circuit()
+    control = cirq.LineQubit(0)
+    block_encoding_ancillae = [
+        cirq.LineQubit(i + 1) for i in range(number_of_block_encoding_ancillae)
+    ]
+    clean_ancillae = [
+        cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
+        for i in range(number_of_clean_ancillae)
+    ]
+    system = System(
+        maximum_occupation_number,
+        1 + number_of_block_encoding_ancillae + number_of_clean_ancillae,
+        number_of_fermionic_modes=1,
+        number_of_bosonic_modes=1,
+    )
+    self_inverse_ancilla = None
+    if self_inverse:
+        self_inverse_ancilla = block_encoding_ancillae[0]
+        block_encoding_ancillae = block_encoding_ancillae[1:]
+
+    circuit.append(
+        cirq.I.on_each(
+            control,
+            *block_encoding_ancillae,
+            *system.fermionic_modes,
+        )
+    )
+    for bosonic_reg in system.bosonic_modes:
+        circuit.append(cirq.I.on_each(*bosonic_reg))
+
+    # Flip control qubit so that we can focus on the 0-subspace of the control
+    circuit.append(cirq.X.on(control))
+
+    be_function, expected_rescaling_factor = _determine_block_encoding_function(
+        term,
+        system,
+        block_encoding_ancillae,
+        self_inverse_ancilla=self_inverse_ancilla,
+        clean_ancillae=clean_ancillae,
+    )
+    assert np.isclose(expected_rescaling_factor, np.sqrt(maximum_occupation_number))
+    if self_inverse:
+        be_function = partial(
+            _make_be_func_self_inverse,
+            be_function=be_function,
+            system=system,
+            block_encoding_ancillae=block_encoding_ancillae,
+            self_inverse_ancilla=self_inverse_ancilla,
+            clean_ancillae=clean_ancillae,
+        )
+    gates, metrics = be_function(ctrls=([control], [1]))
+    circuit += gates
+    # Flip control qubit so that we can focus on the 0-subspace of the control
+    circuit.append(cirq.X.on(control))
+    #############################################################
+
+    _validate_block_encoding(
+        circuit,
+        system,
+        expected_rescaling_factor,
+        term,
+        number_of_block_encoding_ancillae,
+        maximum_occupation_number,
+    )
+    _validate_clean_ancillae_are_cleaned(
+        circuit, system, number_of_block_encoding_ancillae
+    )
+    _validate_block_encoding_does_nothing_when_control_is_off(
+        circuit, system, number_of_block_encoding_ancillae
+    )
+    if self_inverse:
+        _validate_block_encoding_select_is_self_inverse(
+            circuit,
+            system,
+            term,
+            number_of_block_encoding_ancillae,
+            maximum_occupation_number,
+        )
+
+
 @pytest.mark.parametrize("number_of_terms", [2, 4, 8, 16])
 def test_full_yukawa(number_of_terms):
 

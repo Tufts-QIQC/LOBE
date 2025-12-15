@@ -211,9 +211,14 @@ def _determine_block_encoding_function(
             _metrics = CircuitMetrics()
 
             if np.isclose(np.sign(term.coeff), -1):
-                _gates += _apply_negative_identity(
-                    system.fermionic_modes[0], ctrls=ctrls
-                )
+                if system.number_of_fermionic_modes > 0:
+                    _gates += _apply_negative_identity(
+                        system.fermionic_modes[0], ctrls=ctrls
+                    )
+                else:
+                    _gates += _apply_negative_identity(
+                        system.bosonic_modes[0][0], ctrls=ctrls
+                    )
 
             if len(fermionic_modes) > 0:
                 __gates, __metrics = fermionic_product_block_encoding(

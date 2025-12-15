@@ -166,7 +166,6 @@ def fermionic_plus_hc_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
-    block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
     gates = []
 
@@ -183,6 +182,7 @@ def fermionic_plus_hc_block_encoding(
         block_encoding_metrics += _metrics
         return gates, block_encoding_metrics
 
+    block_encoding_ancilla = block_encoding_ancillae[0]
     temporary_computations = []
     parity_qubits = []
     clean_ancillae_index = 0

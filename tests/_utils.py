@@ -91,7 +91,7 @@ def _validate_block_encoding(
             pytest.skip(f"Too many qubits to validate: {len(circuit.all_qubits())}")
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
-    elif len(circuit.all_qubits()) >= 12:
+    elif len(circuit.all_qubits()) >= 14:
         print(
             f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
@@ -122,6 +122,7 @@ def _validate_block_encoding(
             random_system_state = random_system_state / np.linalg.norm(
                 random_system_state
             )
+            attempts += 1
             if attempts > 3:
                 break
         zero_state = np.zeros(
