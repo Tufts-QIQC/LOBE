@@ -9,6 +9,7 @@ def fermionic_product_block_encoding(
     active_indices,
     operator_types,
     sign=1,
+    self_inverse_ancilla=None,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -23,6 +24,7 @@ def fermionic_product_block_encoding(
             to 0 if operator is a annihilation/lowering ladder operator (b_i). 1 if creation/raising ladder operator
             (b_i^\dagger). 2 if b_i^\dagger b_i. 3 if b_i b_i^dagger
         - sign (int): Either 1 or -1 to indicate the sign of the term
+        - self_inverse_ancilla (cirq.LineQubit): Should always be None. This block encoding function is natively self-inverse
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -33,6 +35,7 @@ def fermionic_product_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
+    assert self_inverse_ancilla is None
     gates = []
     block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
@@ -134,6 +137,7 @@ def fermionic_plus_hc_block_encoding(
     active_indices,
     operator_types,
     sign=1,
+    self_inverse_ancilla=None,
     clean_ancillae=[],
     ctrls=([], []),
 ):
@@ -152,6 +156,7 @@ def fermionic_plus_hc_block_encoding(
             0 if operator is a annihilation/lowering ladder operator. 1 if creation/raising ladder operator. 2 if
             number operator
         - sign (int): Either 1 or -1 to indicate the sign of the term
+        - self_inverse_ancilla (cirq.LineQubit): Should always be None. This block encoding function is natively self-inverse
         - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
         - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
@@ -163,6 +168,7 @@ def fermionic_plus_hc_block_encoding(
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
     assert len(block_encoding_ancillae) == 1
+    assert self_inverse_ancilla is None
     block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
     gates = []

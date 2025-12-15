@@ -321,9 +321,7 @@ def translate_antifermions_to_fermions(operator, max_fermionic_mode=None):
         if max_fermionic_mode is None:
             max_fermionic_mode = 0
     translated_operator = None
-    print(operator)
     for term in operator:
-        print(term)
         translated_term = None
         for op in term.split():
             new_op = op

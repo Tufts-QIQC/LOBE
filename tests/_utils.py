@@ -2,6 +2,7 @@ import cirq
 import pytest
 import numpy as np
 from openparticle import generate_matrix
+from src.lobe.metrics import CircuitMetrics
 from src.lobe.system import System
 from src.lobe._utils import get_basis_of_full_system
 
@@ -11,6 +12,7 @@ def _setup(
     operator,
     maximum_occupation_number,
     block_encoding_function,
+    self_inverse=False,
 ):
     number_of_clean_ancillae = 100
 
@@ -20,6 +22,10 @@ def _setup(
     block_encoding_ancillae = [
         cirq.LineQubit(i + 1) for i in range(number_of_block_encoding_ancillae)
     ]
+    self_inverse_ancilla = None
+    if self_inverse:
+        self_inverse_ancilla = block_encoding_ancillae[0]
+        block_encoding_ancillae = block_encoding_ancillae[1:]
 
     clean_ancillae = [
         cirq.LineQubit(i + 1 + number_of_block_encoding_ancillae)
@@ -54,8 +60,9 @@ def _setup(
     circuit.append(cirq.X.on(control))
     # Generate full Block-Encoding circuit
     gates, metrics = block_encoding_function(
-        system,
-        block_encoding_ancillae,
+        system=system,
+        block_encoding_ancillae=block_encoding_ancillae,
+        self_inverse_ancilla=self_inverse_ancilla,
         clean_ancillae=clean_ancillae,
         ctrls=([control], [1]),
     )
@@ -76,7 +83,7 @@ def _validate_block_encoding(
     operator,
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -88,7 +95,7 @@ def _validate_block_encoding(
         print(
             f"Testing singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
-        simulator = cirq.Simulator()
+        simulator = cirq.Simulator(dtype=np.complex64)
 
         number_of_fermionic_modes = 0
         number_of_bosonic_modes = 0
@@ -186,7 +193,7 @@ def _validate_clean_ancillae_are_cleaned(
     circuit,
     system,
     number_of_block_encoding_ancillae,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -195,7 +202,7 @@ def _validate_clean_ancillae_are_cleaned(
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
     )
@@ -256,7 +263,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
     circuit,
     system,
     number_of_block_encoding_ancillae,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     if len(circuit.all_qubits()) >= max_qubits:
@@ -265,7 +272,7 @@ def _validate_block_encoding_does_nothing_when_control_is_off(
         else:
             print(f"Too many qubits to validate: {len(circuit.all_qubits())}")
 
-    simulator = cirq.Simulator()
+    simulator = cirq.Simulator(dtype=np.complex64)
     random_system_state = 1j * np.random.uniform(
         -1, 1, 1 << system.number_of_system_qubits
     )
@@ -310,7 +317,7 @@ def _validate_block_encoding_select_is_self_inverse(
     operator,
     number_of_block_encoding_ancillae,
     maximum_occupation_number,
-    max_qubits=18,
+    max_qubits=17,
     using_pytest=True,
 ):
     """
@@ -331,7 +338,7 @@ def _validate_block_encoding_select_is_self_inverse(
         print(
             f"Testing self-inverse by a singular quantum state for circuit with {len(circuit.all_qubits())} qubits"
         )
-        simulator = cirq.Simulator()
+        simulator = cirq.Simulator(dtype=np.complex64)
 
         number_of_fermionic_modes = 0
         number_of_bosonic_modes = 0
@@ -398,3 +405,30 @@ def _validate_block_encoding_select_is_self_inverse(
             np.eye(1 << number_of_system_qubits),
             unitary[: 1 << number_of_system_qubits, : 1 << number_of_system_qubits],
         )
+
+
+def _make_be_func_self_inverse(
+    be_function,
+    system,
+    block_encoding_ancillae,
+    self_inverse_ancilla=None,
+    clean_ancillae=[],
+    ctrls=([], []),
+):
+    gates, metrics = [], CircuitMetrics()
+
+    gates.append(cirq.H.on(self_inverse_ancilla))
+
+    _gates, _metrics = be_function(
+        system=system,
+        block_encoding_ancillae=block_encoding_ancillae,
+        self_inverse_ancilla=self_inverse_ancilla,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
+    )
+    gates += _gates
+    metrics += _metrics
+
+    gates.append(cirq.X.on(self_inverse_ancilla))
+    gates.append(cirq.H.on(self_inverse_ancilla))
+    return gates, metrics
