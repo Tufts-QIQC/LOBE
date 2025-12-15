@@ -273,7 +273,6 @@ def fermionic_plus_hc_block_encoding(
         gates += op_gates
         block_encoding_metrics += op_metrics
 
-
     return gates, block_encoding_metrics
 
 

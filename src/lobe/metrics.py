@@ -21,13 +21,14 @@ class CircuitMetrics:
             self.add_to_clean_ancillae_usage(number_of_used_ancillae - previous)
             previous = number_of_used_ancillae
         return self
-    
+
     def __eq__(self, other) -> bool:
         return (
-            self.number_of_elbows == other.number_of_elbows and
-            self.number_of_nonclifford_rotations == other.number_of_nonclifford_rotations and
-            self.number_of_t_gates == other.number_of_t_gates and
-            self.ancillae_highwater() == other.ancillae_highwater()
+            self.number_of_elbows == other.number_of_elbows
+            and self.number_of_nonclifford_rotations
+            == other.number_of_nonclifford_rotations
+            and self.number_of_t_gates == other.number_of_t_gates
+            and self.ancillae_highwater() == other.ancillae_highwater()
         )
 
     def add_to_clean_ancillae_usage(self, change):
@@ -72,6 +73,4 @@ class CircuitMetrics:
             "Number of non-Clifford rotations: ", self.number_of_nonclifford_rotations
         )
         print("Maximum number of used clean ancillae: ", self.ancillae_highwater())
-        print("Number of block-encoding ancillae: ", self.number_of_be_ancillae)
-        print("Rescaling factor: ", self.rescaling_factor)
         print("---------------")

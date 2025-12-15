@@ -48,7 +48,7 @@ def index_over_terms(
         # Apply block-encoding function
         _gates, _metrics = block_encoding_functions[index](ctrls=([index_ancilla], [1]))
         gates += _gates
-        
+
         block_encoding_metrics += _metrics
         # Release index control
         _gates, _ = decompose_controls_right(
