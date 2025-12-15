@@ -72,6 +72,7 @@ def bosonic_product_block_encoding(
         )
         gates += _gates
         block_encoding_metrics += _metrics
+
         if self_inverse_ancilla is not None:
             gates.append(
                 cirq.X.on(block_encoding_ancilla).controlled_by(self_inverse_ancilla)
