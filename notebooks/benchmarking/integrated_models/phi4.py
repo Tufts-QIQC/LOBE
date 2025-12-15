@@ -15,10 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../
 from src.lobe.system import System
 from pauli_lcu import lcuify, piecewise_lcu
 from src.lobe.asp import get_target_state, add_prepare_circuit
-from src.lobe.rescale import (
-    get_number_of_active_bosonic_modes,
-)
-from src.lobe._utils import get_bosonic_exponents
+from src.lobe._utils import get_bosonic_exponents, get_number_of_active_bosonic_modes
 from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from src.lobe.bosonic import (
