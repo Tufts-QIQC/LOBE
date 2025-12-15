@@ -57,8 +57,8 @@ def index_over_terms(
             self_inverse_ancilla=self_inverse_ancilla, ctrls=([index_ancilla], [1])
         )
         gates += _gates
-        block_encoding_metrics += _metrics
 
+        block_encoding_metrics += _metrics
         # Release index control
         _gates, _ = decompose_controls_right(
             (index_register + ctrls[0], index_register_control_values + ctrls[1]),

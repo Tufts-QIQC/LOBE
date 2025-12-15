@@ -110,6 +110,7 @@ def test_bosonic_product_block_encoding(
         np.ceil(np.log2(maximum_occupation_number + 1))
         + max(int(np.log2(maximum_occupation_number + 1)) - 1, 0)
     )
+
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
         maximum_occupation_number + 3
     )
@@ -345,6 +346,7 @@ def test_bosonic_product_plus_hc_block_encoding(trial):
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
         maximum_occupation_number + 3
     )
+
     assert len(metrics.rotation_angles) == number_of_active_modes * (
         maximum_occupation_number + 3
     )
@@ -416,6 +418,7 @@ def test_phi4_term(term):
     assert metrics.number_of_nonclifford_rotations <= number_of_active_modes * (
         maximum_occupation_number + 3
     )
+
     assert len(metrics.rotation_angles) == number_of_active_modes * (
         maximum_occupation_number + 3
     )
