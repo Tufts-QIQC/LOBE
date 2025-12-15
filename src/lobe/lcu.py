@@ -179,7 +179,7 @@ def _select_paulis(
     coeffs = paulis.coeff_vec  # list(paulis.to_dictionary.values())
     n_system_qubits = paulis.n_qubits
 
-    def _apply_term(term, coeff, ctrls=([], [])):
+    def _apply_term(term, coeff, self_inverse_ancilla=None, ctrls=([], [])):
         gates = []
         for n in range(n_system_qubits):
             operator = term[n]

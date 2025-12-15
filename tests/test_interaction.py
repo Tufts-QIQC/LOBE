@@ -266,7 +266,10 @@ def test_full_yukawa(number_of_terms):
     metrics += _metrics
 
     _gates, _metrics = index_over_terms(
-        index_register, block_encoding_functions, clean_ancillae, ctrls=ctrls
+        index_register,
+        block_encoding_functions,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
     )
     gates += _gates
     metrics += _metrics

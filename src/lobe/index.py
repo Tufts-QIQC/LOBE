@@ -53,7 +53,9 @@ def index_over_terms(
         gates += _gates
 
         # Apply block-encoding function
-        _gates, _metrics = block_encoding_functions[index](ctrls=([index_ancilla], [1]))
+        _gates, _metrics = block_encoding_functions[index](
+            self_inverse_ancilla=self_inverse_ancilla, ctrls=([index_ancilla], [1])
+        )
         gates += _gates
         block_encoding_metrics += _metrics
 

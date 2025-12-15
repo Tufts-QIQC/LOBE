@@ -499,7 +499,7 @@ def test_phi4_sum_of_self_conjugate_terms(operator):
     gates += _gates
 
     _gates, _ = index_over_terms(
-        index_register, BE_functions, clean_ancillae, ctrls=ctrls
+        index_register, BE_functions, clean_ancillae=clean_ancillae, ctrls=ctrls
     )
     gates += _gates
 
@@ -624,7 +624,10 @@ def test_phi4_hamiltonian_block_encoding(res, maximum_occupation_number):
     gates += _gates
 
     _gates, _ = index_over_terms(
-        index_register, block_encoding_functions, clean_ancillae, ctrls=ctrls
+        index_register,
+        block_encoding_functions,
+        clean_ancillae=clean_ancillae,
+        ctrls=ctrls,
     )
     gates += _gates
 

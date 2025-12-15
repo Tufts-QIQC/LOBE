@@ -164,6 +164,7 @@ def _determine_block_encoding_function(
     fermionic_modes, fermionic_operator_types = get_fermionic_operator_types(term)
     bosonic_modes, bosonic_exponents_list = get_bosonic_exponents(term)
     if len(group.op_dict.keys()) == 2:
+        power = sum([sum(exponents) for exponents in bosonic_exponents_list])
 
         if len(bosonic_modes) == 0:
             be_function = partial(
@@ -175,6 +176,7 @@ def _determine_block_encoding_function(
                 sign=np.sign(term.coeff),
                 clean_ancillae=clean_ancillae[::-1],
             )
+            return be_function, 1
         elif len(fermionic_modes) == 0:
             be_function = partial(
                 bosonic_product_plus_hc_block_encoding,
@@ -186,6 +188,7 @@ def _determine_block_encoding_function(
                 self_inverse_ancilla=self_inverse_ancilla,
                 clean_ancillae=clean_ancillae[::-1],
             )
+            return be_function, 2 * np.sqrt(system.maximum_occupation_number) ** power
         else:
             be_function = partial(
                 interaction_term_block_encoding,
@@ -199,11 +202,10 @@ def _determine_block_encoding_function(
                 self_inverse_ancilla=self_inverse_ancilla,
                 clean_ancillae=clean_ancillae[::-1],
             )
-        power = sum([sum(exponents) for exponents in bosonic_exponents_list])
-        return be_function, np.sqrt(system.maximum_occupation_number) ** power
+            return be_function, np.sqrt(system.maximum_occupation_number) ** power
     else:
 
-        def _helper(ctrls=([], [])):
+        def _helper(ctrls=([], []), **kwargs):
             be_counter = 0
             _gates = []
             _metrics = CircuitMetrics()

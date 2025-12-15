@@ -7,9 +7,9 @@ from src.lobe.system import System
 from _utils import _validate_clean_ancillae_are_cleaned
 
 
-@pytest.mark.parametrize("number_of_terms", np.random.randint((1 << 10) + 1, size=20))
+@pytest.mark.parametrize("number_of_terms", np.random.randint((1 << 10) + 2, size=20))
 def test_index_over_terms_metrics(number_of_terms):
-    def _block_encoding_func(ctrls=([], [])):
+    def _block_encoding_func(self_inverse_ancilla=None, ctrls=([], [])):
         return [], CircuitMetrics()
 
     index_register = [
@@ -32,7 +32,7 @@ def test_index_over_terms_metrics(number_of_terms):
 
 
 def test_index_over_terms_adds_metrics():
-    def _block_encoding_func(ctrls=([], [])):
+    def _block_encoding_func(self_inverse_ancilla=None, ctrls=([], [])):
         metrics = CircuitMetrics()
         metrics.number_of_elbows += 10
         for _ in range(20):
@@ -70,7 +70,7 @@ def test_index_lcu():
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
     system = System(1, 300, number_of_fermionic_modes=1)
 
-    def _apply_X(ctrls=([], [])):
+    def _apply_X(self_inverse_ancilla=None, ctrls=([], [])):
         _gates = [
             cirq.X.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
@@ -78,7 +78,7 @@ def test_index_lcu():
         ]
         return _gates, CircuitMetrics()
 
-    def _apply_Y(ctrls=([], [])):
+    def _apply_Y(self_inverse_ancilla=None, ctrls=([], [])):
         _gates = [
             cirq.Y.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
@@ -86,7 +86,7 @@ def test_index_lcu():
         ]
         return _gates, CircuitMetrics()
 
-    def _apply_Z(ctrls=([], [])):
+    def _apply_Z(self_inverse_ancilla=None, ctrls=([], [])):
         _gates = [
             cirq.Z.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
@@ -127,7 +127,7 @@ def test_index_controlled():
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
     system = System(1, 300, number_of_fermionic_modes=1)
 
-    def _apply_X(ctrls=([], [])):
+    def _apply_X(self_inverse_ancilla=None, ctrls=([], [])):
         _gates = [
             cirq.X.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
@@ -157,7 +157,7 @@ def test_index_no_controls():
     clean_ancillae = [cirq.LineQubit(i + 200) for i in range(100)]
     system = System(1, 300, number_of_fermionic_modes=1)
 
-    def _apply_X(ctrls=([], [])):
+    def _apply_X(self_inverse_ancilla=None, ctrls=([], [])):
         _gates = [
             cirq.X.on(system.fermionic_modes[0]).controlled_by(
                 *ctrls[0], control_values=ctrls[1]
