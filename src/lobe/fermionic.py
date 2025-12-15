@@ -35,7 +35,6 @@ def fermionic_product_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
-    assert self_inverse_ancilla is None
     gates = []
     block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
@@ -167,9 +166,6 @@ def fermionic_plus_hc_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
-    assert len(block_encoding_ancillae) == 1
-    assert self_inverse_ancilla is None
-    block_encoding_ancilla = block_encoding_ancillae[0]
     block_encoding_metrics = CircuitMetrics()
     gates = []
 
@@ -177,7 +173,8 @@ def fermionic_plus_hc_block_encoding(
         gates.append(cirq.Z.on(ctrls[0][0]))
 
     if len(active_indices) == 1:
-        assert (operator_types[0] == 0) or (operator_types[0] == 1)
+        if (operator_types[0] == 2) or (operator_types[0] == 3):
+            return gates, block_encoding_metrics
         _gates, _metrics = _apply_fermionic_ladder_op(
             system, active_indices[0], ctrls=ctrls
         )
@@ -185,6 +182,7 @@ def fermionic_plus_hc_block_encoding(
         block_encoding_metrics += _metrics
         return gates, block_encoding_metrics
 
+    block_encoding_ancilla = block_encoding_ancillae[0]
     temporary_computations = []
     parity_qubits = []
     clean_ancillae_index = 0

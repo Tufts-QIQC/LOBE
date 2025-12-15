@@ -184,7 +184,9 @@ def count_metrics_analytic(operator, max_occupancy: int = 1):
                 number_of_elbows = len(active_fermionic_modes) - 1
 
             elif term.has_bosons and not term.has_fermions:  # e.g. ai^ aj + aj^ ai
-                rescaling_factor += np.abs(term.coeffs[0]) * (max_occupancy ** (P / 2))
+                rescaling_factor += (
+                    np.abs(term.coeffs[0]) * 2 * (max_occupancy ** (P / 2))
+                )
                 clean_ancillae_usage = [
                     i + number_of_indexing_clean_ancillae
                     for i in range(1, int(np.ceil(np.log2(max_occupancy + 1))) + 1 + 1)

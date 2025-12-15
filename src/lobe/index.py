@@ -1,10 +1,15 @@
+import cirq
 import numpy as np
 from .decompose import decompose_controls_left, decompose_controls_right
 from .metrics import CircuitMetrics
 
 
 def index_over_terms(
-    index_register, block_encoding_functions, clean_ancillae, ctrls=([], [])
+    index_register,
+    block_encoding_functions,
+    self_inverse_ancilla=None,
+    clean_ancillae=[],
+    ctrls=([], []),
 ):
     """Create a block-encoding of a linear combination of block-encodings
 
@@ -23,8 +28,10 @@ def index_over_terms(
     assert len(ctrls[0]) <= 1
     if len(ctrls[0]) > 0:
         assert ctrls[1] == [1]
-    gates = []
-    block_encoding_metrics = CircuitMetrics()
+    gates, block_encoding_metrics = [], CircuitMetrics()
+
+    if self_inverse_ancilla is not None:
+        gates.append(cirq.H.on(self_inverse_ancilla))
 
     number_of_terms = len(block_encoding_functions)
     block_encoding_metrics.number_of_elbows += number_of_terms - 1
@@ -46,7 +53,9 @@ def index_over_terms(
         gates += _gates
 
         # Apply block-encoding function
-        _gates, _metrics = block_encoding_functions[index](ctrls=([index_ancilla], [1]))
+        _gates, _metrics = block_encoding_functions[index](
+            self_inverse_ancilla=self_inverse_ancilla, ctrls=([index_ancilla], [1])
+        )
         gates += _gates
 
         block_encoding_metrics += _metrics
@@ -60,4 +69,9 @@ def index_over_terms(
     block_encoding_metrics.add_to_clean_ancillae_usage(
         -int(np.ceil(np.log2(number_of_terms)))
     )
+
+    if self_inverse_ancilla is not None:
+        gates.append(cirq.X.on(self_inverse_ancilla))
+        gates.append(cirq.H.on(self_inverse_ancilla))
+
     return gates, block_encoding_metrics

@@ -41,13 +41,15 @@ def interaction_term_block_encoding(
         Expected ordering of bosonic indices is [t, ..., k, l].
 
     Args:
-        system (lobe.system.System): The system object holding the system registers
-        block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
-        active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
+        - system (lobe.system.System): The system object holding the system registers
+        - block_encoding_ancillae (List[cirq.LineQubit]): The block-encoding ancillae qubits
+        - active_indices (List[int]): A list of the modes upon which the ladder operators act. Assumed to be in order
             of which operators are applied (right to left).
-        sign (int): Either 1 or -1 to indicate the sign of the term
-        clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
-        ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
+        - sign (int): Either 1 or -1 to indicate the sign of the term
+        - self_inverse_ancilla (cirq.LineQubit): An optional block-encoding ancilla which is used to make the block
+            encoding circuit self-inverse
+        - clean_ancillae (List[cirq.LineQubit]): A list of qubits that are promised to start and end in the 0-state.
+        - ctrls (Tuple(List[cirq.LineQubit], List[int])): A set of qubits and integers that correspond to
             the control qubits and values.
 
     Returns:
@@ -56,7 +58,6 @@ def interaction_term_block_encoding(
     """
     assert len(ctrls[0]) == 1
     assert ctrls[1] == [1]
-    assert self_inverse_ancilla is None
     gates = []
     block_encoding_metrics = CircuitMetrics()
     be_counter = 0
@@ -95,6 +96,9 @@ def interaction_term_block_encoding(
         rotation_angles = _get_bosonic_rotation_angles(
             system.maximum_occupation_number, exponents[0], exponents[1]
         )
+
+        if self_inverse_ancilla is not None:
+            gates.append(cirq.X.on(be_ancilla).controlled_by(self_inverse_ancilla))
         rotation_gates, rotation_metrics = get_decomposed_multiplexed_rotation_circuit(
             system.bosonic_modes[bosonic_index],
             be_ancilla,
@@ -105,6 +109,8 @@ def interaction_term_block_encoding(
         gates += rotation_gates
         block_encoding_metrics += rotation_metrics
         be_counter += 1
+        if self_inverse_ancilla is not None:
+            gates.append(cirq.X.on(be_ancilla).controlled_by(self_inverse_ancilla))
 
     gates.append(
         cirq.X.on(clean_ancillae[0]).controlled_by(*ctrls[0], control_values=ctrls[1])
@@ -151,13 +157,14 @@ def _determine_block_encoding_function(
     group,
     system,
     block_encoding_ancillae,
-    clean_ancillae,
     self_inverse_ancilla: cirq.LineQubit = None,
+    clean_ancillae=[],
 ):
     term = group.to_list()[0].mode_order()
     fermionic_modes, fermionic_operator_types = get_fermionic_operator_types(term)
     bosonic_modes, bosonic_exponents_list = get_bosonic_exponents(term)
     if len(group.op_dict.keys()) == 2:
+        power = sum([sum(exponents) for exponents in bosonic_exponents_list])
 
         if len(bosonic_modes) == 0:
             be_function = partial(
@@ -169,6 +176,7 @@ def _determine_block_encoding_function(
                 sign=np.sign(term.coeff),
                 clean_ancillae=clean_ancillae[::-1],
             )
+            return be_function, 1
         elif len(fermionic_modes) == 0:
             be_function = partial(
                 bosonic_product_plus_hc_block_encoding,
@@ -180,6 +188,7 @@ def _determine_block_encoding_function(
                 self_inverse_ancilla=self_inverse_ancilla,
                 clean_ancillae=clean_ancillae[::-1],
             )
+            return be_function, 2 * np.sqrt(system.maximum_occupation_number) ** power
         else:
             be_function = partial(
                 interaction_term_block_encoding,
@@ -193,19 +202,23 @@ def _determine_block_encoding_function(
                 self_inverse_ancilla=self_inverse_ancilla,
                 clean_ancillae=clean_ancillae[::-1],
             )
-        power = sum([sum(exponents) for exponents in bosonic_exponents_list])
-        return be_function, np.sqrt(system.maximum_occupation_number) ** power
+            return be_function, np.sqrt(system.maximum_occupation_number) ** power
     else:
 
-        def _helper(ctrls=([], [])):
+        def _helper(ctrls=([], []), **kwargs):
             be_counter = 0
             _gates = []
             _metrics = CircuitMetrics()
 
             if np.isclose(np.sign(term.coeff), -1):
-                _gates += _apply_negative_identity(
-                    system.fermionic_modes[0], ctrls=ctrls
-                )
+                if system.number_of_fermionic_modes > 0:
+                    _gates += _apply_negative_identity(
+                        system.fermionic_modes[0], ctrls=ctrls
+                    )
+                else:
+                    _gates += _apply_negative_identity(
+                        system.bosonic_modes[0][0], ctrls=ctrls
+                    )
 
             if len(fermionic_modes) > 0:
                 __gates, __metrics = fermionic_product_block_encoding(
