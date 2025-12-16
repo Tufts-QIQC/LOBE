@@ -191,19 +191,21 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
 
 def get_data(omega, resolutions):
     LCU_DATA = []
-    LCU_PIECEWISE_DATA = []
+    # LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
     operator_norms = []
     for resolution in resolutions:
         print("---", resolution, "---", omega, "---")
         operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
 
+        print("Generating LCU Data", flush=True)
         LCU_DATA.append(lcuify(operator, omega))
-        LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
+        # LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
+        print("Generating LOBE Data", flush=True)
         LOBE_DATA.append(lobeify(operator, omega))
         operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
 
-    return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms
+    return LCU_DATA, None, LOBE_DATA, operator_norms
 
 
 resolution_range = np.arange(2, 8, 1)

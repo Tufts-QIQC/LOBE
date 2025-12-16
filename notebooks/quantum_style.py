@@ -3,6 +3,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import rc
 from cycler import cycler
+import os
 
 _widths = {
     # a4paper columnwidth = 426.79135 pt = 5.93 in
@@ -74,7 +75,7 @@ def global_setup(columns="twocolumn", paper="a4paper", fontsize=10):
     plt.style.use(
         [
             "seaborn-v0_8-white",
-            "/Users/williamsimon/Desktop/Research/LOBE-Quantum/quantum-plots.mplstyle",
+            "../../quantum-plots.mplstyle",
         ]
     )
 
@@ -111,7 +112,6 @@ def global_setup(columns="twocolumn", paper="a4paper", fontsize=10):
     plt.rcParams["ytick.minor.visible"] = False
     plt.rcParams["ytick.minor.size"] = 2
     plt.rcParams["ytick.minor.width"] = 0.6
-    print("Setup methods loaded")
 
     return {
         "fontsizes": fontsizes,
