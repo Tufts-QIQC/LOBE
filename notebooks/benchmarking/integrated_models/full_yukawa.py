@@ -129,7 +129,7 @@ def get_data_varying_resolution(omega, resolutions):
     for resolution in resolutions:
         print("---", resolution, "---", omega, "---")
         operator = yukawa_hamiltonian(res=resolution, g=1, mf=1, mb=1)
-        operator = translate_antifermions_to_fermions(operator)
+        operator = translate_antifermions_to_fermions(operator).normal_order()
         numbers_of_groups.append(len(operator.group()))
 
         LCU_DATA.append(lcuify(operator, omega))
