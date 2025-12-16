@@ -227,3 +227,26 @@ def test_numeric_and_analytic_LOBE_counts_arbitrary_operator(maximum_occupation)
     assert analytic_metrics == numeric_metrics
     assert np.isclose(analytic_rescaling_factor, numeric_rescaling_factor)
     assert np.isclose(analytic_n_be_anc, numeric_n_be_anc)
+
+def test_pregrouped_operator():
+    maximum_occupation = 3
+    operator = yukawa_hamiltonian(2, 1, 1, 1)
+    operator += (
+        ParticleOperator("b0^ b1^ b0 b1") + ParticleOperator("b0^ b1^ b0 b1").dagger()
+    )
+    operator += (
+        ParticleOperator("a0^ a1^ a0 a1") + ParticleOperator("a0^ a1^ a0 a1").dagger()
+    )
+    numeric_metrics, numeric_rescaling_factor, numeric_n_be_anc = count_metrics_numeric(
+        operator, maximum_occupation
+    )
+    operator = operator.group()
+    analytic_metrics, analytic_rescaling_factor, analytic_n_be_anc = (
+        count_metrics_analytic(operator, maximum_occupation)
+    )
+
+   
+
+    assert analytic_metrics == numeric_metrics
+    assert np.isclose(analytic_rescaling_factor, numeric_rescaling_factor)
+    assert np.isclose(analytic_n_be_anc, numeric_n_be_anc)
