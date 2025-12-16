@@ -6,7 +6,7 @@ import sys, os
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../../.."))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../.."))
 sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../"))
-from pauli_lcu import lcuify, piecewise_lcu
+from pauli_lcu import lcuify
 from src.lobe.asp import get_target_state, add_prepare_circuit
 from src.lobe.rescale import rescale_coefficients
 from src.lobe.system import System
@@ -16,9 +16,7 @@ from src.lobe._utils import translate_antifermions_to_fermions
 from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from tests._utils import _validate_block_encoding
-from openparticle import generate_matrix
 from src.lobe._utils import (
-    get_basis_of_full_system,
     predict_number_of_block_encoding_ancillae,
 )
 
@@ -122,39 +120,28 @@ def lobeify(operator, max_bosonic_occupancy):
     )
 
 
-def _get_hamiltonian_norm(operator, maximum_occupation_number):
-    basis = get_basis_of_full_system(
-        maximum_occupation_number,
-        operator.max_fermionic_mode + 1,
-        operator.max_bosonic_mode + 1,
-    )
-    matrix = generate_matrix(operator, basis)
-
-    return np.linalg.norm(matrix, ord=2)
-
-
 def get_data_varying_resolution(omega, resolutions):
     LCU_DATA = []
     LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
+    numbers_of_groups = []
     operator_norms = []
     for resolution in resolutions:
         print("---", resolution, "---", omega, "---")
         operator = yukawa_hamiltonian(res=resolution, g=1, mf=1, mb=1)
         operator = translate_antifermions_to_fermions(operator).normal_order()
+        numbers_of_groups.append(len(operator.group()))
 
         LCU_DATA.append(lcuify(operator, omega))
-        LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
         LOBE_DATA.append(lobeify(operator, omega))
-        # operator_norms.append(_get_hamiltonian_norm(operator, omega))
 
-    return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms
+    return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms, numbers_of_groups
 
 
-resolution_range = np.arange(2, 9, 1)
-omega = 7
-LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms = get_data_varying_resolution(
-    omega, resolution_range
+resolution_range = np.arange(2, 8, 1)
+omega = 3
+LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms, numbers_of_groups = (
+    get_data_varying_resolution(omega, resolution_range)
 )
 
 import pickle
@@ -169,6 +156,7 @@ with open(
             LCU_PIECEWISE_DATA,
             LOBE_DATA,
             operator_norms,
+            numbers_of_groups,
             omega,
             resolution_range,
         ),

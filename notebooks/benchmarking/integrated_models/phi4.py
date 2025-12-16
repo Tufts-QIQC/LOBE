@@ -15,10 +15,7 @@ sys.path.append(os.path.join(os.path.dirname(os.path.realpath("__file__")), "../
 from src.lobe.system import System
 from pauli_lcu import lcuify, piecewise_lcu
 from src.lobe.asp import get_target_state, add_prepare_circuit
-from src.lobe.rescale import (
-    get_number_of_active_bosonic_modes,
-)
-from src.lobe._utils import get_bosonic_exponents
+from src.lobe._utils import get_bosonic_exponents, get_number_of_active_bosonic_modes
 from src.lobe.index import index_over_terms
 from src.lobe.metrics import CircuitMetrics
 from src.lobe.bosonic import (
@@ -194,19 +191,21 @@ def _get_phi4_hamiltonian_norm(res, maximum_occupation_number, g=1):
 
 def get_data(omega, resolutions):
     LCU_DATA = []
-    LCU_PIECEWISE_DATA = []
+    # LCU_PIECEWISE_DATA = []
     LOBE_DATA = []
     operator_norms = []
     for resolution in resolutions:
         print("---", resolution, "---", omega, "---")
         operator = phi4_Hamiltonian(resolution, 1, 1).normal_order()
 
+        print("Generating LCU Data", flush=True)
         LCU_DATA.append(lcuify(operator, omega))
-        LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
+        # LCU_PIECEWISE_DATA.append(piecewise_lcu(operator, omega))
+        print("Generating LOBE Data", flush=True)
         LOBE_DATA.append(lobeify(operator, omega))
         operator_norms.append(_get_phi4_hamiltonian_norm(resolution, omega))
 
-    return LCU_DATA, LCU_PIECEWISE_DATA, LOBE_DATA, operator_norms
+    return LCU_DATA, None, LOBE_DATA, operator_norms
 
 
 resolution_range = np.arange(2, 8, 1)
