@@ -307,29 +307,29 @@ def _apply_negative_identity(target, ctrls=([], [])):
     return gates
 
 
-def translate_antifermions_to_fermions(operator, max_fermionic_mode=None):
+def translate_antifermions_to_fermions(operator, first_antifermionic_index=None):
     """Translate all antifermionic modes to fermionic modes with higher index
 
     Args:
         - operator (ParticleOperator): The operation which potentially contains antifermions
+        - first_antifermionic_index (int): The starting index for antifermionic modes
 
     Returns:
         - ParticleOperator: The operator where antifermionic modes are replaced with distinct fermionic modes
     """
-    if max_fermionic_mode is None:
-        max_fermionic_mode = operator.max_fermionic_mode
-        if max_fermionic_mode is None:
-            max_fermionic_mode = 0
+    if first_antifermionic_index is None:
+        if operator.has_fermions:
+            first_antifermionic_index = operator.max_fermionic_mode + 1
+        else:
+            first_antifermionic_index = 0
     translated_operator = None
-    for term in operator:
+    for term in operator.to_list():
         translated_term = None
         for op in term.split():
             new_op = op
             if op.op_dict.get((), None) is None:
                 if list(op.op_dict.keys())[0][0][0] == 1:  # if it an antifermionic op
-                    updated_mode = op.mode + max_fermionic_mode
-                    if operator.has_fermions:
-                        updated_mode += 1
+                    updated_mode = op.mode + first_antifermionic_index
                     expected_tuple = (
                         0,  # make it a fermion
                         updated_mode,  # update the mode index
@@ -356,9 +356,20 @@ def predict_number_of_block_encoding_ancillae(operator):
 
     number_of_block_encoding_ancillae = len(get_active_bosonic_modes(operator))
     has_fermionic_modes = len(get_active_fermionic_modes(operator)) > 0
+    _, fermionic_operator_types = get_fermionic_operator_types(operator.to_list()[0])
     if (len(operator.to_list()) == 2) and (not has_fermionic_modes):
         # require additional index qubit between terms
         number_of_block_encoding_ancillae += 1
+    elif (
+        (len(operator.to_list()) == 2)
+        and has_fermionic_modes
+        and (
+            (np.all(np.array(fermionic_operator_types) == 2))
+            or (np.all(np.array(fermionic_operator_types) == 3))
+        )
+    ):
+        # require one for fermionic terms and one for indexing bosonic
+        number_of_block_encoding_ancillae += 2
     elif has_fermionic_modes:
         number_of_block_encoding_ancillae += 1
 

@@ -26,7 +26,7 @@ def count_metrics_numeric(operator, max_bosonic_occupancy: int = 1):
         max_fermionic_mode = operator.max_fermionic_mode
         for term in groups:
             translated_groups.append(
-                translate_antifermions_to_fermions(term, max_fermionic_mode)
+                translate_antifermions_to_fermions(term, max_fermionic_mode + 1)
             )
         groups = translated_groups
         operator = sum(groups, ParticleOperator())
@@ -228,6 +228,7 @@ def test_numeric_and_analytic_LOBE_counts_arbitrary_operator(maximum_occupation)
     assert np.isclose(analytic_rescaling_factor, numeric_rescaling_factor)
     assert np.isclose(analytic_n_be_anc, numeric_n_be_anc)
 
+
 def test_pregrouped_operator():
     maximum_occupation = 3
     operator = yukawa_hamiltonian(2, 1, 1, 1)
@@ -244,8 +245,6 @@ def test_pregrouped_operator():
     analytic_metrics, analytic_rescaling_factor, analytic_n_be_anc = (
         count_metrics_analytic(operator, maximum_occupation)
     )
-
-   
 
     assert analytic_metrics == numeric_metrics
     assert np.isclose(analytic_rescaling_factor, numeric_rescaling_factor)

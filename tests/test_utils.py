@@ -156,3 +156,59 @@ def test_translate_antifermions_to_fermions_random(
     )
     translated_matrix = generate_matrix(translated_operator, translated_basis)
     assert np.allclose(matrix, translated_matrix)
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_0():
+    operator = ParticleOperator("d5^ d5")
+    expected_operator = ParticleOperator("b11^ b11")
+    translated_operator = translate_antifermions_to_fermions(operator, 6)
+
+    assert expected_operator == translated_operator
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_1():
+    operator = ParticleOperator("d5^ d5")
+    expected_operator = ParticleOperator("b5^ b5")
+    translated_operator = translate_antifermions_to_fermions(operator)
+
+    assert expected_operator == translated_operator
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_2():
+    operator = ParticleOperator("d0^ d0") + ParticleOperator("b0^ b0")
+    expected_operator = ParticleOperator("b1^ b1") + ParticleOperator("b0^ b0")
+    translated_operator = translate_antifermions_to_fermions(operator)
+
+    assert expected_operator == translated_operator
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_3():
+    operator = ParticleOperator("d5^ d5") + ParticleOperator("b5^ b5")
+    expected_operator = ParticleOperator("b11^ b11") + ParticleOperator("b5^ b5")
+    translated_operator = translate_antifermions_to_fermions(operator)
+
+    assert expected_operator == translated_operator
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_4():
+    operator = ParticleOperator("d5^ d5") + ParticleOperator("b0^ b0")
+    expected_operator = ParticleOperator("b6^ b6") + ParticleOperator("b0^ b0")
+    translated_operator = translate_antifermions_to_fermions(operator)
+
+    assert expected_operator == translated_operator
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_5():
+    operator = ParticleOperator("d0^ d0") + ParticleOperator("b5^ b5")
+    expected_operator = ParticleOperator("b6^ b6") + ParticleOperator("b5^ b5")
+    translated_operator = translate_antifermions_to_fermions(operator, 6)
+
+    assert expected_operator == translated_operator
+
+
+def test_translate_antifermions_to_fermions_antifermionic_numberop_6():
+    operator = ParticleOperator("d0^ d0")
+    expected_operator = ParticleOperator("b0^ b0")
+    translated_operator = translate_antifermions_to_fermions(operator, 0)
+
+    assert expected_operator == translated_operator

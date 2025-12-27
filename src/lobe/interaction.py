@@ -158,7 +158,6 @@ def _determine_block_encoding_function(
     fermionic_modes, fermionic_operator_types = get_fermionic_operator_types(term)
     bosonic_modes, bosonic_exponents_list = get_bosonic_exponents(term)
     if len(group.op_dict.keys()) == 2:
-
         if len(bosonic_modes) == 0:
             be_function = partial(
                 fermionic_plus_hc_block_encoding,
@@ -181,18 +180,61 @@ def _determine_block_encoding_function(
                 clean_ancillae=clean_ancillae[::-1],
             )
         else:
-            be_function = partial(
-                interaction_term_block_encoding,
-                system=system,
-                block_encoding_ancillae=block_encoding_ancillae,
-                fermionic_indices=fermionic_modes[::-1],
-                fermionic_operator_types=fermionic_operator_types[::-1],
-                bosonic_indices=bosonic_modes,
-                bosonic_exponents_list=bosonic_exponents_list,
-                sign=np.sign(term.coeff),
-                self_inverse_ancilla=self_inverse_ancilla,
-                clean_ancillae=clean_ancillae[::-1],
-            )
+            if np.all(np.array(fermionic_operator_types) == 2) or np.all(
+                np.array(fermionic_operator_types) == 3
+            ):
+
+                def _helper_2(ctrls=([], [])):
+                    be_counter = 0
+                    _gates = []
+                    _metrics = CircuitMetrics()
+
+                    if np.isclose(np.sign(term.coeff), -1):
+                        _gates += _apply_negative_identity(
+                            system.fermionic_modes[0], ctrls=ctrls
+                        )
+
+                    __gates, __metrics = fermionic_product_block_encoding(
+                        system=system,
+                        block_encoding_ancillae=[block_encoding_ancillae[be_counter]],
+                        active_indices=fermionic_modes[::-1],
+                        operator_types=fermionic_operator_types[::-1],
+                        clean_ancillae=clean_ancillae[::-1],
+                        ctrls=ctrls,
+                    )
+                    _gates += __gates
+                    _metrics += __metrics
+                    be_counter += 1
+
+                    __gates, __metrics = bosonic_product_plus_hc_block_encoding(
+                        system=system,
+                        block_encoding_ancillae=block_encoding_ancillae[be_counter:],
+                        active_indices=bosonic_modes,
+                        exponents_list=bosonic_exponents_list,
+                        self_inverse_ancilla=self_inverse_ancilla,
+                        clean_ancillae=clean_ancillae[::-1],
+                        ctrls=ctrls,
+                    )
+                    _gates += __gates
+                    _metrics += __metrics
+                    be_counter += len(bosonic_modes)
+
+                    return _gates, _metrics
+
+                be_function = _helper_2
+            else:
+                be_function = partial(
+                    interaction_term_block_encoding,
+                    system=system,
+                    block_encoding_ancillae=block_encoding_ancillae,
+                    fermionic_indices=fermionic_modes[::-1],
+                    fermionic_operator_types=fermionic_operator_types[::-1],
+                    bosonic_indices=bosonic_modes,
+                    bosonic_exponents_list=bosonic_exponents_list,
+                    sign=np.sign(term.coeff),
+                    self_inverse_ancilla=self_inverse_ancilla,
+                    clean_ancillae=clean_ancillae[::-1],
+                )
         power = sum([sum(exponents) for exponents in bosonic_exponents_list])
         return be_function, np.sqrt(system.maximum_occupation_number) ** power
     else:
