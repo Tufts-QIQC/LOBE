@@ -367,7 +367,8 @@ def _count_metrics_numeric_by_group(
 
 
 def _count_metrics_analytic_fast(
-    list_of_semi_groups, max_occupancy: int = 1, max_fermionic_mode: int = 0
+    list_of_semi_groups, max_occupancy: int = 1, max_fermionic_mode: int = 0,
+    in_parallel: bool = False
 ):
 
     translated_groups = []
@@ -378,6 +379,8 @@ def _count_metrics_analytic_fast(
     groups = translated_groups
 
     L = len(groups)
+    if in_parallel:
+        L += 1
     number_of_indexing_clean_ancillae = np.ceil(np.log2(L))
 
     metrics = CircuitMetrics()
